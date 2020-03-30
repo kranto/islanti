@@ -248,6 +248,7 @@ var cards = (function() {
 
 		render : function(options) {
 			options = options || {};
+			if (this.setElementWidth) this.setElementWidth(options);
 			var speed = options.speed || opt.animationSpeed;
 			this.calcPosition(options);
 			for (var i=0;i<this.length;i++) {
@@ -349,6 +350,10 @@ var cards = (function() {
 
 	Hand.prototype = new Container();
 	Hand.prototype.extend({
+		setElementWidth: function(options) {
+			var pad = options.padding ? options.padding : opt.cardSize.padding;
+			this.boundingElement.width(opt.cardSize.width + Math.max(this.length - 1, 2) * pad);
+		},
 		calcPadding: function(options) {
 			var maxWidth = options.maxWidth || this.boundingElement ? elementRect(this.boundingElement).width - 20 : false || this.maxWidth;
 			var pad = options.padding ? options.padding : opt.cardSize.padding;

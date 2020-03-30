@@ -95,24 +95,28 @@ img.preload {
 	margin-left: 20px;
 }
 
-.open-hand {
+.open-hand, .new-open {
 	float: left;
-	width: 200px;
 	height: 120px;
-	margin: 10px;
+	margin: 10px 5px;
 	border: 1px solid gray;
 	border-radius: 10px;
 }
 
-.open-hand.droppable, #pile.droppable {
+.droppable {
 	border-color: gold;
 }
 
+.new-open {
+	width: 80px;
+	color: white;
+	font-size: 3em;
+	vertical-align: middle;
+	text-align: center;
+}
+
 #myhand {
-	float: none;
-	position: relative;
-	margin: 0 auto;
-	height: 120px;
+	clear: left;
 	width: 400px;
 }
 

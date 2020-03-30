@@ -47,22 +47,33 @@ var myhand = new cards.Hand({faceUp:true, y:540, maxWidth: 400,
 
 });
 
-for (var i = 1; i <= 3; i++) {
-	var section = new cards.Hand({
-		faceUp:true, 
-		boundingElement: $("#open" + i),
-		canDrop: function(card) {
-			return card.container === this || 
-				(card.container !== this && this.length < 13);
-		},
-		drop: function(card) {
-			this.addCard(card, true);
-		},
-		isDraggable: function(card) {
-			return true;
-		}
-	});
-}
+var newOpen = new cards.Hand({
+	faceUp:true,
+	boundingElement: $("#newopen"),
+	canDrop: function(card) {
+		return true;
+	},
+	drop: function(card) {
+		var el = $("#open-hand-template").clone().removeAttr("id").show();
+		el.insertBefore("#newopen");
+		var openHand = new cards.Hand({
+			faceUp:true, 
+			boundingElement: el,
+			canDrop: function(card) {
+				return card.container === this || 
+					(card.container !== this && this.length < 13);
+			},
+			drop: function(card) {
+				this.addCard(card, true);
+			},
+			isDraggable: function(card) {
+				return true;
+			}
+		});
+		openHand.addCard(card, true);
+		cards.refresh();
+	}
+});
 
 discardPile = new cards.Deck({faceUp:true, boundingElement: $("#pile"),
 	canDrop: function(card) {
@@ -70,6 +81,7 @@ discardPile = new cards.Deck({faceUp:true, boundingElement: $("#pile"),
 	},
 	drop: function(card) {
 		this.addCard(card);
+		cards.refresh();
 		setState(false, "");
 	},
 });
@@ -79,6 +91,7 @@ deck.click(function(card){
 		setState(true, "TURN_ACTIVE");
 		myhand.addCard(card);
 		myhand.render();
+		cards.refresh();
 	}
 });
 
@@ -87,6 +100,7 @@ discardPile.click(function(card){
 		setState(true, "TURN_ACTIVE");
 		myhand.addCard(card);
 		myhand.render();
+		cards.refresh();
 	}
 });
 
