@@ -129,8 +129,8 @@ var cards = (function() {
 				position:'absolute',
 				cursor:'pointer'	
 			}).addClass('card').data('card', this).appendTo($(table));
-			this.el.html('<img src="svg/' + this.shortName + '.svg" alt="' + this.shortName + '"  class="faceup-img">' 
-				+'<img src="svg/cardback_' + this.cardback + '.svg" alt="' + "card face down" + '" class="facedown-img">');
+			this.el.html('<img src="svg/' + this.shortName + '.svg" alt="' + this.shortName + '" draggable="false" class="faceup-img">' 
+				+'<img src="svg/cardback_' + this.cardback + '.svg" alt="' + "card face down" + '" draggable="false" class="facedown-img">');
 			this.showCard();
 			this.moveToFront();
 		},
