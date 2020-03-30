@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Islanti</title>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width,initial-scale=0.5,maximum-scale=1,user-scalable=no"/>
+		<meta name="HandheldFriendly" content="true"/>
+		<link rel="stylesheet" href="testgame.css"/>
+		<!-- <script src="jquery-1.7.min.js"></script> -->
+		<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+		<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+		<script src="js/jquery.ui.touch-punch.min.js"></script>
+	</head>
+	<body>
+		<!-- <h1>Islanti</h1> -->
+	
+		<img class="preload" src="img/cards.png"/>
+
+		<div id="actions">
+			<button id="deal">Jaa kortit</button>
+			<button id="myturn">Mun vuoro taas</button>	
+		</div>
+		<div id="card-table">
+			<div id="hand1" class="player-hand"></div>
+			<div id="hand2" class="player-hand"></div>
+			<div id="hand3" class="player-hand"></div>
+			<div style="clear:both"></div>
+			<div>
+				<div id="openhands">
+					<div id="deckandpile">
+						<div id="deck"></div>
+						<div id="pile"></div>
+					</div>
+					<div id="open1" class="open-hand"></div>
+					<div id="open2" class="open-hand"></div>
+					<div id="open3" class="open-hand"></div>	
+					</div>
+				<div id="myhand" class="open-hand"></div>	
+				</div>
+			</div>
+		</div>
+
+		<script src="cards.js"></script>
+		<script src="testgame.js"></script>
+	</body>
+</html>
