@@ -20,12 +20,6 @@ button {
 img.preload {
 	display:none;
 }
-h1 {
-	font-size:60px;
-	text-align:center;
-	padding:0px;
-	margin:10px auto;
-}
 
 .card {
 	position: absolute;
@@ -44,6 +38,7 @@ h1 {
 
 .card.ui-draggable-dragging {
 	transform: scale(1.3);
+	opacity: 0.6;
 }
 
 #card-table {

@@ -63,7 +63,6 @@ var cards = (function() {
 
 		$('.card').draggable({
 			stack: ".card",
-			opacity: 0.6,
 			containment: "parent",
 			start: function() {},
 			drag: function() {
@@ -97,18 +96,17 @@ var cards = (function() {
 		shuffle(all);
 	};
 
-    function shuffle(deck) {
-        //Fisher yates shuffle
-        var i = deck.length;
-        if (i == 0) return;
-        while (--i) {
-            var j = Math.floor(Math.random() * (i + 1));
-            var tempi = deck[i];
-            var tempj = deck[j];
-            deck[i] = tempj;
-            deck[j] = tempi;
-        }
-    }
+	function shuffle(deck) {
+		for (var k in [1,2]) {
+			var i = deck.length;
+			while (--i >= 0) {
+					var j = Math.floor(Math.random() * (i + 1));
+					var temp = deck[i];
+					deck[i] = deck[j];
+					deck[j] = temp;
+			}	
+		}
+	}
 	
 	function Card(suit, rank, table, back) {
 		this.init(suit, rank, table, back);
@@ -139,20 +137,6 @@ var cards = (function() {
 			return this.name;
 		},
 
-		moveTo : function(x, y, speed, callback) {
-			var props = {top:y-(opt.cardSize.height/2),left:x-(opt.cardSize.width/2)};
-			$(this.el).animate(props, speed || opt.animationSpeed, callback);
-		},
-		
-		rotate : function(angle) {
-			$(this.el)
-				.css('-webkit-transform', 'rotate(' + angle + 'deg)')
-				.css('-moz-transform', 'rotate(' + angle + 'deg)')
-				.css('-ms-transform', 'rotate(' + angle + 'deg)')
-				.css('transform', 'rotate(' + angle + 'deg)')
-				.css('-o-transform', 'rotate(' + angle + 'deg)');
-		},
-		
 		showCard : function() {
 			var offsets = { "c": 0, "d": 1, "h": 2, "s": 3, "rj": 2, "bj": 3 };
 			var xpos, ypos;
@@ -395,23 +379,6 @@ var cards = (function() {
 		this.init(options);
 	}
 	
-	Pile.prototype = new Container();
-	Pile.prototype.extend({
-		calcPosition : function(options) {
-			options = options || {};
-		},
-		
-		toString : function() {
-			return 'Pile';
-		},
-		
-		deal : function(count, hands) {
-			if (!this.dealCounter) {
-				this.dealCounter = count * hands.length;
-			}
-		}
-	});
-	
 	var valueInRange = function(value,min, max) { 
 		return (value >= min) && (value <= max);
 	}
@@ -437,13 +404,6 @@ var cards = (function() {
 			width: element.width(),
 			height: element.height()
 		};
-		
-		return {
-			x: parseInt($(element).css('left')),
-			y: parseInt($(element).css('top')),
-			width: parseInt($(element).css('width')),
-			height: parseInt($(element).css('height'))
-		};
 	}
 
 	var refresh = function() {
@@ -459,7 +419,6 @@ var cards = (function() {
 		Container : Container,
 		Deck : Deck,
 		Hand : Hand,
-		Pile : Pile,
 		shuffle: shuffle,
 		refresh: refresh
 	};

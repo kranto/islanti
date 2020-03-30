@@ -23,15 +23,17 @@ $("#card-table").disableSelection();
 // Out of cards
 
 //Create a new deck of cards
-deck = new cards.Deck({boundingElement: $("#deck")}); 
+var deck = new cards.Deck({boundingElement: $("#deck")}); 
 deck.addCards(cards.all); 
 deck.render({immediate:true});
 
-hand1 = new cards.Hand({faceUp:false, boundingElement: $("#hand1")});
-hand2 = new cards.Hand({faceUp:false, boundingElement: $("#hand2")});
-hand3 = new cards.Hand({faceUp:false, boundingElement: $("#hand3")});
+var otherHands = [];
+for (var i = 1; i <= 3; i++) {
+	var hand = new cards.Hand({faceUp:false, boundingElement: $("#hand" + i)});
+	otherHands.push(hand);
+}
 
-myhand = new cards.Hand({faceUp:true, y:540, maxWidth: 400, 
+var myhand = new cards.Hand({faceUp:true, y:540, maxWidth: 400, 
 	isDraggable: function() {
 		return true;
 	},
@@ -45,61 +47,23 @@ myhand = new cards.Hand({faceUp:true, y:540, maxWidth: 400,
 
 });
 
-open1 = new cards.Hand({
-	faceUp:true, 
-	x:225, 
-	y:375, 
-	maxWidth: 200,
-	boundingElement: $("#open1"),
-	canDrop: function(card) {
-		return card.container === this || 
-			(card.container !== this && this.length < 13);
-	},
-	drop: function(card) {
-		this.addCard(card, true);
-	},
-	isDraggable: function(card) {
-		return true;
-	}
-});
+for (var i = 1; i <= 3; i++) {
+	var section = new cards.Hand({
+		faceUp:true, 
+		boundingElement: $("#open" + i),
+		canDrop: function(card) {
+			return card.container === this || 
+				(card.container !== this && this.length < 13);
+		},
+		drop: function(card) {
+			this.addCard(card, true);
+		},
+		isDraggable: function(card) {
+			return true;
+		}
+	});
+}
 
-open2 = new cards.Hand({
-	faceUp:true, 
-	x:225, 
-	y:375, 
-	maxWidth: 200,
-	boundingElement: $("#open2"),
-	canDrop: function(card) {
-		return card.container === this || 
-			(card.container !== this && this.length < 13);
-	},
-	drop: function(card) {
-		this.addCard(card, true);
-	},
-	isDraggable: function(card) {
-		return true;
-	}
-});
-
-open3 = new cards.Hand({
-	faceUp:true, 
-	x:225, 
-	y:375, 
-	maxWidth: 200,
-	boundingElement: $("#open3"),
-	canDrop: function(card) {
-		return card.container === this || 
-			(card.container !== this && this.length < 13);
-	},
-	drop: function(card) {
-		this.addCard(card, true);
-	},
-	isDraggable: function(card) {
-		return true;
-	}
-});
-
-//Lets add a discard pile
 discardPile = new cards.Deck({faceUp:true, boundingElement: $("#pile"),
 	canDrop: function(card) {
 		return myTurn && state === "TURN_ACTIVE";
@@ -129,7 +93,8 @@ discardPile.click(function(card){
 $('#deal').click(function() {
 	//Deck has a built in method to deal to hands.
 	$('#deal').prop( "disabled", true );
-	deck.deal(13, [hand2, hand1, hand3, myhand], 50, function() {
+
+	deck.deal(13, [myhand].concat(otherHands), 50, function() {
 		dealt = true;
 		discardPile.addCard(deck.topCard());
 		discardPile.render();

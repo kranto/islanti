@@ -13,7 +13,6 @@ function App() {
         <a
           className="App-link"
           href="testgame.html"
-          // target="_blank"
         >
         Testipeli - pelitesti
         </a>
