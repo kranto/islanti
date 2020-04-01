@@ -33,7 +33,7 @@ for (var i = 1; i <= 3; i++) {
 	otherHands.push(hand);
 }
 
-var myhand = new cards.Hand({faceUp:true, y:540, maxWidth: 400, 
+var myhand = new cards.Hand({faceUp:true, y:540, minWidth: 250,
 	isDraggable: function() {
 		return true;
 	},
@@ -42,6 +42,7 @@ var myhand = new cards.Hand({faceUp:true, y:540, maxWidth: 400,
 	},
 	drop: function(card) {
 		this.addCard(card, true);
+		cards.refresh();
 	},
 	boundingElement: $("#myhand"),
 
@@ -59,12 +60,14 @@ var newOpen = new cards.Hand({
 		var openHand = new cards.Hand({
 			faceUp:true, 
 			boundingElement: el,
+			minWidth: 100,
 			canDrop: function(card) {
 				return card.container === this || 
 					(card.container !== this && this.length < 13);
 			},
 			drop: function(card) {
 				this.addCard(card, true);
+				cards.refresh();
 			},
 			isDraggable: function(card) {
 				return true;

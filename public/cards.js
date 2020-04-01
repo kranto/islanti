@@ -218,6 +218,7 @@ var cards = (function() {
 			this.x = options.x || $(opt.table).width()/2;
 			this.y = options.y || $(opt.table).height()/2;
 			this.maxWidth = options.maxWidth || 1000000;
+			this.minWidth = options.minWidth;
 			this.padding = options.padding;
 			this.faceUp = options.faceUp;
 			this.drop = options.drop;
@@ -351,8 +352,11 @@ var cards = (function() {
 	Hand.prototype = new Container();
 	Hand.prototype.extend({
 		setElementWidth: function(options) {
+			if (!this.minWidth) return;
 			var pad = options.padding ? options.padding : opt.cardSize.padding;
-			this.boundingElement.width(opt.cardSize.width + Math.max(this.length - 1, 2) * pad);
+			var desiredWidth = opt.cardSize.width + Math.max(this.length - 1, 0) * pad;
+			var width = Math.max(this.minWidth, desiredWidth);
+			this.boundingElement.width(width);
 		},
 		calcPadding: function(options) {
 			var maxWidth = options.maxWidth || this.boundingElement ? elementRect(this.boundingElement).width - 20 : false || this.maxWidth;
@@ -412,7 +416,7 @@ var cards = (function() {
 	}
 
 	var refresh = function() {
-		containers.forEach(function(c) { c.render({immediate: true}); });
+		containers.forEach(function(c) { c.render(); });
 	}
 
 	return {
