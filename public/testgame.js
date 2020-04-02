@@ -101,6 +101,7 @@ discardPile = new cards.Deck({faceUp:true, boundingElement: $("#pile"),
 	},
 	drop: function(card) {
 		this.addCard(card);
+		removeEmptyOpenHands();
 		cards.refresh();
 		setState(false, "");
 	},
@@ -120,7 +121,6 @@ discardPile.click(function(card){
 		setState(true, "TURN_ACTIVE");
 		myhand.addCard(card);
 		myhand.render();
-		removeEmptyOpenHands();
 		cards.refresh();
 	}
 });
