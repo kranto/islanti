@@ -16,6 +16,7 @@ var cards = (function() {
 	var containers = [];
 
 	function mouseEvent(ev) {
+		// console.log(ev, this);
 		var card = $(this).data('card');
 		if (card.container) {
 			var handler = card.container["_" + ev.type];
@@ -63,7 +64,8 @@ var cards = (function() {
 
 		$('.card').draggable({
 			stack: ".card",
-			containment: "parent",
+			cursor: "move",
+			containment: opt.table,
 			start: function() {},
 			drag: function() {
 				var card = $(this).data('card');
@@ -75,6 +77,7 @@ var cards = (function() {
 				});
 			},
 			stop: function() {
+				// console.log($(this), this.getBoundingClientRect(), $(this).offset(), $(this).position());
 				var card = $(this).data('card');
 				$(".droppable").toggleClass("droppable", false);
 
@@ -89,6 +92,7 @@ var cards = (function() {
 				if (card.container) {
 					card.container.render({speed: 200});
 				}
+				$(this).css({left: 0, top: 0});
 
 			}
 		});
@@ -121,11 +125,11 @@ var cards = (function() {
 			this.faceUp = false;
 			this.cardback = back || opt.cardback;
 			this.el = $('<div/>').css({
-				width:opt.cardSize.width,
-				height:opt.cardSize.height,
-				// "background-image":'url('+ opt.cardsUrl + ')',
-				position:'absolute',
-				cursor:'pointer'	
+				// width:opt.cardSize.width,
+				// height:opt.cardSize.height,
+				// position:'static',
+				// float: 'left',
+				// cursor:'pointer'	
 			}).addClass('card').data('card', this).appendTo($(table));
 			this.el.html('<img src="svg/' + this.shortName + '.svg" alt="' + this.shortName + '" draggable="false" class="faceup-img">' 
 				+'<img src="svg/cardback_' + this.cardback + '.svg" alt="' + "card face down" + '" draggable="false" class="facedown-img">');
@@ -138,26 +142,17 @@ var cards = (function() {
 		},
 
 		showCard : function() {
-			var offsets = { "c": 0, "d": 1, "h": 2, "s": 3, "rj": 2, "bj": 3 };
-			var xpos, ypos;
-			var rank = this.rank;
-			xpos = -rank * opt.cardSize.width;
-			ypos = -offsets[this.suit] * opt.cardSize.height;
-			$(this.el).css('background-position', xpos + 'px ' + ypos + 'px');
-
 			$(this.el).find(".faceup-img").show();
 			$(this.el).find(".facedown-img").hide();
 		},
 
 		hideCard : function(position) {
-			var y = (this.cardback == 'red' ? 0: -1) * opt.cardSize.height;
-			$(this.el).css('background-position', '0px ' + y + 'px');
 			$(this.el).find(".faceup-img").hide();
 			$(this.el).find(".facedown-img").show();
 		},
 		
 		moveToFront : function() {
-			$(this.el).css('z-index', zIndexCounter++);
+			//$(this.el).css('z-index', zIndexCounter++);
 		},
 
 		rect : function() {
@@ -183,11 +178,11 @@ var cards = (function() {
 		}
 	}
 	Container.prototype.extend({
-		addCard : function(card, doReorder) {
-			this.addCards([card], doReorder);
+		addCard : function(card) {
+			this.addCards([card]);
 		},
 		
-		addCards : function(cards, doReorder) {
+		addCards : function(cards) {
 			for (var i = 0; i < cards.length;i++) {
 				var card = cards[i];
 				if (card.container && card.container !== this) {
@@ -195,11 +190,12 @@ var cards = (function() {
 				}
 				if (!card.container || card.container !== this) {
 					this.push(card);
+					var element = card.el.detach();
+					this.boundingElement.append(element);
 				}
 				card.container = this;
 				$(card.el).draggable(this.isDraggable(card) ? "enable" : "disable");
 			}
-			if (doReorder) this.reorder();
 		},
 		
 		removeCard : function(card) {
@@ -260,11 +256,11 @@ var cards = (function() {
 				var left = parseInt($(card.el).css('left'));
 				if (top != card.targetTop || left != card.targetLeft) {
 					var props = {top:card.targetTop, left:card.targetLeft, queue:false};
-					if (options.immediate) {
-						$(card.el).css(props);
-					} else {
-						$(card.el).animate(props, speed);
-					}
+					// if (options.immediate) {
+					// 	$(card.el).css(props);
+					// } else {
+					// 	$(card.el).animate(props, speed);
+					// }
 				}
 			}
 			var me = this;
@@ -356,7 +352,7 @@ var cards = (function() {
 			var pad = options.padding ? options.padding : opt.cardSize.padding;
 			var desiredWidth = opt.cardSize.width + Math.max(this.length - 1, 0) * pad;
 			var width = Math.max(this.minWidth, desiredWidth);
-			this.boundingElement.width(width);
+			// this.boundingElement.width(width);
 		},
 		calcPadding: function(options) {
 			var maxWidth = options.maxWidth || this.boundingElement ? elementRect(this.boundingElement).width - 20 : false || this.maxWidth;

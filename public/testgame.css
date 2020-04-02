@@ -22,10 +22,19 @@ img.preload {
 }
 
 .card {
-	position: absolute;
 	transform: rotate(0) scale(1);
+	width: 69px;
+	margin-left: -44px;
+	height: 94px;
+	position: relative;
+	float: left;
+	cursor: pointer;
 }
 
+#deck .card, #pile .card {
+	margin-left: -68.8px;
+}
+ 
 .card img.faceup-img, .card img.facedown-img {
 	position: relative;
 	width: 100%;
@@ -59,10 +68,13 @@ img.preload {
 	float: left;
 	margin: 5px;
 	height: 100px;
-	width: 220px;
+	min-width: 150px;
+	/* width: 220px; */
 	border: 1px dashed lightgray;
 	border-radius: 10px;
 	clear: left;
+	padding: 5px;
+	padding-left: 49px;
 }
 
 #deckandpile {
@@ -75,23 +87,25 @@ img.preload {
 #deck {
 	float: left;
 	margin: 10px;
-	height: 110px;
-	width: 100px;
+	height: 100px;
+	width: 80px;
 	border: 1px dashed darkgreen;
 	border-radius: 10px;
+	padding: 5px 5px 5px 74px;
 }
 
 #pile {
 	float: left;
 	margin: 10px;
-	height: 110px;
-	width: 100px;
+	width: 80px;
+	height: 100px;
 	border: 1px solid gray;
 	border-radius: 10px;
+	padding: 5px 5px 5px 74px;
 }
 
 #openhands {
-	overflow: hidden;
+	overflow: visible;
 	margin-top: 20px;
 	margin-bottom: 10px;
 	margin-left: 0px;
@@ -100,13 +114,19 @@ img.preload {
 
 .open-hand, .new-open {
 	float: left;
-	height: 110px;
+	min-height: 94px;
+	overflow: visible;
+	padding: 5px 5px 5px 49px;
 	margin: 5px 5px;
 	border: 1px solid gray;
 	border-radius: 10px;
 }
 
-.droppable {
+.new-open {
+	padding-left: 0px;
+}
+
+.droppable,.ui-droppable-hover {
 	border-color: gold !important;
 }
 
@@ -120,22 +140,7 @@ img.preload {
 
 #myhand {
 	clear: left;
-	width: 400px;
+	min-width: 150px;
+	min-height: 94px;
 	max-width: 75%;
-}
-
-a:visited {color:blue;}
-
-footer {
-	font-size : 12px;
-	color:grey;
-	margin:10px;
-}
-
-footer a, footer a:visited{
-	color:grey;
-}
-
-footer a:hover {
-	color:black;
 }
