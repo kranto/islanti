@@ -30,10 +30,19 @@
 					<div id="deck"></div>
 					<div id="pile"></div>
 				</div>
+				<div id="instructions">
+					<div id="pickcard" style="display: none;">Klikkaa kortti pakasta tai avopakasta.</div>
+					<div id="selectseries" style="display: none;">Valitse kolmoset ja suorat, joilla avaat.</div>
+				</div>
+				<div id="controls">
+					<button id="openButton" style="display: none;">Avaa</button>
+					<button id="confirmOpenButton" style="display: none;">Avaa</button>
+					<button id="cancelOpenButton" style="display: none;">Peruuta</button>
+				</div>
 				<div id="openhands">
-					<div id="myhand" class="open-hand"></div>	
-					<div id="open-hand-template" class="open-hand" style="display: none;"></div>
-					<div id="newopen" class="new-open"><div>+</div></div>	
+					<div id="myhand" class="open-hand draggable-container"></div>	
+					<div id="open-hand-template" class="open-hand draggable-container" style="display: none;"></div>
+					<div id="newopen" class="new-open"><div>+</div></div>
 				</div>
 			</div>
 		</div>

@@ -1,5 +1,6 @@
 html { 
 	background-color:#092E20; 
+	font-family: 'Lato', sans-serif;
 }
 
 #buttons {
@@ -68,6 +69,12 @@ img.preload {
 #gamearea {
 	float: left;
 	clear: left;
+	width: 100%;
+	z-index: 10000000;
+}
+
+#controls {
+	float: right;
 }
 
 #deckandpile {
@@ -94,6 +101,10 @@ img.preload {
 	border-radius: 10px;
 }
 
+#instructions {
+	color: white;
+}
+
 #openhands {
 	overflow: hidden;
 	margin-top: 20px;
@@ -108,6 +119,7 @@ img.preload {
 	margin: 5px 2px;
 	border: 1px solid transparent;
 	border-radius: 10px;
+	pointer-events: none;
 }
 
 #card-table .ui-droppable-hover {
@@ -137,18 +149,27 @@ img.preload {
 	clear: left;
 }
 
-a:visited {color:blue;}
 
-footer {
-	font-size : 12px;
-	color:grey;
-	margin:10px;
+#gamearea.selecting {
+	position: relative;
+	z-index: 1000000;
 }
 
-footer a, footer a:visited{
-	color:grey;
+#gamearea.selecting .open-hand {
+	pointer-events: all;
 }
 
-footer a:hover {
-	color:black;
+#gamearea.selecting .open-hand:hover {
+	border-color: orange;
+	border-width: 2px;
 }
+
+#gamearea.selecting .open-hand:not(.selected) {
+	background-color: gray;
+	opacity: 0.8;
+}
+
+#gamearea.selecting .card {
+	pointer-events: none;
+}
+

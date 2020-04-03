@@ -185,6 +185,10 @@ var cards = (function() {
 			this.element = options.element;
 			this.isDraggable = options.isDraggable || function() { return false; };
 
+			if (this.element) {
+				this.element.data('container', this);
+			}
+
 			containers.push(this);
 		},
 

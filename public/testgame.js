@@ -6,8 +6,13 @@ $(window).resize(function(){
 	cards.refresh();
 });
 
+var PICK_CARD = "PICK_CARD";
+var TURN_ACTIVE = "TURN_ACTIVE";
+var OPENING = "OPENING";
+
 var dealt = false;
 var myTurn = false;
+var opened = false;
 var state = "";
 
 $("#card-table").disableSelection();
@@ -54,6 +59,8 @@ $("#myhand").droppable({
 	}
 });
 
+$("#myhand").click(openHandClicked);
+
 var newOpen = new cards.Hand({
 	faceUp:true,
 	element: $("#newopen")
@@ -93,6 +100,7 @@ function createNewOpenHand() {
 			cards.refresh();
 		}
 	});
+	el.click(openHandClicked);
 	return hand;
 }
 
@@ -110,7 +118,7 @@ function removeEmptyOpenHands() {
 
 discardPile = new cards.Deck({faceUp:true, element: $("#pile"),
 	canDrop: function(card) {
-		return myTurn && state === "TURN_ACTIVE";
+		return myTurn && state === TURN_ACTIVE;
 	},
 	drop: function(card) {
 		this.addCard(card);
@@ -125,7 +133,7 @@ $("#pile").droppable({
 	greedy: true,
 	drop: function(event, ui) {
 		var card = ui.draggable.data('card');
-		if (!myTurn || state !== "TURN_ACTIVE") { card.container.render(); return; };
+		if (!myTurn || state !== TURN_ACTIVE) { card.container.render(); return; };
 		discardPile.addCard(card);
 		removeEmptyOpenHands();
 		cards.refresh();
@@ -134,8 +142,8 @@ $("#pile").droppable({
 });
 
 deck.click(function(card){
-	if (card === deck.topCard() && myTurn && state === "PICK_CARD") {
-		setState(true, "TURN_ACTIVE");
+	if (card === deck.topCard() && myTurn && state === PICK_CARD) {
+		setState(true, TURN_ACTIVE);
 		myhand.addCard(card);
 		myhand.render();
 		cards.refresh();
@@ -143,8 +151,8 @@ deck.click(function(card){
 });
 
 discardPile.click(function(card){
-	if (card === discardPile.topCard() && myTurn && state === "PICK_CARD") {
-		setState(true, "TURN_ACTIVE");
+	if (card === discardPile.topCard() && myTurn && state === PICK_CARD) {
+		setState(true, TURN_ACTIVE);
 		myhand.addCard(card);
 		myhand.render();
 		cards.refresh();
@@ -159,13 +167,13 @@ $('#deal').click(function() {
 		dealt = true;
 		discardPile.addCard(deck.topCard());
 		discardPile.render();
-		setState(true, "PICK_CARD");
+		setState(true, PICK_CARD);
 	});
 });
 
 $('#myturn').click(function() {
 	if (!myTurn) {
-		setState(true, "PICK_CARD");	
+		setState(true, PICK_CARD);	
 	}
 });
 
@@ -184,7 +192,36 @@ function setState(_myTurn, _state) {
 	$('#deal').prop( "disabled", dealt);
 	$('#myturn').prop( "disabled", !dealt || myTurn);
 
-	$("#pile").droppable({disabled: !myTurn || state !== "TURN_ACTIVE" })
+	$("#pile").droppable({disabled: !myTurn || state !== TURN_ACTIVE })
+
+	$("#openButton").css('display', dealt && myTurn && !opened && state === TURN_ACTIVE ? "block": "none");
+	$("#confirmOpenButton").css('display', dealt && myTurn && !opened && state === OPENING ? "block": "none");
+	$("#cancelOpenButton").css('display', dealt && myTurn && !opened && state === OPENING ? "block": "none");
+
+	$("#pickcard").css('display', function() {return state === PICK_CARD ? 'block' : 'none'});
+	$("#selectseries").css('display', dealt && myTurn && !opened && state === OPENING ? "block": "none");
+
+	$(".card").draggable("disable");
+	if (state !== OPENING) {
+		[myhand].concat(openHands).forEach(function(hand) {hand.forEach(function(c) {$(c.el).draggable("enable")})});
+	}
+
+	$("#gamearea").toggleClass('selecting', state === OPENING);
+}
+
+$("#openButton").click(function() {setState(true, OPENING);});
+$("#cancelOpenButton").click(function() {
+	$(".open-hand").toggleClass("selected", false);
+	setState(true, TURN_ACTIVE);
+});
+$("#confirmOpenButton").click(function() {
+	console.log('opening...');
+	$(".open-hand").toggleClass("selected", true);
+});
+
+function openHandClicked() {
+	console.log(this);
+	$(this).toggleClass("selected");
 }
 
 setState(false, "");
