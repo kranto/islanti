@@ -159,14 +159,19 @@ img.preload {
 	pointer-events: all;
 }
 
+#gamearea.selecting .open-hand:not(.selected) {
+	background-color: gray;
+	opacity: 0.8;
+}
+
 #gamearea.selecting .open-hand:hover {
 	border-color: orange;
 	border-width: 2px;
 }
 
-#gamearea.selecting .open-hand:not(.selected) {
-	background-color: gray;
-	opacity: 0.8;
+#gamearea.selecting .open-hand:not(.selected):hover {
+	background-color: orange;
+	opacity: 0.5;
 }
 
 #gamearea.selecting .card {
