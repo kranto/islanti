@@ -62,33 +62,9 @@ var cards = (function() {
 		$('.card').draggable({
 			stack: ".card",
 			containment: "parent",
-			start: function() {},
-			drag: function() {
-				var card = $(this).data('card');
-				$(".droppable").toggleClass("droppable", false);
-				containers.forEach(function(container) {
-					if (container.canDrop && container.element && card.isInElement(container.element)) {
-						if (container.canDrop.call(container, card)) container.element.toggleClass("droppable", true);
-					}
-				});
-			},
-			stop: function() {
-				var card = $(this).data('card');
-				$(".droppable").toggleClass("droppable", false);
-
-				containers.forEach(function(container) {
-					if (container.canDrop && container.element && card.isInElement(container.element)) {
-						if (container.canDrop.call(container, card)) {
-							container.drop.call(container, card);
-						}
-					}
-				});
-
-				if (card.container) {
-					card.container.render({speed: 200});
-				}
-
-			}
+			start: function() { $(this).stop(); },
+			drag: function() {},
+			stop: function() {}
 		});
 
 		shuffle(all);
@@ -369,10 +345,6 @@ var cards = (function() {
 			return 'Hand';
 		}
 	});
-	
-	function Pile(options) {
-		this.init(options);
-	}
 	
 	var valueInRange = function(value,min, max) { 
 		return (value >= min) && (value <= max);

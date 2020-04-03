@@ -60,14 +60,13 @@ img.preload {
 	margin: 5px;
 	height: 100px;
 	width: 220px;
-	border: 1px dashed lightgray;
+	/* border: 1px dashed lightgray; */
 	border-radius: 10px;
 	clear: left;
 }
 
 #deckandpile {
 	float: left;
-	/* height: 130px; */
 	width: 250px;
 	overflow: auto;
 }
@@ -86,7 +85,7 @@ img.preload {
 	margin: 10px;
 	height: 110px;
 	width: 100px;
-	border: 1px solid gray;
+	border: 1px dashed darkgreen;
 	border-radius: 10px;
 }
 
@@ -100,22 +99,33 @@ img.preload {
 
 .open-hand, .new-open {
 	float: left;
-	height: 110px;
+	height: 100px;
 	margin: 5px 5px;
-	border: 1px solid gray;
+	border: 1px solid transparent;
 	border-radius: 10px;
 }
 
-.droppable {
+#card-table .ui-droppable-hover {
+	border-width: 1px;
+	border-style: solid;
 	border-color: gold !important;
 }
 
 .new-open {
 	width: 60px;
-	color: white;
+	color: darkgreen;
 	font-size: 3em;
 	vertical-align: middle;
-	text-align: center;
+	border-width: 1px;
+	position: relative;
+	border: 1px dashed darkgreen;
+}
+
+.new-open div {
+	position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translateX(-50%) translateY(-50%);
 }
 
 #myhand {
