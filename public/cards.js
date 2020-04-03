@@ -126,13 +126,6 @@ var cards = (function() {
 
 		rect : function() {
 			return elementRect(this.el);
-		},
-
-		isInElement: function(element) {
-			var rect = this.rect();
-			var center = {x: rect.x + rect.width / 2, y: rect.y + rect.height / 2};
-			var elRect = elementRect(element);
-			return rectsOverlap({x: center.x, y: center.y, width: 1, height: 1}, elRect);
 		}
 	};
 	
@@ -321,7 +314,7 @@ var cards = (function() {
 			this.element.width(width);
 		},
 		calcPadding: function(options) {
-			var maxWidth = options.maxWidth || this.element ? elementRect(this.element).width - 20 : false || this.maxWidth;
+			var maxWidth = this.element ? elementRect(this.element).width - 10 : false || this.maxWidth;
 			var pad = options.padding ? options.padding : opt.cardSize.padding;
 			var desiredWidth = Math.max(this.length - 1, 0) * pad + opt.cardSize.width;
 			return desiredWidth  <= maxWidth ? pad : (maxWidth - opt.cardSize.width) / Math.max(this.length - 1, 0);
@@ -346,20 +339,6 @@ var cards = (function() {
 		}
 	});
 	
-	var valueInRange = function(value,min, max) { 
-		return (value >= min) && (value <= max);
-	}
-	 
-	var overlap = function(x1,y1,w1,h1,x2,y2,w2,h2) {
-		xOverlap = valueInRange(x1, x2, x2 + w2) || valueInRange(x2, x1, x1 + w1);
-		yOverlap = valueInRange(y1, y2, y2 + h2) || valueInRange(y2, y1, y1 + h1);
-		return xOverlap && yOverlap;
-	}
-
-	var rectsOverlap = function(r1, r2) {
-		return overlap(r1.x, r1.y, r1.width, r1.height,r2.x, r2.y, r2.width, r2.height)
-	}
-
 	var elementRect = function(element) {
 		return {
 			x: parseInt(element.position().left) +

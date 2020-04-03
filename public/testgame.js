@@ -36,7 +36,7 @@ for (var i = 1; i <= 3; i++) {
 
 var openHands = [];
 
-var myhand = new cards.Hand({faceUp:true, y:540, minWidth: 250,
+var myhand = new cards.Hand({faceUp:true, y:540, minWidth: 100,
 	isDraggable: function() {
 		return true;
 	},
@@ -78,7 +78,7 @@ function createNewOpenHand() {
 	var hand = new cards.Hand({
 		faceUp:true, 
 		element: el,
-		minWidth: 100,
+		minWidth: 80,
 		isDraggable: function(card) {
 			return true;
 		}

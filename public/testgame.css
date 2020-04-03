@@ -65,6 +65,11 @@ img.preload {
 	clear: left;
 }
 
+#gamearea {
+	float: left;
+	clear: left;
+}
+
 #deckandpile {
 	float: left;
 	width: 250px;
@@ -100,7 +105,7 @@ img.preload {
 .open-hand, .new-open {
 	float: left;
 	height: 100px;
-	margin: 5px 5px;
+	margin: 5px 2px;
 	border: 1px solid transparent;
 	border-radius: 10px;
 }
@@ -130,8 +135,6 @@ img.preload {
 
 #myhand {
 	clear: left;
-	width: 400px;
-	max-width: 75%;
 }
 
 a:visited {color:blue;}
