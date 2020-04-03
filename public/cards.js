@@ -154,7 +154,7 @@ var cards = (function() {
 					this.push(card);
 				}
 				card.container = this;
-				$(card.el).draggable(this.isDraggable(card) ? "enable" : "disable");
+				$(card.el).draggable(this.isDraggable ? "enable" : "disable");
 			}
 			if (doReorder) this.reorder();
 			if (this.setElementWidth) this.setElementWidth();
@@ -173,17 +173,12 @@ var cards = (function() {
 
 		init : function(options) {
 			options = options || {};
-			this.x = options.x || $(opt.table).width()/2;
-			this.y = options.y || $(opt.table).height()/2;
 			this.maxWidth = options.maxWidth || 1000000;
 			this.minWidth = options.minWidth;
 			this.padding = options.padding;
 			this.faceUp = options.faceUp;
-			this.drop = options.drop;
-			this.canDrop = options.canDrop;
-			this.canDrag = options.canDrag;
 			this.element = options.element;
-			this.isDraggable = options.isDraggable || function() { return false; };
+			this.isDraggable = options.isDraggable;
 
 			if (this.element) {
 				this.element.data('container', this);

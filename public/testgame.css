@@ -145,11 +145,6 @@ img.preload {
     transform: translateX(-50%) translateY(-50%);
 }
 
-#myhand {
-	clear: left;
-}
-
-
 #gamearea.selecting {
 	position: relative;
 	z-index: 1000000;

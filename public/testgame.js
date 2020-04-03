@@ -6,6 +6,14 @@ $(window).resize(function(){
 	cards.refresh();
 });
 
+var round = {
+	roundNumber: 1,
+	roundName: "kolmoset ja suora",
+	expectedThrees: 1,
+	expectedFlushes: 1,	
+	isFreestyle: false
+};
+
 var PICK_CARD = "PICK_CARD";
 var TURN_ACTIVE = "TURN_ACTIVE";
 var OPENING = "OPENING";
@@ -41,25 +49,7 @@ for (var i = 1; i <= 3; i++) {
 
 var openHands = [];
 
-var myhand = new cards.Hand({faceUp:true, y:540, minWidth: 100,
-	isDraggable: function() {
-		return true;
-	},
-	element: $("#myhand"),
-});
-
-$("#myhand").droppable({
-	accept: ".card",
-	greedy: true,
-	drop: function(event, ui) {
-		var card = ui.draggable.data('card');
-		myhand.addCard(card, true);
-		removeEmptyOpenHands();
-		cards.refresh();
-	}
-});
-
-$("#myhand").click(openHandClicked);
+openHands.push(createNewOpenHand());
 
 var newOpen = new cards.Hand({
 	faceUp:true,
@@ -86,9 +76,7 @@ function createNewOpenHand() {
 		faceUp:true, 
 		element: el,
 		minWidth: 80,
-		isDraggable: function(card) {
-			return true;
-		}
+		isDraggable: true
 	});
 	el.droppable({
 		accept: ".card",
@@ -103,7 +91,6 @@ function createNewOpenHand() {
 	el.click(openHandClicked);
 	return hand;
 }
-
 
 function removeEmptyOpenHands() {
 	for (var i = 0; i < openHands.length; i++) {
@@ -144,8 +131,8 @@ $("#pile").droppable({
 deck.click(function(card){
 	if (card === deck.topCard() && myTurn && state === PICK_CARD) {
 		setState(true, TURN_ACTIVE);
-		myhand.addCard(card);
-		myhand.render();
+		openHands[0].addCard(card);
+		openHands[0].render();
 		cards.refresh();
 	}
 });
@@ -153,8 +140,8 @@ deck.click(function(card){
 discardPile.click(function(card){
 	if (card === discardPile.topCard() && myTurn && state === PICK_CARD) {
 		setState(true, TURN_ACTIVE);
-		myhand.addCard(card);
-		myhand.render();
+		openHands[0].addCard(card);
+		openHands[0].render();
 		cards.refresh();
 	}
 });
@@ -163,7 +150,7 @@ $('#deal').click(function() {
 	//Deck has a built in method to deal to hands.
 	$('#deal').prop( "disabled", true );
 
-	deck.deal(13, [myhand].concat(otherHands), 50, function() {
+	deck.deal(13, [openHands[0]].concat(otherHands), 50, function() {
 		dealt = true;
 		discardPile.addCard(deck.topCard());
 		discardPile.render();
@@ -200,10 +187,11 @@ function setState(_myTurn, _state) {
 
 	$("#pickcard").css('display', function() {return state === PICK_CARD ? 'block' : 'none'});
 	$("#selectseries").css('display', dealt && myTurn && !opened && state === OPENING ? "block": "none");
+	$("#selectseries span").text(round.roundName);
 
 	$(".card").draggable("disable");
 	if (state !== OPENING) {
-		[myhand].concat(openHands).forEach(function(hand) {hand.forEach(function(c) {$(c.el).draggable("enable")})});
+		openHands.forEach(function(hand) {hand.forEach(function(c) {$(c.el).draggable("enable")})});
 	}
 
 	$("#gamearea").toggleClass('selecting', state === OPENING);
@@ -214,14 +202,169 @@ $("#cancelOpenButton").click(function() {
 	$(".open-hand").toggleClass("selected", false);
 	setState(true, TURN_ACTIVE);
 });
+
 $("#confirmOpenButton").click(function() {
-	console.log('opening...');
-	$(".open-hand").toggleClass("selected", true);
+	var selected = [];
+	$(".open-hand.selected").each(function() {
+		selected.push($(this).data('container'));
+	});
+
+	var myAllCards = openHands.reduce(function(acc, hand) {return acc + hand.length}, 0);
+
+	var result = validateSelected(selected, myAllCards);
+
+	$(".open-hand").toggleClass("selected", false);
+	if (!result) {
+		setState(true, TURN_ACTIVE);
+	}
 });
 
 function openHandClicked() {
-	console.log(this);
 	$(this).toggleClass("selected");
 }
 
 setState(false, "");
+
+// ===========
+
+function validateSelected(selected, cardCount) {
+	console.log(selected, cardCount);
+	var threes = [];
+	var flushes = [];
+	for (var i = 0; i < selected.length; i++) {
+		var hand = selected[i];
+		var flush = testFlush(hand);
+
+		if (flush.valid) {
+			flushes.push(flush);
+		} else {
+			var three = testThree(hand);
+			if (three.valid) {
+				threes.push(three);
+			} else {
+				validateError("Joku valituista sarjoista ei ole sallittu suora tai kolmoset. Suora: " + flush.msg + ". Kolmoset: " + three.msg);
+				if (round.expectedFlushes == 0) {
+					validateError("Joku valituista sarjoista ei ole sallittu kolmoset:" + three.msg);
+				} else if (round.expectedThrees == 0) {
+					validateError("Joku valituista sarjoista ei ole sallittu suora:" + flush.msg);
+				} else {
+					validateError("Joku valituista sarjoista ei ole sallittu suora tai kolmoset. Suora: " + flush.msg + ". Kolmoset: " + three.msg);
+				}
+				return false;
+			}
+		}
+	}
+	if (threes.length !== round.expectedThrees && !round.isFreestyle) {
+		validateError("Pitäisi olla " + round.expectedThrees + " kolmoset, mutta onkin " + threes.length);
+		return false;
+	}
+	if (flushes.length !== round.expectedFlushes && !round.isFreestyle) {
+		validateError("Pitäisi olla " + round.expectedFlushes + " suoraa, mutta onkin " + flushes.length);
+		return false;
+	}
+	var threesNumbers = [];
+	for (var i = 0; i < threes.length; i++) {
+		if (threesNumbers.indexOf(threes[i].number) >= 0) {
+			validateError("Kahdet kolmoset täytyy olla eri numeroa");
+			return false;
+		}
+	}
+	var flushesSuites = [];
+	for (var i = 0; i < flushes.length; i++) {
+		if (flushesSuites.indexOf(flushes[i].suit) >= 0) {
+			validateError("Suorat täytyy olla eri maista");
+			return false;
+		}
+	}
+
+	return true;
+}
+
+function testFlush(hand) {
+	if (hand.length < 4) {
+		return {valid: false, msg: "Suorassa täytyy olla vähintään neljä korttia"};
+	}
+	if (hand.length > 13) {
+		return {valid: false, msg: "Suorassa ei saa olla yli 13 korttia"};
+	}
+
+	var others = hand.filter(c => c.rank > 0);
+	var jokers = hand.filter(c => c.rank == 0);
+	var aces = hand.filter(c => c.rank == 1);
+
+	if (others.filter(c => c.suit != others[0].suit).length > 0) {
+		return {valid: false, msg: "Suorassa saa olla vain yhtä maata"};
+	}
+	if (jokers.length >= others.length) {
+		return {valid: false, msg: "Suorassa vähintään puolet korteista pitää olla muita kuin jokereita"}
+	}
+
+	var highAce = false;
+	if (aces.length > 1) {
+		return {valid: false, msg: "Suorassa voi olla vain yksi ässä"};
+	} else if (aces.length == 1) {
+		if (others[0] === aces[0]) {
+			highAce = others[1].rank > 8;
+		} else if (others[others.length-1] == aces[0]) {
+			highAce = others[others.length-2].rank > 8;
+		} else {
+			return {valid: false, msg: "Ässän täytyy olla suoran päässä"};
+		}
+	}
+
+	var ranks = hand.map(c => highAce && c.rank == 1 ? 14 : c.rank);
+	var otherRanks = ranks.filter(r => r > 0);
+
+	var increasing = otherRanks[0] < otherRanks[1];
+	if (!increasing) {
+		hand.reverse();
+		others.reverse();
+		jokers.reverse();
+		ranks.reverse();
+		otherRanks.reverse();
+	}
+
+	var rankStart = otherRanks[0] - ranks.indexOf(otherRanks[0]);
+
+	for (var i = 0; i < ranks.length; i++) {
+		if (ranks[i] !== 0  && ranks[i] !== rankStart + i) {
+			return {valid: false, msg: "Suorassa täytyy olla kortit järjestyksessä"}
+		}
+	}
+
+	return {
+		type: 'flush',
+		valid: true,
+		suit: others[0].suit,
+		cards: hand,
+		highAce: highAce
+	};
+}
+
+function testThree(hand) {
+	if (hand.length < 3) {
+		return {valid: false, msg: "Kolmosissa täytyy olla vähintään kolme korttia"};
+	}
+	if (hand.length > 8) {
+		return {valid: false, msg: "Kolmosissa ei saa olla yli 8 korttia"};
+	}
+	var jokers = hand.filter(c => c.rank == 0);
+	var others = hand.filter(c => c.rank > 0);
+	if (jokers.length >= others.length) {
+		return {valid: false, msg: "Kolmosissa vähintään puolet korteista pitää olla muita kuin jokereita"}
+	}
+	if (others.filter(c => c.rank != others[0].rank).length > 0) {
+		return {valid: false, msg: "Kolmosissa saa olla vain yhtä numeroa"};
+	}
+
+	return {
+		type: 'threes',
+		valid: true,
+		rank: others[0].rank,
+		cards: hand,
+	};
+}
+
+function validateError(msg) {
+	alert(msg);
+}
