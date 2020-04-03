@@ -5,8 +5,6 @@ var cards = (function() {
 		cardSize : {width:69,height:94, padding:40},
 		animationSpeed : 500,
 		table : 'body',
-		cardback : 'red',
-		cardsUrl : 'img/cards.png',
 		blackJoker : false,
 		redJoker : false
 	};
@@ -69,8 +67,8 @@ var cards = (function() {
 				var card = $(this).data('card');
 				$(".droppable").toggleClass("droppable", false);
 				containers.forEach(function(container) {
-					if (container.canDrop && container.dropElement && card.isInElement(container.dropElement)) {
-						if (container.canDrop.call(container, card)) container.boundingElement.toggleClass("droppable", true);
+					if (container.canDrop && container.element && card.isInElement(container.element)) {
+						if (container.canDrop.call(container, card)) container.element.toggleClass("droppable", true);
 					}
 				});
 			},
@@ -79,7 +77,7 @@ var cards = (function() {
 				$(".droppable").toggleClass("droppable", false);
 
 				containers.forEach(function(container) {
-					if (container.canDrop && container.dropElement && card.isInElement(container.dropElement)) {
+					if (container.canDrop && container.element && card.isInElement(container.element)) {
 						if (container.canDrop.call(container, card)) {
 							container.drop.call(container, card);
 						}
@@ -123,7 +121,6 @@ var cards = (function() {
 			this.el = $('<div/>').css({
 				width:opt.cardSize.width,
 				height:opt.cardSize.height,
-				// "background-image":'url('+ opt.cardsUrl + ')',
 				position:'absolute',
 				cursor:'pointer'	
 			}).addClass('card').data('card', this).appendTo($(table));
@@ -138,20 +135,11 @@ var cards = (function() {
 		},
 
 		showCard : function() {
-			var offsets = { "c": 0, "d": 1, "h": 2, "s": 3, "rj": 2, "bj": 3 };
-			var xpos, ypos;
-			var rank = this.rank;
-			xpos = -rank * opt.cardSize.width;
-			ypos = -offsets[this.suit] * opt.cardSize.height;
-			$(this.el).css('background-position', xpos + 'px ' + ypos + 'px');
-
 			$(this.el).find(".faceup-img").show();
 			$(this.el).find(".facedown-img").hide();
 		},
 
 		hideCard : function(position) {
-			var y = (this.cardback == 'red' ? 0: -1) * opt.cardSize.height;
-			$(this.el).css('background-position', '0px ' + y + 'px');
 			$(this.el).find(".faceup-img").hide();
 			$(this.el).find(".facedown-img").show();
 		},
@@ -224,8 +212,7 @@ var cards = (function() {
 			this.drop = options.drop;
 			this.canDrop = options.canDrop;
 			this.canDrag = options.canDrag;
-			this.boundingElement = options.boundingElement;
-			this.dropElement = options.boundingElement || options.dropElement;
+			this.element = options.element;
 			this.isDraggable = options.isDraggable || function() { return false; };
 
 			containers.push(this);
@@ -254,7 +241,6 @@ var cards = (function() {
 			this.calcPosition(options);
 			for (var i=0;i<this.length;i++) {
 				var card = this[i];
-				zIndexCounter++;
 				card.moveToFront();
 				var top = parseInt($(card.el).css('top'));
 				var left = parseInt($(card.el).css('left'));
@@ -305,7 +291,7 @@ var cards = (function() {
 	Deck.prototype.extend({
 		calcPosition : function(options) {
 			options = options || {};
-			var boundingRect = this.boundingElement ? elementRect(this.boundingElement) : { x: this.x, y: this.y, width: 0, height: 0};
+			var boundingRect = this.element ? elementRect(this.element) : { x: this.x, y: this.y, width: 0, height: 0};
 			var centerX = boundingRect.x + boundingRect.width / 2;
 			var centerY = boundingRect.y + boundingRect.height / 2;
 			options = options || {};
@@ -356,10 +342,10 @@ var cards = (function() {
 			var pad = options.padding ? options.padding : opt.cardSize.padding;
 			var desiredWidth = opt.cardSize.width + Math.max(this.length - 1, 0) * pad;
 			var width = Math.max(this.minWidth, desiredWidth);
-			this.boundingElement.width(width);
+			this.element.width(width);
 		},
 		calcPadding: function(options) {
-			var maxWidth = options.maxWidth || this.boundingElement ? elementRect(this.boundingElement).width - 20 : false || this.maxWidth;
+			var maxWidth = options.maxWidth || this.element ? elementRect(this.element).width - 20 : false || this.maxWidth;
 			var pad = options.padding ? options.padding : opt.cardSize.padding;
 			var desiredWidth = Math.max(this.length - 1, 0) * pad + opt.cardSize.width;
 			return desiredWidth  <= maxWidth ? pad : (maxWidth - opt.cardSize.width) / Math.max(this.length - 1, 0);
@@ -368,7 +354,7 @@ var cards = (function() {
 			options = options || {};
 			var padding = this.calcPadding(options);
 			var cardWidth = opt.cardSize.width + (this.length-1)*padding;
-			var boundingRect = this.boundingElement ? elementRect(this.boundingElement) : { x: this.x, y: this.y, width: 0, height: 0};
+			var boundingRect = this.element ? elementRect(this.element) : { x: this.x, y: this.y, width: 0, height: 0};
 			var centerX = boundingRect.x + boundingRect.width / 2;
 			var centerY = boundingRect.y + boundingRect.height / 2;
 			var left = Math.round(centerX - cardWidth/2);

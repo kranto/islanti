@@ -23,7 +23,7 @@ $("#card-table").disableSelection();
 // Out of cards
 
 //Create a new deck of cards
-var deck = new cards.Deck({boundingElement: $("#deck")}); 
+var deck = new cards.Deck({element: $("#deck")}); 
 deck.addCards(cards.all); 
 deck.render({immediate:true});
 
@@ -31,7 +31,7 @@ var openHands = [];
 
 var otherHands = [];
 for (var i = 1; i <= 3; i++) {
-	var hand = new cards.Hand({faceUp:false, boundingElement: $("#hand" + i)});
+	var hand = new cards.Hand({faceUp:false, element: $("#hand" + i)});
 	otherHands.push(hand);
 }
 
@@ -47,13 +47,13 @@ var myhand = new cards.Hand({faceUp:true, y:540, minWidth: 250,
 		removeEmptyOpenHands();
 		cards.refresh();
 	},
-	boundingElement: $("#myhand"),
+	element: $("#myhand"),
 
 });
 
 var newOpen = new cards.Hand({
 	faceUp:true,
-	boundingElement: $("#newopen"),
+	element: $("#newopen"),
 	canDrop: function(card) {
 		return true;
 	},
@@ -62,7 +62,7 @@ var newOpen = new cards.Hand({
 		el.insertBefore("#newopen");
 		var openHand = new cards.Hand({
 			faceUp:true, 
-			boundingElement: el,
+			element: el,
 			minWidth: 100,
 			canDrop: function(card) {
 				return card.container === this || 
@@ -89,13 +89,13 @@ function removeEmptyOpenHands() {
 		var openHand = openHands[i];
 		if (openHand.length == 0) {
 			openHands.splice(i, 1);
-			openHand.boundingElement.remove();
+			openHand.element.remove();
 			return;
 		}
 	}
 }
 
-discardPile = new cards.Deck({faceUp:true, boundingElement: $("#pile"),
+discardPile = new cards.Deck({faceUp:true, element: $("#pile"),
 	canDrop: function(card) {
 		return myTurn && state === "TURN_ACTIVE";
 	},
