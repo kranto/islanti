@@ -3,7 +3,7 @@ var cards = (function() {
 	//The global options
 	var opt = {
 		cardSize : {width:69,height:94, padding:40},
-		animationSpeed : 500,
+		animationSpeed : 300,
 		table : 'body',
 		blackJoker : false,
 		redJoker : false
@@ -157,13 +157,14 @@ var cards = (function() {
 				$(card.el).draggable(this.isDraggable(card) ? "enable" : "disable");
 			}
 			if (doReorder) this.reorder();
+			if (this.setElementWidth) this.setElementWidth();
 		},
 		
 		removeCard : function(card) {
 			for (var i=0; i< this.length;i++) {
 				if (this[i] == card) {
 					this.splice(i, 1);
-					this.render();
+					if (this.setElementWidth) this.setElementWidth();
 					return true;
 				}
 			}
@@ -205,7 +206,6 @@ var cards = (function() {
 
 		render : function(options) {
 			options = options || {};
-			if (this.setElementWidth) this.setElementWidth(options);
 			var speed = options.speed || opt.animationSpeed;
 			this.calcPosition(options);
 			for (var i=0;i<this.length;i++) {
@@ -306,9 +306,9 @@ var cards = (function() {
 
 	Hand.prototype = new Container();
 	Hand.prototype.extend({
-		setElementWidth: function(options) {
+		setElementWidth: function() {
 			if (!this.minWidth) return;
-			var pad = options.padding ? options.padding : opt.cardSize.padding;
+			var pad = opt.cardSize.padding;
 			var desiredWidth = opt.cardSize.width + Math.max(this.length - 1, 0) * pad;
 			var width = Math.max(this.minWidth, desiredWidth);
 			this.element.width(width);
