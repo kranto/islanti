@@ -249,13 +249,13 @@ function validateSelected(selected, cardCount) {
 			if (three.valid) {
 				threes.push(three);
 			} else {
-				validateError("Joku valituista sarjoista ei ole sallittu suora tai kolmoset. Suora: " + flush.msg + ". Kolmoset: " + three.msg);
+				validateError("Joku valituista sarjoista ei ole sallittu. " + flush.msg + ". " + three.msg + ".");
 				if (round.expectedFlushes == 0) {
-					validateError("Joku valituista sarjoista ei ole sallittu kolmoset:" + three.msg);
+					validateError("Joku valituista sarjoista ei ole sallittu. " + three.msg + ".");
 				} else if (round.expectedThrees == 0) {
-					validateError("Joku valituista sarjoista ei ole sallittu suora:" + flush.msg);
+					validateError("Joku valituista sarjoista ei ole sallittu. " + flush.msg + ".");
 				} else {
-					validateError("Joku valituista sarjoista ei ole sallittu suora tai kolmoset. Suora: " + flush.msg + ". Kolmoset: " + three.msg);
+					validateError("Joku valituista sarjoista ei ole sallittu. " + flush.msg + ". " + three.msg + ".");
 				}
 				return false;
 			}
