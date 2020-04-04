@@ -61,7 +61,6 @@ img.preload {
 	margin: 5px;
 	height: 100px;
 	width: 220px;
-	/* border: 1px dashed lightgray; */
 	border-radius: 10px;
 	clear: left;
 }
@@ -70,7 +69,6 @@ img.preload {
 	float: left;
 	clear: left;
 	width: 100%;
-	z-index: 10000000;
 }
 
 #controls {
@@ -105,8 +103,13 @@ img.preload {
 	color: white;
 }
 
+#instructions div {
+	display: none;
+}
+
 #openhands {
-	overflow: hidden;
+	overflow: visible;
+	clear: left;
 	margin-top: 20px;
 	margin-bottom: 10px;
 	margin-left: 0px;
@@ -117,13 +120,25 @@ img.preload {
 	float: left;
 	height: 100px;
 	margin: 5px 2px;
-	border: 1px solid transparent;
+	border: 2px solid transparent;
 	border-radius: 10px;
 	pointer-events: none;
+	overflow: visible;
+}
+
+.open-hand .status-box{
+	position: relative;
+	float: right;
+	color: white;
+	bottom: 52px;
+	display: none;
+}
+
+.open-hand.selected .status-box {
+	display: block;
 }
 
 #card-table .ui-droppable-hover {
-	border-width: 1px;
 	border-style: solid;
 	border-color: gold !important;
 }
@@ -145,31 +160,23 @@ img.preload {
     transform: translateX(-50%) translateY(-50%);
 }
 
-#gamearea.selecting {
-	position: relative;
-	z-index: 1000000;
-}
-
-#gamearea.selecting .open-hand {
+#card-table.selecting .open-hand {
 	pointer-events: all;
 }
 
-#gamearea.selecting .open-hand:not(.selected) {
-	background-color: gray;
-	opacity: 0.8;
+#card-table.selecting .open-hand:not(.selected) {
+	border-color: gray;
 }
 
-#gamearea.selecting .open-hand:hover {
+#card-table.selecting .open-hand:hover {
 	border-color: orange;
-	border-width: 2px;
 }
 
-#gamearea.selecting .open-hand:not(.selected):hover {
+#card-table.selecting .open-hand.selected {
 	background-color: orange;
-	opacity: 0.5;
+	border-color: orange;
 }
 
-#gamearea.selecting .card {
+#card-table.selecting .card {
 	pointer-events: none;
 }
-

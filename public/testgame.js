@@ -201,7 +201,7 @@ function setState(_myTurn, _state) {
 		openHands.forEach(function(hand) {hand.forEach(function(c) {$(c.el).draggable("enable")})});
 	}
 
-	$("#gamearea").toggleClass('selecting', state === OPENING);
+	$("#card-table").toggleClass('selecting', state === OPENING);
 }
 
 $("#openButton").click(function() {setState(true, OPENING);});
