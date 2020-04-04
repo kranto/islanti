@@ -14,6 +14,7 @@ var round = {
 	isFreestyle: false
 };
 
+var OPEN_CARD = "OPEN_CARD";
 var PICK_CARD = "PICK_CARD";
 var TURN_ACTIVE = "TURN_ACTIVE";
 var OPENING = "OPENING";
@@ -128,12 +129,18 @@ $("#pile").droppable({
 	}
 });
 
-deck.click(function(card){
-	if (card === deck.topCard() && myTurn && state === PICK_CARD) {
-		setState(true, TURN_ACTIVE);
-		openHands[0].addCard(card);
-		openHands[0].render();
-		cards.refresh();
+deck.click(function(card){	
+	if (card === deck.topCard() && myTurn) {
+		if (state === OPEN_CARD) {
+			discardPile.addCard(deck.topCard());
+			discardPile.render();
+			setState(true, PICK_CARD);	
+		} else if (state === PICK_CARD) {
+			setState(true, TURN_ACTIVE);
+			openHands[0].addCard(card);
+			openHands[0].render();
+			cards.refresh();
+		}
 	}
 });
 
@@ -152,9 +159,7 @@ $('#deal').click(function() {
 
 	deck.deal(13, [openHands[0]].concat(otherHands), 50, function() {
 		dealt = true;
-		discardPile.addCard(deck.topCard());
-		discardPile.render();
-		setState(true, PICK_CARD);
+		setState(true, OPEN_CARD);
 	});
 });
 
@@ -185,6 +190,8 @@ function setState(_myTurn, _state) {
 	$("#confirmOpenButton").css('display', dealt && myTurn && !opened && state === OPENING ? "block": "none");
 	$("#cancelOpenButton").css('display', dealt && myTurn && !opened && state === OPENING ? "block": "none");
 
+	$("#opencard_others").css('display', function() {return state === OPEN_CARD && !myTurn? 'block' : 'none'});
+	$("#opencard_myturn").css('display', function() {return state === OPEN_CARD && myTurn? 'block' : 'none'});
 	$("#pickcard").css('display', function() {return state === PICK_CARD ? 'block' : 'none'});
 	$("#selectseries").css('display', dealt && myTurn && !opened && state === OPENING ? "block": "none");
 	$("#selectseries span").text(round.roundName);
