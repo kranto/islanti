@@ -94,7 +94,7 @@ function createNewOpenHand() {
 		container: '#card-table',
 		placement: 'top',
 		trigger: 'manual',
-		content: () => {console.log(hand.popoverMsg); return hand.popoverMsg; }
+		content: () => hand.validity.msg
 	  });
 	return hand;
 }
@@ -248,10 +248,16 @@ function setState(_myTurn, _state) {
 	$("#card-table").toggleClass('selecting', state === OPENING);
 }
 
-$("#openButton").click(function() {setState(true, OPENING);});
+$("#openButton").click(() => {
+	validateHands();
+	setState(true, OPENING);
+	updateConfirmButton();
+});
+
 $("#cancelOpenButton").click(function() {
 	$(".open-hand").toggleClass("selected", false);
 	$(".open-hand").popover('hide');
+	updateConfirmButton();
 	setState(true, TURN_ACTIVE);
 });
 
@@ -261,16 +267,21 @@ $("#confirmOpenButton").click(function() {
 		selected.push($(this).data('container'));
 	});
 
-	var myAllCards = openHands.reduce(function(acc, hand) {return acc + hand.length}, 0);
-
-	var result = validateSelected(selected, myAllCards);
-
 	$(".open-hand").toggleClass("selected", false);
 	$(".open-hand").popover('hide');
-	if (!result) {
-		setState(true, TURN_ACTIVE);
-	}
+
+	alert("Avasit!");
+
+	setState(true, TURN_ACTIVE);
 });
+
+$("#selectseries").popover({
+	container: '#card-table',
+	placement: 'top',
+	trigger: 'manual',
+	content: () => validity.msg
+});
+
 
 function openHandClicked() {
 	if ($(this).hasClass("selected")) {
@@ -278,13 +289,29 @@ function openHandClicked() {
 		$(this).popover('hide');
 	} else {
 		$(this).toggleClass("selected", true);
-		var hand = $(this).data("container");
-		var result = validateHand(hand, round.expectedFlushes > 0, round.expectedThrees > 0);
-		hand.popoverMsg = result.msg;
-		console.log(result, hand.popoverMsg);
+		$(this).toggleClass("error", !$(this).data("container").validity.valid);
 		$(this).popover('show');
-		$(this).toggleClass("error", !result.valid);
 	}
+	updateConfirmButton();
+}
+
+function updateConfirmButton() {
+	var selected = [];
+	$(".open-hand.selected").each(function() {
+		selected.push($(this).data('container'));
+	});
+
+	var myAllCards = openHands.reduce(function(acc, hand) {return acc + hand.length}, 0);
+
+	validity = validateSelected(selected, myAllCards);
+	$("#confirmOpenButton").prop("disabled", !validity.valid);
+	showValidityMessage();
+}
+
+var validity; 
+function showValidityMessage() {
+	$("#errormsg").text(validity.valid ? "" : validity.msg);
+	// $("#selectseries").popover(validity.valid ? 'hide' : 'show');
 }
 
 setState(false, "");
@@ -296,61 +323,51 @@ function validateSelected(selected, cardCount) {
 	var flushes = [];
 	for (var i = 0; i < selected.length; i++) {
 		var hand = selected[i];
-		var flush = testFlush(hand);
 
-		if (flush.valid) {
-			flushes.push(flush);
-		} else {
-			var three = testThree(hand);
-			if (three.valid) {
-				threes.push(three);
-			} else {
-				validateError("Joku valituista sarjoista ei ole sallittu. " + flush.msg + ". " + three.msg + ".");
-				if (round.expectedFlushes == 0) {
-					validateError("Joku valituista sarjoista ei ole sallittu. " + three.msg + ".");
-				} else if (round.expectedThrees == 0) {
-					validateError("Joku valituista sarjoista ei ole sallittu. " + flush.msg + ".");
-				} else {
-					validateError("Joku valituista sarjoista ei ole sallittu. " + flush.msg + ". " + three.msg + ".");
-				}
-				return false;
-			}
+		if (!hand.validity.valid) {
+			return {valid: false, msg: "Joku valituista sarjoista ei ole sallittu."};
+		}
+		if (hand.validity.type === 'flush') {
+			flushes.push(hand.validity.data);
+		}
+		if (hand.validity.type === 'three') {
+			threes.push(hand.validity.data);
 		}
 	}
 	if (threes.length !== round.expectedThrees && !round.isFreestyle) {
-		validateError("Pitäisi olla " + round.expectedThrees + " kolmoset, mutta onkin " + threes.length);
-		return false;
+		return {valid: false, msg: "Pitäisi olla " + round.expectedThrees + " kolmoset, mutta onkin " + threes.length};
 	}
 	if (flushes.length !== round.expectedFlushes && !round.isFreestyle) {
-		validateError("Pitäisi olla " + round.expectedFlushes + " suoraa, mutta onkin " + flushes.length);
-		return false;
+		return {valid: false, msg: "Pitäisi olla " + round.expectedFlushes + " suoraa, mutta onkin " + flushes.length};
 	}
 	var threesNumbers = [];
 	for (var i = 0; i < threes.length; i++) {
 		if (threesNumbers.indexOf(threes[i].number) >= 0) {
-			validateError("Kahdet kolmoset täytyy olla eri numeroa");
-			return false;
+			return {valid: false, msg: "Kaikki kolmossarjat täytyy olla eri numeroa"};
 		}
 	}
 	var flushesSuites = [];
 	for (var i = 0; i < flushes.length; i++) {
 		if (flushesSuites.indexOf(flushes[i].suit) >= 0) {
-			validateError("Suorat täytyy olla eri maista");
-			return false;
+			return {valid: false, msg: "Suorat täytyy olla eri maista"};
 		}
 	}
 
-	return true;
+	return {valid: true};
+}
+
+function validateHands() {
+	openHands.forEach((hand) => {
+		hand.validity = validateHand(hand, round.expectedFlushes > 0, round.expectedThrees > 0);
+	});
 }
 
 function validateHand(hand, testForFlush, testForThrees) {
 	var flush = testForFlush ? testFlush(hand) : false;
 	var three = testForThrees ? testThree(hand) : false;
 
-	if (flush && flush.valid) return {type: 'flush', valid: true, msg: 'suora'};
-
-	if (three && three.valid) return {type: 'three', valid: true, msg: 'kolmoset'};
-
+	if (flush && flush.valid) return {type: 'flush', valid: true, msg: 'Suora', data: flush};
+	if (three && three.valid) return {type: 'three', valid: true, msg: 'Kolmoset', data: three};
 	return {valid: false, type: false, msg: (flush ? (flush.msg + ". "): "") + (three ? (three.msg + ".") : "")};
 }
 

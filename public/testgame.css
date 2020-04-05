@@ -103,7 +103,7 @@ img.preload {
 	color: white;
 }
 
-#instructions div {
+#instructions>div {
 	display: none;
 }
 
@@ -175,6 +175,11 @@ img.preload {
 #card-table.selecting .open-hand.selected {
 	background-color: orange;
 	border-color: orange;
+}
+
+#card-table.selecting .open-hand.selected.error {
+	background-color: darkred;
+	border-color: darkred;
 }
 
 #card-table.selecting .playingcard {
