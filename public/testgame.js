@@ -58,7 +58,7 @@ var newOpen = new cards.Hand({
 });
 
 $("#newopen").droppable({
-	accept: ".card",
+	accept: ".playingcard",
 	greedy: true,
 	drop: function(event, ui) {
 		var card = ui.draggable.data('card');
@@ -80,7 +80,7 @@ function createNewOpenHand() {
 		isDraggable: true
 	});
 	el.droppable({
-		accept: ".card",
+		accept: ".playingcard",
 		greedy: true,
 		drop: function(event, ui) {
 			var card = ui.draggable.data('card');
@@ -90,6 +90,12 @@ function createNewOpenHand() {
 		}
 	});
 	el.click(openHandClicked);
+	el.popover({
+		container: '#card-table',
+		placement: 'top',
+		trigger: 'manual',
+		content: () => {console.log(hand.popoverMsg); return hand.popoverMsg; }
+	  });
 	return hand;
 }
 
@@ -99,6 +105,7 @@ function removeEmptyOpenHands() {
 		if (openHand.length == 0) {
 			openHands.splice(i, 1);
 			openHand.element.remove();
+			openHand.element.popover('dispose');
 			return;
 		}
 	}
@@ -117,7 +124,7 @@ discardPile = new cards.Deck({faceUp:true, element: $("#pile"),
 });
 
 $("#pile").droppable({
-	accept: ".card",
+	accept: ".playingcard",
 	greedy: true,
 	drop: function(event, ui) {
 		var card = ui.draggable.data('card');
@@ -204,7 +211,7 @@ async function simulateOnePlayer(hand) {
 }
 
 $("#card-table").droppable({
-	accept: ".card",
+	accept: ".playingcard",
 	drop: function(event, ui) {
 		var card = ui.draggable.data('card');
 		card.container.render();
@@ -233,7 +240,7 @@ function setState(_myTurn, _state) {
 	$("#selectseries").css('display', dealt && myTurn && !opened && state === OPENING ? "block": "none");
 	$("#selectseries span").text(round.roundName);
 
-	$(".card").draggable("disable");
+	$(".playingcard").draggable("disable");
 	if (state !== OPENING) {
 		openHands.forEach(function(hand) {hand.forEach(function(c) {$(c.el).draggable("enable")})});
 	}
@@ -244,6 +251,7 @@ function setState(_myTurn, _state) {
 $("#openButton").click(function() {setState(true, OPENING);});
 $("#cancelOpenButton").click(function() {
 	$(".open-hand").toggleClass("selected", false);
+	$(".open-hand").popover('hide');
 	setState(true, TURN_ACTIVE);
 });
 
@@ -258,13 +266,25 @@ $("#confirmOpenButton").click(function() {
 	var result = validateSelected(selected, myAllCards);
 
 	$(".open-hand").toggleClass("selected", false);
+	$(".open-hand").popover('hide');
 	if (!result) {
 		setState(true, TURN_ACTIVE);
 	}
 });
 
 function openHandClicked() {
-	$(this).toggleClass("selected");
+	if ($(this).hasClass("selected")) {
+		$(this).toggleClass("selected", false);
+		$(this).popover('hide');
+	} else {
+		$(this).toggleClass("selected", true);
+		var hand = $(this).data("container");
+		var result = validateHand(hand, round.expectedFlushes > 0, round.expectedThrees > 0);
+		hand.popoverMsg = result.msg;
+		console.log(result, hand.popoverMsg);
+		$(this).popover('show');
+		$(this).toggleClass("error", !result.valid);
+	}
 }
 
 setState(false, "");
@@ -272,7 +292,6 @@ setState(false, "");
 // ===========
 
 function validateSelected(selected, cardCount) {
-	console.log(selected, cardCount);
 	var threes = [];
 	var flushes = [];
 	for (var i = 0; i < selected.length; i++) {
@@ -322,6 +341,17 @@ function validateSelected(selected, cardCount) {
 	}
 
 	return true;
+}
+
+function validateHand(hand, testForFlush, testForThrees) {
+	var flush = testForFlush ? testFlush(hand) : false;
+	var three = testForThrees ? testThree(hand) : false;
+
+	if (flush && flush.valid) return {type: 'flush', valid: true, msg: 'suora'};
+
+	if (three && three.valid) return {type: 'three', valid: true, msg: 'kolmoset'};
+
+	return {valid: false, type: false, msg: (flush ? (flush.msg + ". "): "") + (three ? (three.msg + ".") : "")};
 }
 
 function testFlush(hand) {

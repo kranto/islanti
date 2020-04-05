@@ -22,22 +22,22 @@ img.preload {
 	display:none;
 }
 
-.card {
+.playingcard {
 	position: absolute;
 	transform: rotate(0) scale(1);
 }
 
-.card img.faceup-img, .card img.facedown-img {
+.playingcard img.faceup-img, .playingcard img.facedown-img {
 	position: relative;
 	width: 100%;
 	height: 100%;
 }
 
-.card.facedown-img {
+.playingcard.facedown-img {
 	display: none;
 }
 
-.card.ui-draggable-dragging {
+.playingcard.ui-draggable-dragging {
 	transform: scale(1.2);
 	opacity: 0.6;
 }
@@ -177,6 +177,10 @@ img.preload {
 	border-color: orange;
 }
 
-#card-table.selecting .card {
+#card-table.selecting .playingcard {
 	pointer-events: none;
+}
+
+.popover {
+	z-index: 1000000;
 }

@@ -57,11 +57,12 @@ var cards = (function() {
 			all.push(new Card('rj', 0, opt.table, 'red'));
 		}
 
-		$('.card').click(mouseEvent);
+		$('.playingcard').click(mouseEvent);
 
-		$('.card').draggable({
-			stack: ".card",
+		$('.playingcard').draggable({
+			stack: ".playingcard",
 			containment: "parent",
+			placement: "top",
 			start: function() { $(this).stop(); },
 			drag: function() {},
 			stop: function() {}
@@ -99,7 +100,7 @@ var cards = (function() {
 				height:opt.cardSize.height,
 				position:'absolute',
 				cursor:'pointer'	
-			}).addClass('card').data('card', this).appendTo($(table));
+			}).addClass('playingcard').data('card', this).appendTo($(table));
 			this.el.html('<img src="svg/' + this.shortName + '.svg" alt="' + this.shortName + '" draggable="false" class="faceup-img">' 
 				+'<img src="svg/cardback_' + this.cardback + '.svg" alt="' + "card face down" + '" draggable="false" class="facedown-img">');
 			this.showCard();
