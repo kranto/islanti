@@ -153,14 +153,21 @@ discardPile.click(function(card){
 	}
 });
 
-$('#deal').click(function() {
-	//Deck has a built in method to deal to hands.
-	$('#deal').prop( "disabled", true );
+$('.deal-button').click(function() {
+	$('.deal-button').prop( "disabled", true );
+
+	var iStart = $(this).data("myturn");
 
 	deck.deal(13, [openHands[0]].concat(otherHands), 50, function() {
 		dealt = true;
-		setState(true, OPEN_CARD);
+		setState(iStart, OPEN_CARD);
 	});
+});
+
+$('#othershowcard').click(function() {
+	discardPile.addCard(deck.topCard());
+	discardPile.render();
+	setState(false, PICK_CARD);
 });
 
 $('#myturn').click(function() {
@@ -181,7 +188,9 @@ function setState(_myTurn, _state) {
 	myTurn = _myTurn;
 	state = _state;
 
-	$('#deal').prop( "disabled", dealt);
+	$('#startover').prop( "disabled", !dealt);
+	$('.deal-button').prop( "disabled", dealt);
+	$('#othershowcard').prop( "disabled", myTurn || state !== OPEN_CARD);
 	$('#myturn').prop( "disabled", !dealt || myTurn);
 
 	$("#pile").droppable({disabled: !myTurn || state !== TURN_ACTIVE })
@@ -192,7 +201,7 @@ function setState(_myTurn, _state) {
 
 	$("#opencard_others").css('display', function() {return state === OPEN_CARD && !myTurn? 'block' : 'none'});
 	$("#opencard_myturn").css('display', function() {return state === OPEN_CARD && myTurn? 'block' : 'none'});
-	$("#pickcard").css('display', function() {return state === PICK_CARD ? 'block' : 'none'});
+	$("#pickcard").css('display', function() {return myTurn && state === PICK_CARD ? 'block' : 'none'});
 	$("#selectseries").css('display', dealt && myTurn && !opened && state === OPENING ? "block": "none");
 	$("#selectseries span").text(round.roundName);
 

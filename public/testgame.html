@@ -17,8 +17,10 @@
 
 		<div id="actions">
 			<button id="startover" onclick="location.reload()">Aloita alusta</button>
-			<button id="deal">Jaa kortit</button>
-			<button id="myturn">Mun vuoro</button>	
+			<button id="deal_myturn" class="deal-button" data-myturn="true">Jaa kortit, minä aloitan</button>
+			<button id="deal_others" class="deal-button" data-myturn="false">Jaa kortit, en aloita</button>
+			<button id="othershowcard">Joku muu aloittaa</button>
+			<button id="myturn">Mun vuoro</button>
 		</div>
 		<div id="card-table">
 			<div id="hand1" class="player-hand"></div>
