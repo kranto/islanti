@@ -7,6 +7,7 @@ import cards from './cards.js';
 import Hand from './Hand.js';
 //import game from "./game.js";
 import Card from './Card.js';
+import { findDOMNode } from 'react-dom';
 
 class CardTable extends Component {
 
@@ -36,6 +37,7 @@ class CardTable extends Component {
     deck.addCards(cards.all);
     deck.render({immediate:true});
     setTimeout(() => this.card.current.setFaceUp(true), 2000); 
+    setTimeout(() => $(findDOMNode(this.card.current)).hide(), 3000);
   }
 
   createOthers() {
