@@ -1,9 +1,16 @@
-import $ from 'jquery';
+import * as $ from 'jquery';
 import 'jquery-ui-bundle';
 import 'jquery-ui-bundle/jquery-ui.css';
+
+
+// import 'jquery-ui-touch-punch';
+// import './jquery.ui.touch-punch.min.js';
 import cards from './cards.js';
 import Popper from 'popper.js';
 import 'bootstrap/dist/js/bootstrap.bundle.min';
+
+window.jQuery = $;
+require('jquery-ui-touch-punch');
 
 var game = (function() {
 
@@ -242,10 +249,10 @@ function testFlush(hand) {
 	}
 
 	var others = hand.filter(c => c.rank > 0);
-	var jokers = hand.filter(c => c.rank == 0);
-	var aces = hand.filter(c => c.rank == 1);
+	var jokers = hand.filter(c => c.rank === 0);
+	var aces = hand.filter(c => c.rank === 1);
 
-	if (others.filter(c => c.suit != others[0].suit).length > 0) {
+	if (others.filter(c => c.suit !== others[0].suit).length > 0) {
 		return {valid: false, msg: "Suorassa saa olla vain yhtä maata"};
 	}
 	if (jokers.length >= others.length) {
@@ -255,17 +262,17 @@ function testFlush(hand) {
 	var highAce = false;
 	if (aces.length > 1) {
 		return {valid: false, msg: "Suorassa voi olla vain yksi ässä"};
-	} else if (aces.length == 1) {
+	} else if (aces.length === 1) {
 		if (others[0] === aces[0]) {
 			highAce = others[1].rank > 8;
-		} else if (others[others.length-1] == aces[0]) {
+		} else if (others[others.length-1] === aces[0]) {
 			highAce = others[others.length-2].rank > 8;
 		} else {
 			return {valid: false, msg: "Ässän täytyy olla suoran päässä"};
 		}
 	}
 
-	var ranks = hand.map(c => highAce && c.rank == 1 ? 14 : c.rank);
+	var ranks = hand.map(c => highAce && c.rank === 1 ? 14 : c.rank);
 	var otherRanks = ranks.filter(r => r > 0);
 
 	var increasing = otherRanks[0] < otherRanks[1];
@@ -305,12 +312,12 @@ function testThree(hand) {
 	if (hand.length > 8) {
 		return {valid: false, msg: "Kolmosissa ei saa olla yli 8 korttia"};
 	}
-	var jokers = hand.filter(c => c.rank == 0);
+	var jokers = hand.filter(c => c.rank === 0);
 	var others = hand.filter(c => c.rank > 0);
 	if (jokers.length >= others.length) {
 		return {valid: false, msg: "Kolmosissa vähintään puolet korteista pitää olla muita kuin jokereita"}
 	}
-	if (others.filter(c => c.rank != others[0].rank).length > 0) {
+	if (others.filter(c => c.rank !== others[0].rank).length > 0) {
 		return {valid: false, msg: "Kolmosissa saa olla vain yhtä numeroa"};
 	}
 

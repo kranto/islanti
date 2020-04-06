@@ -19,8 +19,9 @@ class App extends Component {
   render() {
     return (
       <div className="App">
-        <div style={{height: "100px", width: "100px"}}>here</div>
-        <button onClick={this.simulateOthers}>Pelaa muiden vuorot</button>
+        <div>
+          <button onClick={this.simulateOthers}>Pelaa muiden vuorot</button>
+        </div>
         <CardTable ref={this.cardTable}></CardTable>
       </div>
     );
