@@ -95,12 +95,8 @@ var cards = (function() {
 			this.name = suit.toUpperCase()+rank;
 			this.faceUp = false;
 			this.cardback = back || opt.cardback;
-			this.el = $('<div/>').css({
-				width:opt.cardSize.width,
-				height:opt.cardSize.height,
-				position:'absolute',
-				cursor:'pointer'	
-			}).addClass('playingcard').data('card', this).appendTo($(table));
+			this.el = $('<div/>')
+			.addClass('playingcard').data('card', this).appendTo($(table));
 			this.el.html('<img src="svg/' + this.shortName + '.svg" alt="' + this.shortName + '" draggable="false" class="faceup-img">' 
 				+'<img src="svg/cardback_' + this.cardback + '.svg" alt="' + "card face down" + '" draggable="false" class="facedown-img">');
 			this.showCard();

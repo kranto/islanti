@@ -109,13 +109,11 @@ var cards = (function() {
 		},
 
 		showCard : function() {
-			$(this.el).find(".faceup-img").show();
-			$(this.el).find(".facedown-img").hide();
+			$(this.el).toggleClass("faceup", true);
 		},
 
 		hideCard : function(position) {
-			$(this.el).find(".faceup-img").hide();
-			$(this.el).find(".facedown-img").show();
+			$(this.el).toggleClass("faceup", false);
 		},
 		
 		moveToFront : function() {

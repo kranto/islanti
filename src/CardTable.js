@@ -2,10 +2,8 @@
 import React, { Component, useRef } from "react";
 import socketIOClient from "socket.io-client";
 import './CardTable.css';
-import $ from 'jquery';
-import cards from './cards.js';
 import Hand from './Hand.js';
-//import game from "./game.js";
+import game from "./game.js";
 import Card from './Card.js';
 import { findDOMNode } from 'react-dom';
 
@@ -21,38 +19,37 @@ class CardTable extends Component {
       pad: 25,
       cardWidth: 64,
       others: [13,13,13],
-      myhands: [5,2,6,1],
-      cards: this.createCards(),
-      faceUp: false
+      myhands: [5,2,6,1]
     };
   }
 
   componentDidMount() {
     const { endpoint } = this.state;
-    const socket = socketIOClient(endpoint);
-    socket.on('chat message', data => this.setState({ response: data }));
+    // const socket = socketIOClient(endpoint);
+    // socket.on('chat message', data => this.setState({ response: data }));
 
-    cards.init({table:'.CardTable', redJoker: true, blackJoker: true});
-    let deck = new cards.Deck({element: $("#deck")}); 
-    deck.addCards(cards.all);
-    deck.render({immediate:true});
-    setTimeout(() => this.card.current.setFaceUp(true), 2000); 
-    setTimeout(() => $(findDOMNode(this.card.current)).hide(), 3000);
+    game.init();
+
+    game.deal(true);
   }
 
   createOthers() {
     // return this.state.others.map(i => (<div key={"h" + i} className="player-hand"></div>));
-    return this.state.others.map((count, index) => (<Hand key={"o" + index} classes="player-hand" cardCount={count} padding={10} spacing={25} cardWidth={64}/>));
+    return this.state.others.map((count, index) => (<Hand id={"hand" + (index+1)} key={"o" + index} classes="player-hand" cardCount={count} padding={10} spacing={25} cardWidth={64}/>));
   }
 
   createMyHands() {
     return this.state.myhands.map((count, index) => (<Hand key={"m" + index} classes="open-hand selected draggable-container" cardCount={count} padding={10} spacing={25} cardWidth={64}/>));
   }
 
-  createCards() {
-    this.c1 = (<Card x={100} y={200} ref={this.card} name="d8" back="blue" faceUp={false}></Card>);
-    return [this.c1]
+  simulateOthers() {
+    game.simulateOthers();
   }
+
+  // createCards() {
+  //   this.c1 = (<Card x={100} y={200} ref={this.card} name="d8" back="blue" faceUp={false}></Card>);
+  //   return [this.c1]
+  // }
 
   render() {
 
@@ -78,7 +75,8 @@ class CardTable extends Component {
             <button id="cancelOpenButton" style={{display: 'none'}}>En avaakaan</button>
           </div>
           <div id="openhands">
-            {this.createMyHands()}
+            {/* {this.createMyHands()} */}
+            <div id="open-hand-template" className="open-hand draggable-container" style={{display: 'none'}}></div>
             <div id="newopen" className="new-open"><div>+</div></div>
           </div>
           {this.state.cards}

@@ -22,7 +22,7 @@ class Hand extends Component {
 
   render() {
     return (
-      <div ref={this.div} className={"Hand " + this.props.classes} style={{width: this.calculateWidth()}}>
+      <div id={this.props.id} ref={this.div} className={"Hand " + this.props.classes} style={{width: this.calculateWidth()}}>
       </div>
     );
   }
