@@ -1,24 +1,18 @@
-import React from 'react';
-import logo from './logo.svg';
 import './App.css';
+import React, { Component } from "react";
+import CardTable from './CardTable.js';
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Islanti!
-        </p>
-        <a
-          className="App-link"
-          href="testgame.html"
-        >
-        Testipeli - pelitesti
-        </a>
-      </header>
-    </div>
-  );
+
+class App extends Component {
+
+  render() {
+    return (
+      <div className="App">
+        <div style={{height: "100px", width: "100px"}}>here</div>
+        <CardTable></CardTable>
+      </div>
+    );
+  }
 }
 
 export default App;

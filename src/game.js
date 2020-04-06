@@ -1,6 +1,11 @@
+import $ from 'jquery';
+import 'jquery-ui-bundle';
+import 'jquery-ui-bundle/jquery-ui.css';
+import cards from './cards.js';
 
-//Tell the library which element to use for the table
-cards.init({table:'#card-table', redJoker: true, blackJoker: true});
+var game = (function() {
+
+cards.init({table:'.CardTable'});
 
 $(window).resize(function(){
 	cards.refresh();
@@ -111,7 +116,7 @@ function removeEmptyOpenHands() {
 	}
 }
 
-var discardPile = new cards.Deck({faceUp:true, element: $("#pile"),
+let discardPile = new cards.Deck({faceUp:true, element: $("#pile"),
 	canDrop: function(card) {
 		return myTurn && state === TURN_ACTIVE;
 	},
@@ -227,7 +232,6 @@ function setState(_myTurn, _state) {
 	$('#othershowcard').prop( "disabled", myTurn || state !== OPEN_CARD);
 	$('#simulateothers').prop( "disabled", !dealt || myTurn || (state !== "" && state !== PICK_CARD));
 	$('#myturn').prop( "disabled", !dealt || myTurn);
-	simulateothers
 	$("#pile").droppable({disabled: !myTurn || state !== TURN_ACTIVE })
 
 	$("#openButton").css('display', dealt && myTurn && !opened && state === TURN_ACTIVE ? "block": "none");
@@ -459,3 +463,6 @@ function testThree(hand) {
 function validateError(msg) {
 	alert(msg);
 }
+});
+
+export default game;
