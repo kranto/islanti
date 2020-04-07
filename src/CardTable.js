@@ -29,12 +29,9 @@ class CardTable extends Component {
     // socket.on('chat message', data => this.setState({ response: data }));
 
     game.init();
-
-    game.deal(true);
   }
 
   createOthers() {
-    // return this.state.others.map(i => (<div key={"h" + i} className="player-hand"></div>));
     return this.state.others.map((count, index) => (<Hand id={"hand" + (index+1)} key={"o" + index} classes="player-hand" cardCount={count} padding={10} spacing={25} cardWidth={64}/>));
   }
 
@@ -44,6 +41,18 @@ class CardTable extends Component {
 
   simulateOthers() {
     game.simulateOthers();
+  }
+
+  deal(myTurn) {
+    game.deal(myTurn);
+  }
+
+  otherShowCard() {
+    game.otherShowCard();
+  }
+
+  takeTurn() {
+    game.takeTurn();
   }
 
   // createCards() {
@@ -75,7 +84,6 @@ class CardTable extends Component {
             <button id="cancelOpenButton" style={{display: 'none'}}>En avaakaan</button>
           </div>
           <div id="openhands">
-            {/* {this.createMyHands()} */}
             <div id="open-hand-template" className="open-hand draggable-container" style={{display: 'none'}}></div>
             <div id="newopen" className="new-open"><div>+</div></div>
           </div>

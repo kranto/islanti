@@ -130,10 +130,10 @@ function setState(_myTurn, _state) {
 	state = _state;
 
 	$('#startover').prop( "disabled", !dealt);
-	$('.deal-button').prop( "disabled", dealt);
-	$('#othershowcard').prop( "disabled", myTurn || state !== OPEN_CARD);
-	$('#simulateothers').prop( "disabled", !dealt || myTurn || (state !== "" && state !== PICK_CARD));
-	$('#myturn').prop( "disabled", !dealt || myTurn);
+	// $('.deal-button').prop( "disabled", dealt);
+	// $('#othershowcard').prop( "disabled", myTurn || state !== OPEN_CARD);
+	// $('#simulateothers').prop( "disabled", !dealt || myTurn || (state !== "" && state !== PICK_CARD));
+	// $('#myturn').prop( "disabled", !dealt || myTurn);
 	$("#pile").droppable({disabled: !myTurn || state !== TURN_ACTIVE })
 
 	$("#openButton").css('display', dealt && myTurn && !opened && state === TURN_ACTIVE ? "block": "none");
@@ -457,20 +457,6 @@ function init() {
 		}
 	});
 	
-	$('.deal-button').click(deal);
-	
-	$('#othershowcard').click(function() {
-		discardPile.addCard(deck.topCard());
-		discardPile.render();
-		setState(false, PICK_CARD);
-	});
-	
-	$('#myturn').click(function() {
-		if (!myTurn) {
-			setState(true, PICK_CARD);	
-		}
-	});
-	
 	$("#simulateothers").click(simulateOthers);
 	
 	
@@ -480,7 +466,17 @@ function init() {
 return {
 	init: init,
 	deal: deal,
-	simulateOthers: simulateOthers
+	simulateOthers: simulateOthers,
+	otherShowCard: () => {
+		discardPile.addCard(deck.topCard());
+		discardPile.render();
+		setState(false, PICK_CARD);
+	},
+	takeTurn: () => {
+		if (!myTurn) {
+			setState(true, PICK_CARD);	
+		}		
+	}
 };
 
 })();
