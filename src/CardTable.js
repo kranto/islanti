@@ -12,7 +12,6 @@ class CardTable extends Component {
   constructor() {
     super();
     let endpoint = (window.location.hostname === 'localhost' ? "http://localhost:4000/" : "" );
-    this.card = React.createRef()
     this.state = {
       response: false,
       endpoint: endpoint,
@@ -27,7 +26,6 @@ class CardTable extends Component {
     const { endpoint } = this.state;
     // const socket = socketIOClient(endpoint);
     // socket.on('chat message', data => this.setState({ response: data }));
-
     game.init();
   }
 
@@ -54,11 +52,6 @@ class CardTable extends Component {
   takeTurn() {
     game.takeTurn();
   }
-
-  // createCards() {
-  //   this.c1 = (<Card x={100} y={200} ref={this.card} name="d8" back="blue" faceUp={false}></Card>);
-  //   return [this.c1]
-  // }
 
   render() {
 
@@ -87,7 +80,6 @@ class CardTable extends Component {
             <div id="open-hand-template" className="open-hand draggable-container" style={{display: 'none'}}></div>
             <div id="newopen" className="new-open"><div>+</div></div>
           </div>
-          {this.state.cards}
         </div>
       </div>
     );

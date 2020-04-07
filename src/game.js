@@ -17,8 +17,8 @@ var game = (function() {
 var round = {
 	roundNumber: 1,
 	roundName: "kolmoset ja suora",
-	expectedThrees: 1,
-	expectedFlushes: 1,	
+	expectedSets: 1,
+	expectedStraights: 1,	
 	isFreestyle: false
 };
 
@@ -188,36 +188,36 @@ function showValidityMessage() {
 // ===========
 
 function validateSelected(selected, cardCount) {
-	var threes = [];
-	var flushes = [];
+	var sets = [];
+	var straights = [];
 	for (var i = 0; i < selected.length; i++) {
 		var hand = selected[i];
 
 		if (!hand.validity.valid) {
 			return {valid: false, msg: "Joku valituista sarjoista ei ole sallittu."};
 		}
-		if (hand.validity.type === 'flush') {
-			flushes.push(hand.validity.data);
+		if (hand.validity.type === 'straight') {
+			straights.push(hand.validity.data);
 		}
-		if (hand.validity.type === 'three') {
-			threes.push(hand.validity.data);
+		if (hand.validity.type === 'set') {
+			sets.push(hand.validity.data);
 		}
 	}
-	if (threes.length !== round.expectedThrees && !round.isFreestyle) {
-		return {valid: false, msg: "Pitäisi olla " + round.expectedThrees + " kolmoset, mutta onkin " + threes.length};
+	if (sets.length !== round.expectedSets && !round.isFreestyle) {
+		return {valid: false, msg: "Pitäisi olla " + round.expectedSets + " kolmoset, mutta onkin " + sets.length};
 	}
-	if (flushes.length !== round.expectedFlushes && !round.isFreestyle) {
-		return {valid: false, msg: "Pitäisi olla " + round.expectedFlushes + " suoraa, mutta onkin " + flushes.length};
+	if (straights.length !== round.expectedStraights && !round.isFreestyle) {
+		return {valid: false, msg: "Pitäisi olla " + round.expectedStraights + " suoraa, mutta onkin " + straights.length};
 	}
-	var threesNumbers = [];
-	for (var i = 0; i < threes.length; i++) {
-		if (threesNumbers.indexOf(threes[i].number) >= 0) {
+	var setsNumbers = [];
+	for (var i = 0; i < sets.length; i++) {
+		if (setsNumbers.indexOf(sets[i].number) >= 0) {
 			return {valid: false, msg: "Kaikki kolmossarjat täytyy olla eri numeroa"};
 		}
 	}
-	var flushesSuites = [];
-	for (var i = 0; i < flushes.length; i++) {
-		if (flushesSuites.indexOf(flushes[i].suit) >= 0) {
+	var straightsSuites = [];
+	for (var i = 0; i < straights.length; i++) {
+		if (straightsSuites.indexOf(straights[i].suit) >= 0) {
 			return {valid: false, msg: "Suorat täytyy olla eri maista"};
 		}
 	}
@@ -227,20 +227,20 @@ function validateSelected(selected, cardCount) {
 
 function validateHands() {
 	openHands.forEach((hand) => {
-		hand.validity = validateHand(hand, round.expectedFlushes > 0, round.expectedThrees > 0);
+		hand.validity = validateHand(hand, round.expectedStraights > 0, round.expectedSets > 0);
 	});
 }
 
-function validateHand(hand, testForFlush, testForThrees) {
-	var flush = testForFlush ? testFlush(hand) : false;
-	var three = testForThrees ? testThree(hand) : false;
+function validateHand(hand, testForStraight, testForSets) {
+	var straight = testForStraight ? testStraight(hand) : false;
+	var set = testForSets ? testSet(hand) : false;
 
-	if (flush && flush.valid) return {type: 'flush', valid: true, msg: 'Suora', data: flush};
-	if (three && three.valid) return {type: 'three', valid: true, msg: 'Kolmoset', data: three};
-	return {valid: false, type: false, msg: (flush ? (flush.msg + ". "): "") + (three ? (three.msg + ".") : "")};
+	if (straight && straight.valid) return {type: 'straight', valid: true, msg: 'Suora', data: straight};
+	if (set && set.valid) return {type: 'set', valid: true, msg: 'Kolmoset', data: set};
+	return {valid: false, type: false, msg: (straight ? (straight.msg + ". "): "") + (set ? (set.msg + ".") : "")};
 }
 
-function testFlush(hand) {
+function testStraight(hand) {
 	if (hand.length < 4) {
 		return {valid: false, msg: "Suorassa täytyy olla vähintään neljä korttia"};
 	}
@@ -297,7 +297,7 @@ function testFlush(hand) {
 	}
 
 	return {
-		type: 'flush',
+		type: 'straight',
 		valid: true,
 		suit: others[0].suit,
 		cards: hand,
@@ -305,7 +305,7 @@ function testFlush(hand) {
 	};
 }
 
-function testThree(hand) {
+function testSet(hand) {
 	if (hand.length < 3) {
 		return {valid: false, msg: "Kolmosissa täytyy olla vähintään kolme korttia"};
 	}
@@ -322,7 +322,7 @@ function testThree(hand) {
 	}
 
 	return {
-		type: 'threes',
+		type: 'sets',
 		valid: true,
 		rank: others[0].rank,
 		cards: hand,
