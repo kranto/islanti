@@ -82,7 +82,7 @@ function createNewOpenHand() {
 function removeEmptyOpenHands() {
 	for (var i = 0; i < openHands.length; i++) {
 		var openHand = openHands[i];
-		if (openHand.length == 0) {
+		if (openHand.length === 0) {
 			openHands.splice(i, 1);
 			openHand.element.remove();
 			openHand.element.popover('dispose');
@@ -104,7 +104,6 @@ function sleep(fromMs, toMs) {
   }
   
 async function  simulateOthers() {
-	$("simulateothers").prop("disabled", true);
 	for (var i in otherHands) {
 		await simulateOnePlayer(otherHands[i]);
 	}
@@ -115,11 +114,16 @@ async function simulateOnePlayer(hand) {
 	await sleep(500, 2000);
 	var card = (Math.random() > 0.7 && discardPile.length > 0) ? discardPile.topCard() : deck.topCard();
 	hand.addCard(card);
-	cards.refresh();
+	hand.render();
+	card.moveToFront();
+
 	setState(false, TURN_ACTIVE);
 	await sleep(1000, 2000);
-	discardPile.addCard(hand[Math.floor(Math.random()*hand.length)]);
-	cards.refresh();
+	card = hand[Math.floor(Math.random()*hand.length)]
+	discardPile.addCard(card);
+	discardPile.render();
+	hand.render();
+	card.moveToFront();
 	setState(false, PICK_CARD);
 }
 
@@ -127,11 +131,6 @@ function setState(_myTurn, _state) {
 	myTurn = _myTurn;
 	state = _state;
 
-	$('#startover').prop( "disabled", !dealt);
-	// $('.deal-button').prop( "disabled", dealt);
-	// $('#othershowcard').prop( "disabled", myTurn || state !== OPEN_CARD);
-	// $('#simulateothers').prop( "disabled", !dealt || myTurn || (state !== "" && state !== PICK_CARD));
-	// $('#myturn').prop( "disabled", !dealt || myTurn);
 	$("#pile").droppable({disabled: !myTurn || state !== TURN_ACTIVE })
 
 	$("#openButton").css('display', dealt && myTurn && !opened && state === TURN_ACTIVE ? "block": "none");
@@ -455,9 +454,6 @@ function init() {
 			setState(false, "");
 		}
 	});
-	
-	$("#simulateothers").click(simulateOthers);
-	
 	
 	setState(false, "");
 }
