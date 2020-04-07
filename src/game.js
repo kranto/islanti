@@ -1,8 +1,6 @@
 import * as $ from 'jquery';
 import 'jquery-ui-bundle';
 import 'jquery-ui-bundle/jquery-ui.css';
-
-
 // import 'jquery-ui-touch-punch';
 // import './jquery.ui.touch-punch.min.js';
 import cards from './cards.js';
@@ -332,14 +330,15 @@ function testSet(hand) {
 function init() {
 	$(".CardTable").disableSelection();
 
-	cards.init({table:'.CardTable'});
+	cards.init();
 
 	$(window).resize(function(){
 		cards.refresh();
 	});
 
 	deck = new cards.Deck({element: $("#deck")}); 
-	deck.addCards(cards.all); 
+	deck.addCards(cards.createCards($(".CardTable")));
+	cards.shuffle(deck);
 	deck.render({immediate:true});
 	
 	for (var i = 1; i <= 3; i++) {

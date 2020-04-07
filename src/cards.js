@@ -3,16 +3,18 @@ import 'jquery-ui-bundle';
 import 'jquery-ui-bundle/jquery-ui.css';
 
 var cards = (function() {
-	//The global options
+
 	var opt = {
-		cardSize : {width:69,height:94, padding:40},
-		animationSpeed : 300,
-		table : 'body'
+		cardSize : {width:69, height:94, spacing:40},
+		animationSpeed : 300
 	};
-	var zIndexCounter = 1;
-	var all = []; //All the cards created.
-	
+
+	var zIndexCounter = 1;	
 	var containers = [];
+
+	function init() {
+		
+	}
 
 	function mouseEvent(ev) {
 		var card = $(this).data('card');
@@ -24,35 +26,17 @@ var cards = (function() {
 		}
 	}
 	
-	function init(options) {
-		if (options) {
-			for (var index in options) {
-				if (opt.hasOwnProperty(index)) {
-					opt[index] = options[index];
+	function createCards(element) {
+		let cards = [];
+		['blue', 'red'].forEach(color => {
+			['h', 's', 'd', 'c'].forEach(suit => {
+				for (let i = 1; i <= 13; i++) {
+					cards.push(new Card(suit, i, color, element));
 				}
-			}
-		}
-		var start = 1;
-		var end = 13;
-		opt.table = $(opt.table)[0];
-		if ($(opt.table).css('position') === 'static') {
-			$(opt.table).css('position', 'relative');
-		}
-
-		for (var i = start; i <= end; i++) {
-			all.push(new Card('h', i, opt.table, 'blue'));
-			all.push(new Card('s', i, opt.table, 'blue'));
-			all.push(new Card('d', i, opt.table, 'blue'));
-			all.push(new Card('c', i, opt.table, 'blue'));
-			all.push(new Card('h', i, opt.table, 'red'));
-			all.push(new Card('s', i, opt.table, 'red'));
-			all.push(new Card('d', i, opt.table, 'red'));
-			all.push(new Card('c', i, opt.table, 'red'));
-		}
-		all.push(new Card('bj', 0, opt.table, 'blue'));
-		all.push(new Card('bj', 0, opt.table, 'red'));
-		all.push(new Card('rj', 0, opt.table, 'blue'));
-		all.push(new Card('rj', 0, opt.table, 'red'));
+			});
+			cards.push(new Card('b', 0, color, element));
+			cards.push(new Card('r', 0, color, element));
+		});
 
 		$('.playingcard').click(mouseEvent);
 
@@ -65,8 +49,8 @@ var cards = (function() {
 			stop: function() {}
 		});
 
-		shuffle(all);
-	};
+		return cards;
+	}
 
 	function shuffle(deck) {
 		for (var k in [1,2]) {
@@ -80,21 +64,20 @@ var cards = (function() {
 		}
 	}
 	
-	function Card(suit, rank, table, back) {
-		this.init(suit, rank, table, back);
+	function Card(suit, rank, back, table) {
+		this.init(suit, rank, back, table);
 	}
 	
 	Card.prototype = {
-		init: function (suit, rank, table, back) {
-			this.shortName = suit + rank;
+		init: function (suit, rank, back, table) {
 			this.suit = suit;
 			this.rank = rank;
-			this.name = suit.toUpperCase()+rank;
+			this.cardback = back;
+			this.name = suit + rank;
 			this.faceUp = false;
-			this.cardback = back || opt.cardback;
 			this.el = $('<div/>')
-				.addClass('playingcard').addClass("facedown").data('card', this).appendTo($(table));
-			this.el.html('<img src="svg/' + this.shortName + '.svg" alt="' + this.shortName + '" draggable="false" class="faceup-img"/>' 
+				.addClass('playingcard').data('card', this).appendTo($(table));
+			this.el.html('<img src="svg/' + this.name + '.svg" alt="' + this.name + '" draggable="false" class="faceup-img"/>' 
 				+'<img src="svg/cardback_' + this.cardback + '.svg" alt="card face down" draggable="false" class="facedown-img"/>');
 			this.showCard();
 			this.moveToFront();
@@ -167,7 +150,7 @@ var cards = (function() {
 			options = options || {};
 			this.maxWidth = options.maxWidth || 1000000;
 			this.minWidth = options.minWidth;
-			this.padding = options.padding;
+			this.spacing = options.spacing;
 			this.faceUp = options.faceUp;
 			this.element = options.element;
 			this.isDraggable = options.isDraggable;
@@ -236,10 +219,6 @@ var cards = (function() {
 		
 		topCard : function() {
 			return this[this.length-1];
-		},
-		
-		toString: function() {
-			return 'Container';
 		}
 	});
 	
@@ -299,21 +278,21 @@ var cards = (function() {
 	Hand.prototype.extend({
 		setElementWidth: function() {
 			if (!this.minWidth) return;
-			var pad = opt.cardSize.padding;
+			var pad = opt.cardSize.spacing;
 			var desiredWidth = opt.cardSize.width + Math.max(this.length - 1, 0) * pad;
 			var width = Math.max(this.minWidth, desiredWidth);
 			this.element.width(width);
 		},
 		calcPadding: function(options) {
 			var maxWidth = this.element ? elementRect(this.element).width - 10 : false || this.maxWidth;
-			var pad = options.padding ? options.padding : opt.cardSize.padding;
+			var pad = options.spacing ? options.spacing : opt.cardSize.spacing;
 			var desiredWidth = Math.max(this.length - 1, 0) * pad + opt.cardSize.width;
 			return desiredWidth  <= maxWidth ? pad : (maxWidth - opt.cardSize.width) / Math.max(this.length - 1, 0);
 		},
 		calcPosition : function(options) {
 			options = options || {};
-			var padding = this.calcPadding(options);
-			var cardWidth = opt.cardSize.width + (this.length-1)*padding;
+			var spacing = this.calcPadding(options);
+			var cardWidth = opt.cardSize.width + (this.length-1)*spacing;
 			var boundingRect = this.element ? elementRect(this.element) : { x: this.x, y: this.y, width: 0, height: 0};
 			var centerX = boundingRect.x + boundingRect.width / 2;
 			var centerY = boundingRect.y + boundingRect.height / 2;
@@ -321,7 +300,7 @@ var cards = (function() {
 			var top = Math.round(centerY - opt.cardSize.height/2, 0);
 			for (var i=0;i<this.length;i++) {
 				this[i].targetTop = top;
-				this[i].targetLeft = left + i * padding;
+				this[i].targetLeft = left + i * spacing;
 			}
 		},
 
@@ -348,14 +327,13 @@ var cards = (function() {
 	}
 
 	return {
-		init : init,
-		all : all,
 		options : opt,
-		SIZE : opt.cardSize,
 		Card : Card,
 		Container : Container,
 		Deck : Deck,
 		Hand : Hand,
+		init: init,
+		createCards: createCards,
 		shuffle: shuffle,
 		refresh: refresh
 	};
