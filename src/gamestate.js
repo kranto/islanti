@@ -1,22 +1,56 @@
-import * as $ from 'jquery';
-import 'jquery-ui-bundle';
-import 'jquery-ui-bundle/jquery-ui.css';
 import cards from './cards.js';
-import Popper from 'popper.js';
-import 'bootstrap/dist/js/bootstrap.bundle.min';
 
-window.jQuery = $;
-require('jquery-ui-touch-punch');
+class GameState {
 
-var game = (function() {
+	state = {
+		round: {index: 1, name: 'Kolmoset ja suora'},
+		roundStartedBy: 2,
+		players: [
+			{name: "Pasi"},
+			{name: "Inka"},
+			{name: "Hellevi"},
+			{name: "Artturi"},
+		],
+		playerHands: [
+			{closedHand: [[0,1,0,0,1,1,1,1,0]], openHands: [{type: 'set', cards: [10,10,10,12,12]}, {}] },
+			{closedHand: [[0,1,0,0,1,1,1,1,0,1,1]], openHands: [{type: 'straight', cards: []}, {}] },
+			{closedHand: [[0,1,0,0,1,1,1,1,0,1,1]], openHands: [{type: 'straight', cards: []}, {}] },
+		],
+		myHands: {closedHand: [[82,99,14,9],[104,67]], openHands: [{type: 'straight', cards: []}, {}] },
 
-var round = {
-	roundNumber: 1,
-	roundName: "kolmoset ja suora",
-	expectedSets: 1,
-	expectedStraights: 1,	
-	isFreestyle: false
-};
+		deck: {firstCard: 0, count: 44},
+		pile: {firstCard: 103, count: 25},
+
+		playerActive: 2,
+		state: 'pick',
+
+	}
+
+	deal(deck, firstPlayer, firstCard, count, playerStartingRound) {}
+	showsFirstCard(card, firstInDeck, deckCount) {}
+	movesCard(player, from, to, newClosedHand) {}
+	picksFromDeck(player, card, firstCard, count) {}
+	picksFromPile(player, card, firstCard, count) {}
+	opens(player, fromArray, openHands) {}
+	abandonsCard(player, from, card, newPlayerInTurn) {}
+	willToBuy(seller, buyers) {} // [{player: 1, time: 123}]
+	sells(seller, buyer, cardInPile, firstCardIPile, pileCount, cardInDeck, firstCardInDeck, deckCount)
+	newDeck(firstCardInDeck, deckCount, firstCardInPile, pileCount)
+}
+
+moveCard(from, to, closedhand)
+showFirstCard()
+pickFromDeck()
+pickFromPile()
+open(openHands);
+abandonCard(from, card)
+willBuy()
+sell()
+dontSell()
+
+
+
+export default GameState;
 
 var OPEN_CARD = "OPEN_CARD";
 var PICK_CARD = "PICK_CARD";
@@ -27,8 +61,6 @@ var dealt = false;
 var myTurn = false;
 var opened = false;
 var state = "";
-
-var allCards = [];
 
 
 // gameStates/events: 
@@ -49,33 +81,6 @@ let otherHands = [];
 let openHands = [];
 let discardPile;
 
-function moveOther(index, from, to) {
-	let hand = otherHands[index];
-	hand[from].pullUp();
-		let order = hand.map(c => c.id);
-	order.splice(to, 0, order.splice(from, 1)[0]);
-	orderOther(index, order);
-}
-
-function orderOther(index, newOrder) {
-	let hand = otherHands[index];
-	hand.sort((a, b) => newOrder.indexOf(a.id) < newOrder.indexOf(b.id) ? -1 : 1);
-	hand.render();
-}
-
-function pickFromDeck(index) {
-	addToOther(index, deck.topCard().id);
-}
-
-function pickFromPile(index) {
-	addToOther(index, discardPile.topCard().id);
-}
-
-function addToOther(index, card) {
-	let hand = otherHands[index];
-	hand.addCard(allCards.filter(c => c.id === card)[0]);
-	hand.render();
-}
 
 function createNewOpenHand() {
 	var el = $("#open-hand-template").clone().removeAttr("id").addClass('hand-section').show();
@@ -109,7 +114,7 @@ function createNewOpenHand() {
 function removeEmptyOpenHands() {
 	for (var i = 0; i < openHands.length; i++) {
 		var openHand = openHands[i];
-		if (openHand.length === 0) {
+		if (openHand.length == 0) {
 			openHands.splice(i, 1);
 			openHand.element.remove();
 			openHand.element.popover('dispose');
@@ -131,6 +136,7 @@ function sleep(fromMs, toMs) {
   }
   
 async function  simulateOthers() {
+	$("simulateothers").prop("disabled", true);
 	for (var i in otherHands) {
 		await simulateOnePlayer(otherHands[i]);
 	}
@@ -141,16 +147,11 @@ async function simulateOnePlayer(hand) {
 	await sleep(500, 2000);
 	var card = (Math.random() > 0.7 && discardPile.length > 0) ? discardPile.topCard() : deck.topCard();
 	hand.addCard(card);
-	hand.render();
-	card.moveToFront();
-
+	cards.refresh();
 	setState(false, TURN_ACTIVE);
 	await sleep(1000, 2000);
-	card = hand[Math.floor(Math.random()*hand.length)]
-	discardPile.addCard(card);
-	discardPile.render();
-	hand.render();
-	card.moveToFront();
+	discardPile.addCard(hand[Math.floor(Math.random()*hand.length)]);
+	cards.refresh();
 	setState(false, PICK_CARD);
 }
 
@@ -158,6 +159,11 @@ function setState(_myTurn, _state) {
 	myTurn = _myTurn;
 	state = _state;
 
+	$('#startover').prop( "disabled", !dealt);
+	// $('.deal-button').prop( "disabled", dealt);
+	// $('#othershowcard').prop( "disabled", myTurn || state !== OPEN_CARD);
+	// $('#simulateothers').prop( "disabled", !dealt || myTurn || (state !== "" && state !== PICK_CARD));
+	// $('#myturn').prop( "disabled", !dealt || myTurn);
 	$("#pile").droppable({disabled: !myTurn || state !== TURN_ACTIVE })
 
 	$("#openButton").css('display', dealt && myTurn && !opened && state === TURN_ACTIVE ? "block": "none");
@@ -212,36 +218,36 @@ function showValidityMessage() {
 // ===========
 
 function validateSelected(selected, cardCount) {
-	var sets = [];
-	var straights = [];
+	var threes = [];
+	var flushes = [];
 	for (var i = 0; i < selected.length; i++) {
 		var hand = selected[i];
 
 		if (!hand.validity.valid) {
 			return {valid: false, msg: "Joku valituista sarjoista ei ole sallittu."};
 		}
-		if (hand.validity.type === 'straight') {
-			straights.push(hand.validity.data);
+		if (hand.validity.type === 'flush') {
+			flushes.push(hand.validity.data);
 		}
-		if (hand.validity.type === 'set') {
-			sets.push(hand.validity.data);
+		if (hand.validity.type === 'three') {
+			threes.push(hand.validity.data);
 		}
 	}
-	if (sets.length !== round.expectedSets && !round.isFreestyle) {
-		return {valid: false, msg: "Pitäisi olla " + round.expectedSets + " kolmoset, mutta onkin " + sets.length};
+	if (threes.length !== round.expectedThrees && !round.isFreestyle) {
+		return {valid: false, msg: "Pitäisi olla " + round.expectedThrees + " kolmoset, mutta onkin " + threes.length};
 	}
-	if (straights.length !== round.expectedStraights && !round.isFreestyle) {
-		return {valid: false, msg: "Pitäisi olla " + round.expectedStraights + " suoraa, mutta onkin " + straights.length};
+	if (flushes.length !== round.expectedFlushes && !round.isFreestyle) {
+		return {valid: false, msg: "Pitäisi olla " + round.expectedFlushes + " suoraa, mutta onkin " + flushes.length};
 	}
-	var setsNumbers = [];
-	for (var i = 0; i < sets.length; i++) {
-		if (setsNumbers.indexOf(sets[i].number) >= 0) {
+	var threesNumbers = [];
+	for (var i = 0; i < threes.length; i++) {
+		if (threesNumbers.indexOf(threes[i].number) >= 0) {
 			return {valid: false, msg: "Kaikki kolmossarjat täytyy olla eri numeroa"};
 		}
 	}
-	var straightsSuites = [];
-	for (var i = 0; i < straights.length; i++) {
-		if (straightsSuites.indexOf(straights[i].suit) >= 0) {
+	var flushesSuites = [];
+	for (var i = 0; i < flushes.length; i++) {
+		if (flushesSuites.indexOf(flushes[i].suit) >= 0) {
 			return {valid: false, msg: "Suorat täytyy olla eri maista"};
 		}
 	}
@@ -251,20 +257,20 @@ function validateSelected(selected, cardCount) {
 
 function validateHands() {
 	openHands.forEach((hand) => {
-		hand.validity = validateHand(hand, round.expectedStraights > 0, round.expectedSets > 0);
+		hand.validity = validateHand(hand, round.expectedFlushes > 0, round.expectedThrees > 0);
 	});
 }
 
-function validateHand(hand, testForStraight, testForSets) {
-	var straight = testForStraight ? testStraight(hand) : false;
-	var set = testForSets ? testSet(hand) : false;
+function validateHand(hand, testForFlush, testForThrees) {
+	var flush = testForFlush ? testFlush(hand) : false;
+	var three = testForThrees ? testThree(hand) : false;
 
-	if (straight && straight.valid) return {type: 'straight', valid: true, msg: 'Suora', data: straight};
-	if (set && set.valid) return {type: 'set', valid: true, msg: 'Kolmoset', data: set};
-	return {valid: false, type: false, msg: (straight ? (straight.msg + ". "): "") + (set ? (set.msg + ".") : "")};
+	if (flush && flush.valid) return {type: 'flush', valid: true, msg: 'Suora', data: flush};
+	if (three && three.valid) return {type: 'three', valid: true, msg: 'Kolmoset', data: three};
+	return {valid: false, type: false, msg: (flush ? (flush.msg + ". "): "") + (three ? (three.msg + ".") : "")};
 }
 
-function testStraight(hand) {
+function testFlush(hand) {
 	if (hand.length < 4) {
 		return {valid: false, msg: "Suorassa täytyy olla vähintään neljä korttia"};
 	}
@@ -321,7 +327,7 @@ function testStraight(hand) {
 	}
 
 	return {
-		type: 'straight',
+		type: 'flush',
 		valid: true,
 		suit: others[0].suit,
 		cards: hand,
@@ -329,7 +335,7 @@ function testStraight(hand) {
 	};
 }
 
-function testSet(hand) {
+function testThree(hand) {
 	if (hand.length < 3) {
 		return {valid: false, msg: "Kolmosissa täytyy olla vähintään kolme korttia"};
 	}
@@ -346,167 +352,9 @@ function testSet(hand) {
 	}
 
 	return {
-		type: 'sets',
+		type: 'threes',
 		valid: true,
 		rank: others[0].rank,
 		cards: hand,
 	};
 }
-
-function init() {
-	$(".CardTable").disableSelection();
-
-	cards.init();
-
-	$(window).resize(function(){
-		cards.refresh();
-	});
-
-	allCards = cards.createCards($(".CardTable"));
-	deck = new cards.Deck({element: $("#deck")}); 
-	deck.addCards(allCards);
-	cards.shuffle(deck);
-	deck.render({immediate:true});
-	
-	for (var i = 1; i <= 3; i++) {
-		var hand = new cards.Hand({faceUp:false, element: $("#hand" + i)});
-		otherHands.push(hand);
-	}
-	openHands.push(createNewOpenHand());
-
-	new cards.Hand({
-		faceUp:true,
-		element: $("#newopen")
-	});
-	
-	discardPile = new cards.Deck({faceUp:true, element: $("#pile"),
-	canDrop: function(card) {
-		return myTurn && state === TURN_ACTIVE;
-	},
-	drop: function(card) {
-		this.addCard(card);
-		removeEmptyOpenHands();
-		cards.refresh();
-		setState(false, "");
-	},
-	});
-
-	deck.click(function(card){	
-		if (card === deck.topCard() && myTurn) {
-			if (state === OPEN_CARD) {
-				discardPile.addCard(deck.topCard());
-				discardPile.render();
-				setState(true, PICK_CARD);	
-			} else if (state === PICK_CARD) {
-				setState(true, TURN_ACTIVE);
-				openHands[0].addCard(card);
-				openHands[0].render();
-				cards.refresh();
-			}
-		}
-	});
-	
-	discardPile.click(function(card){
-		if (card === discardPile.topCard() && myTurn && state === PICK_CARD) {
-			setState(true, TURN_ACTIVE);
-			openHands[0].addCard(card);
-			openHands[0].render();
-			cards.refresh();
-		}
-	});
-
-	$("#newopen").droppable({
-		accept: ".playingcard",
-		greedy: true,
-		drop: function(event, ui) {
-			var card = ui.draggable.data('card');
-			var openHand = createNewOpenHand();
-			openHand.addCard(card, true);
-			openHands.push(openHand);
-			removeEmptyOpenHands();
-			cards.refresh();
-		}
-	});
-		
-	$(".CardTable").droppable({
-		accept: ".playingcard",
-		drop: function(event, ui) {
-			var card = ui.draggable.data('card');
-			card.container.render();
-		}
-	});
-	
-	$("#openButton").click(() => {
-		validateHands();
-		setState(true, OPENING);
-		updateConfirmButton();
-	});
-	
-	$("#cancelOpenButton").click(function() {
-		$(".open-hand").toggleClass("selected", false);
-		$(".open-hand").popover('hide');
-		updateConfirmButton();
-		setState(true, TURN_ACTIVE);
-	});
-	
-	$("#confirmOpenButton").click(function() {
-		var selected = [];
-		$(".open-hand.selected").each(function() {
-			selected.push($(this).data('container'));
-		});
-	
-		$(".open-hand").toggleClass("selected", false);
-		$(".open-hand").popover('hide');
-	
-		alert("Avasit!");
-	
-		setState(true, TURN_ACTIVE);
-	});
-	
-	$("#selectseries").popover({
-		container: '.CardTable',
-		placement: 'top',
-		trigger: 'manual',
-		content: () => validity.msg
-	});		
-
-	$("#pile").droppable({
-		accept: ".playingcard",
-		greedy: true,
-		drop: function(event, ui) {
-			var card = ui.draggable.data('card');
-			if (!myTurn || state !== TURN_ACTIVE) { card.container.render(); return; };
-			discardPile.addCard(card);
-			removeEmptyOpenHands();
-			cards.refresh();
-			setState(false, "");
-		}
-	});
-	
-	setState(false, "");
-}
-
-return {
-	init: init,
-	deal: deal,
-	simulateOthers: simulateOthers,
-	otherShowCard: () => {
-		discardPile.addCard(deck.topCard());
-		discardPile.render();
-		setState(false, PICK_CARD);
-	},
-	takeTurn: () => {
-		if (!myTurn) {
-			setState(true, PICK_CARD);	
-		}		
-	},
-	moveOther: moveOther,
-	orderOther: orderOther,
-	pickFromDeck: pickFromDeck,
-	pickFromPile: pickFromPile,
-	addToOther: addToOther
-};
-
-})();
-
-export default game;

@@ -3,6 +3,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import React, { Component } from "react";
 import CardTable from './CardTable.js';
 import game from './game';
+import * as $ from 'jquery';
 
 
 class App extends Component {
@@ -31,6 +32,9 @@ class App extends Component {
       return (
       <div className="App">
         <div>
+          <button onClick={() => game.moveOther(Math.floor(Math.random()*3), Math.floor(Math.random()*13), Math.floor(Math.random()*13))}>Järjestä</button>
+          <button onClick={() => game.pickFromDeck(Math.floor(Math.random()*3))}>Nosta pakasta</button>
+          <button onClick={() => game.pickFromPile(Math.floor(Math.random()*3))}>Nosta avopakasta</button>
           <button onClick={() => this.cardTable.current.deal(true)}>Jaa, minä aloitan</button>
           <button onClick={() => this.cardTable.current.deal(false)}>Jaa, joku muu aloittaa</button>
           <button onClick={() => this.cardTable.current.otherShowCard()}>Joku muu aloittaa</button>

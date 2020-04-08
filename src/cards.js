@@ -18,12 +18,13 @@ var cards = (function() {
 
 	function mouseEvent(ev) {
 		var card = $(this).data('card');
-		if (card.container) {
+		if (card && card.container) {
 			var handler = card.container["_" + ev.type];
 			if (handler) {
 				handler.func.call(handler.context||window, card, ev);
 			}
 		}
+		$(this).draggable("enable");
 	}
 	
 	function createCards(element) {
@@ -42,9 +43,9 @@ var cards = (function() {
 
 		$('.playingcard').draggable({
 			stack: ".playingcard",
-			containment: "parent",
+			containment: ".CardTable",
 			placement: "top",
-			start: function() { $(this).stop(); },
+			start: function() { $(this).stop(); }, // stop animations
 			drag: function() {},
 			stop: function() {}
 		});
@@ -70,6 +71,7 @@ var cards = (function() {
 	
 	Card.prototype = {
 		init: function (suit, rank, back, table) {
+			this.id = back.charAt(0) + suit + rank;
 			this.suit = suit;
 			this.rank = rank;
 			this.cardback = back;
@@ -85,6 +87,11 @@ var cards = (function() {
 
 		toString: function () {
 			return this.name;
+		},
+
+		pullUp: function(pixels) {
+			var top = parseInt($(this.el).css('top'));
+			$(this.el).css({top: (top-15), transition: 'none'});
 		},
 
 		showCard : function() {
@@ -188,8 +195,8 @@ var cards = (function() {
 				var top = parseInt($(card.el).css('top'));
 				var left = parseInt($(card.el).css('left'));
 				if (top !== card.targetTop || left !== card.targetLeft) {
-					var props = {top:card.targetTop, left:card.targetLeft, queue:false};
-					if (options.immediate) {
+					var props = {top:card.targetTop, left:card.targetLeft, queue:false, transition: ""};
+					if (true || options.immediate) {
 						$(card.el).css(props);
 					} else {
 						$(card.el).animate(props, speed);

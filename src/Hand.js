@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+import Card from "./Card";
 
 class Hand extends Component {
 
@@ -13,7 +14,7 @@ class Hand extends Component {
   }
 
   componentDidMount() {
-    console.log(this.div.current.offsetWidth, this.div.current.getBoundingClientRect(), this.div.current.getClientRects());
+    // console.log(this.div.current.offsetWidth, this.div.current.getBoundingClientRect(), this.div.current.getClientRects());
   }
 
   componentDidUpdate() {
@@ -23,6 +24,7 @@ class Hand extends Component {
   render() {
     return (
       <div id={this.props.id} ref={this.div} className={"Hand " + this.props.classes} style={{width: this.calculateWidth()}}>
+        {/* {this.props.cards} */}
       </div>
     );
   }

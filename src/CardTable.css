@@ -5,6 +5,7 @@
 	width: 69px;
 	height: 94px;
 	cursor: pointer;	
+	transition: left 0.5s ease-in-out, top 0.5s ease-in-out;
 }
 
 .playingcard img {
@@ -34,8 +35,9 @@
 }
 
 .playingcard.ui-draggable-dragging {
-	transform: scale(1.2);
+	transform: scale(1.2) rotateX(10);
 	opacity: 0.6;
+	transition: none;
 }
 
 .CardTable {

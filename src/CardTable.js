@@ -18,7 +18,11 @@ class CardTable extends Component {
       pad: 25,
       cardWidth: 64,
       others: [13,13,13],
-      myhands: [5,2,6,1]
+      myhands: [5,2,6,1],
+      styles: {
+        top: 0,
+        left: 0
+      }
     };
   }
 
@@ -27,14 +31,27 @@ class CardTable extends Component {
     // const socket = socketIOClient(endpoint);
     // socket.on('chat message', data => this.setState({ response: data }));
     game.init();
+    this.setState({
+      styles: {
+        top: 100,
+        left: 200,
+      }
+    })
   }
 
   createOthers() {
-    return this.state.others.map((count, index) => (<Hand id={"hand" + (index+1)} key={"o" + index} classes="player-hand" cardCount={count} padding={10} spacing={25} cardWidth={64}/>));
+    return this.state.others.map((count, index) => 
+    (<Hand id={"hand" + (index+1)} key={"o" + index} classes="player-hand"
+    // cards={<><Card name="d1" back="blue" left="10px" top="0px"></Card>
+    // <Card name="d2" back="red" left={null} top={null}></Card> 
+    // <Card name="d3" faceUp={true} back="red" left="50px" top="0px"></Card></>} 
+    cardCount={count} padding={10} spacing={25} cardWidth={64} style={{position: "relative"}}/>));
   }
 
   createMyHands() {
-    return this.state.myhands.map((count, index) => (<Hand key={"m" + index} classes="open-hand selected draggable-container" cardCount={count} padding={10} spacing={25} cardWidth={64}/>));
+    return this.state.myhands.map((count, index) => 
+    (<Hand key={"m" + index} classes="open-hand selected draggable-container" 
+    cardCount={count} padding={10} spacing={25} cardWidth={64}/>));
   }
 
   simulateOthers() {

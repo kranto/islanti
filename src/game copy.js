@@ -28,8 +28,6 @@ var myTurn = false;
 var opened = false;
 var state = "";
 
-var allCards = [];
-
 
 // gameStates/events: 
 // OTHERS TURN START, OTHER PICKS FROM DECK, OTHER PICKS FROM DISCARD PILE, 
@@ -49,33 +47,6 @@ let otherHands = [];
 let openHands = [];
 let discardPile;
 
-function moveOther(index, from, to) {
-	let hand = otherHands[index];
-	hand[from].pullUp();
-		let order = hand.map(c => c.id);
-	order.splice(to, 0, order.splice(from, 1)[0]);
-	orderOther(index, order);
-}
-
-function orderOther(index, newOrder) {
-	let hand = otherHands[index];
-	hand.sort((a, b) => newOrder.indexOf(a.id) < newOrder.indexOf(b.id) ? -1 : 1);
-	hand.render();
-}
-
-function pickFromDeck(index) {
-	addToOther(index, deck.topCard().id);
-}
-
-function pickFromPile(index) {
-	addToOther(index, discardPile.topCard().id);
-}
-
-function addToOther(index, card) {
-	let hand = otherHands[index];
-	hand.addCard(allCards.filter(c => c.id === card)[0]);
-	hand.render();
-}
 
 function createNewOpenHand() {
 	var el = $("#open-hand-template").clone().removeAttr("id").addClass('hand-section').show();
@@ -362,9 +333,8 @@ function init() {
 		cards.refresh();
 	});
 
-	allCards = cards.createCards($(".CardTable"));
 	deck = new cards.Deck({element: $("#deck")}); 
-	deck.addCards(allCards);
+	deck.addCards(cards.createCards($(".CardTable")));
 	cards.shuffle(deck);
 	deck.render({immediate:true});
 	
@@ -499,12 +469,7 @@ return {
 		if (!myTurn) {
 			setState(true, PICK_CARD);	
 		}		
-	},
-	moveOther: moveOther,
-	orderOther: orderOther,
-	pickFromDeck: pickFromDeck,
-	pickFromPile: pickFromPile,
-	addToOther: addToOther
+	}
 };
 
 })();

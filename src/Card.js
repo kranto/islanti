@@ -6,16 +6,19 @@ class Card extends Component {
     super(props);
     this.div = React.createRef();
     this.state = {
-      faceUp: props.faceUp
+      faceUp: props.faceUp,
+      left: 0,
+      top: 0
     }
   }
 
   componentDidMount() {
-    console.log(this.div.current.offsetWidth, this.div.current.getBoundingClientRect(), this.div.current.getClientRects());
+    // console.log(this.div.current.offsetWidth, this.div.current.getBoundingClientRect(), this.div.current.getClientRects());
   }
 
-  componentDidUpdate() {
-    
+  static getDerivedStateFromProps(props, state) {
+    console.log('getDerive..', props, state);
+    return {left: props.left, top: props.top};
   }
 
   setFaceUp(faceUp) {
@@ -32,7 +35,7 @@ class Card extends Component {
 
   render() {
     return (
-      <div ref={this.div} className={"playingcard " + this.getClasses()} style={{left: this.props.x, top: this.props.y}}>
+      <div ref={this.div} className={"playingcard " + this.getClasses()} style={{left: this.state.left, top: this.state.top}}>
         {this.getFaceupImage()}
         <img src={"svg/cardback_" + this.props.back + ".svg"} alt="card face down" draggable="false" className="facedown-img"/>
       </div>
