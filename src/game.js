@@ -29,6 +29,7 @@ var opened = false;
 var state = "";
 
 var allCards = [];
+var serverDeck;
 
 
 // gameStates/events: 
@@ -119,7 +120,7 @@ function removeEmptyOpenHands() {
 }
 
 function deal(iStart) {
-	deck.deal(13, [openHands[0]].concat(otherHands), 50, function() {
+	deck.deal(13, otherHands.concat([openHands[0]]), 50, function() {
 		dealt = true;
 		setState(iStart, OPEN_CARD);
 	});
@@ -353,6 +354,11 @@ function testSet(hand) {
 	};
 }
 
+function setDeck(deck) {
+	console.log(serverDeck);
+	serverDeck = deck;
+}
+
 function init() {
 	$(".CardTable").disableSelection();
 
@@ -362,11 +368,11 @@ function init() {
 		cards.refresh();
 	});
 
-	allCards = cards.createCards($(".CardTable"));
+	allCards = cards.createCards(".CardTable", serverDeck);
 	deck = new cards.Deck({element: $("#deck")}); 
-	deck.addCards(allCards);
-	cards.shuffle(deck);
-	deck.render({immediate:true});
+	deck.addCards(allCards.reverse());
+
+	deck.render();//{immediate:true});
 	
 	for (var i = 1; i <= 3; i++) {
 		var hand = new cards.Hand({faceUp:false, element: $("#hand" + i)});
@@ -504,7 +510,9 @@ return {
 	orderOther: orderOther,
 	pickFromDeck: pickFromDeck,
 	pickFromPile: pickFromPile,
-	addToOther: addToOther
+	addToOther: addToOther,
+
+	setDeck: setDeck
 };
 
 })();

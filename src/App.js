@@ -18,6 +18,8 @@ class App extends Component {
 
     this.serverState = new ServerState();
     this.serverState.init();
+
+    game.setDeck(this.serverState.getPlayerDeck(4, 3));
   }
 
   simulateOthers() {

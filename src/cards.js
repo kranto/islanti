@@ -27,17 +27,8 @@ var cards = (function() {
 		$(this).draggable("enable");
 	}
 	
-	function createCards(element) {
-		let cards = [];
-		['blue', 'red'].forEach(color => {
-			['h', 's', 'd', 'c'].forEach(suit => {
-				for (let i = 1; i <= 13; i++) {
-					cards.push(new Card(suit, i, color, element));
-				}
-			});
-			cards.push(new Card('b', 0, color, element));
-			cards.push(new Card('r', 0, color, element));
-		});
+	function createCards(element, servercards) {
+		let cards = servercards.map(sc => new Card(sc.s, sc.r, sc.b, sc.id, element));
 
 		$('.playingcard').click(mouseEvent);
 
@@ -48,40 +39,28 @@ var cards = (function() {
 			start: function() { $(this).stop(); }, // stop animations
 			drag: function() {},
 			stop: function() {}
-		});
+		})
 
 		return cards;
 	}
 
-	function shuffle(deck) {
-		for (var k in [1,2]) {
-			var i = deck.length;
-			while (--i >= 0) {
-					var j = Math.floor(Math.random() * deck.length);
-					var temp = deck[i];
-					deck[i] = deck[j];
-					deck[j] = temp;
-			}	
-		}
-	}
-	
-	function Card(suit, rank, back, table) {
-		this.init(suit, rank, back, table);
+	function Card(suit, rank, back, id, table) {
+		this.init(suit, rank, back, id, table);
 	}
 	
 	Card.prototype = {
-		init: function (suit, rank, back, table) {
-			this.id = back.charAt(0) + suit + rank;
+		init: function (suit, rank, back, id, table) {
+			this.id = id;
 			this.suit = suit;
 			this.rank = rank;
-			this.cardback = back;
-			this.name = suit + rank;
+			this.cardback = back == 1 ? 'red' : 'blue';
+			this.name = suit ? suit + rank : "b0"; 
 			this.faceUp = false;
 			this.el = $('<div/>')
 				.addClass('playingcard').data('card', this).appendTo($(table));
 			this.el.html('<img src="svg/' + this.name + '.svg" alt="' + this.name + '" draggable="false" class="faceup-img"/>' 
 				+'<img src="svg/cardback_' + this.cardback + '.svg" alt="card face down" draggable="false" class="facedown-img"/>');
-			this.showCard();
+			// this.showCard();
 			this.moveToFront();
 		},
 
@@ -341,7 +320,6 @@ var cards = (function() {
 		Hand : Hand,
 		init: init,
 		createCards: createCards,
-		shuffle: shuffle,
 		refresh: refresh
 	};
 	 
