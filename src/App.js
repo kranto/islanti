@@ -5,6 +5,7 @@ import CardTable from './CardTable.js';
 import game from './game';
 import * as $ from 'jquery';
 
+import ServerState from './serverstate.js';
 
 class App extends Component {
 
@@ -14,6 +15,9 @@ class App extends Component {
     this.simulateOthers = this.simulateOthers.bind(this);
     this.dealMyTurn = this.dealMyTurn.bind(this);
     this.dealOthers = this.dealOthers.bind(this);
+
+    this.serverState = new ServerState();
+    this.serverState.init();
   }
 
   simulateOthers() {
