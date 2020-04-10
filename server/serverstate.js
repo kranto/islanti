@@ -1,26 +1,48 @@
-import game from "./game";
 
 class Card {
   constructor(back, suit, rank) {
-    this.back = back;
-    this.suit = suit;
-    this.rank = rank;
+    this.b = back;
+    this.s = suit;
+    this.r = rank;
   }
 
   toPlayer(faceUp) {
-    return faceUp ? {i: this.id, b: this.back, s:this.suit, r:this.rank} : {i: this.id, b: this.back};
+    return faceUp ? {i: this.i, b: this.b, s:this.s, r:this.r} : {i: this.i, b: this.b};
   }
 }
 
-class PlayerState  {
-  constructor(serverstate, index, game) {
+class Connector  {
+  constructor(serverstate, index, socket) {
     this.serverstate = serverstate;
     this.index = index;
-    this.game = game;
+    this.socket = socket;
+
+    this.socket.on('action', args => {
+      console.log('action', args); 
+      switch (args.action) {
+        case 'deal':
+          this.serverstate.deal();
+          break;
+        case 'newOrder':
+          this.serverstate.newOrder(this.index, args.order);
+          break;
+      }
+    });
+
+    this.stateChange({action: 'fullState', state: this.serverstate.getFullState()});
   }
 
-  init() {
-    this.game.setDeck(this.getDeck());
+  stateChange = function(change) {
+    console.log('connector.stateChange', JSON.stringify(change));
+    switch (change.action) {
+      case 'fullState':
+        let state = JSON.parse(JSON.stringify(change.state));
+        state.myhands = state.players.splice(this.index, 1)[0];
+        state.players = state.players.map(p => ({ ...p, closed: p.closed ? p.closed.flat() : p.closed}));
+        change = {...change, state: state};
+        break;
+    }
+    this.socket.emit('stateChange', change);
   }
 
   getDeck() {
@@ -44,23 +66,47 @@ class PlayerState  {
 
 class ServerState {
 
-  constructor() {
-    this.cards = [];
-    this.deck = [];
-    this.pile = [];
-    this.playerCount = 4;
-    this.players = [...Array(this.playerCount).keys()].map(() => ({closed: [], open: []}));
-  }
+  static SHOW_CARD = 0;
+  static PICK_CARD = 1; 
+  static TURN_ACTIVE = 2;
 
-  createPlayerState(index, game) {
-    return new PlayerState(this, index, game);
+  constructor(io, gameId) {
+    this.gameId = gameId;
+    this.io = io.of('/game/' + gameId);
+
+    this.cards = this.createCards();
+    this.connectors = [];
+    this.state = false;
   }
 
   init() {
     this.cards = this.createCards();
     this.shuffle(this.cards);
-    this.cards.forEach((card, index) => card.id = index);
-    this.deck = [...this.cards];
+    this.cards.forEach((card, index) => card.i = index);
+    this.playerCount = 4;
+
+    this.state = {
+      playerInTurn: 0,
+      phase: this.SHOW_CARD,
+      dealt: false,
+      deck: [...this.cards],
+      pile: [],
+      players: [...Array(this.playerCount).keys()].map(() => ({closed: [[]], open: []}))
+    };
+
+    this.io.on('connection', socket => {
+      console.log('someone connected', new Date());
+      socket.on('authenticate', args => {
+        let id = parseInt(args);
+        console.log(id + ' authenticated');
+        let connector = new Connector(this, id, socket);
+        this.connectors.push(connector);  
+        socket.on('disconnect', () => {
+          this.connectors = this.connectors.filter(c => c !== connector);
+        });
+      });
+    });
+
   }
 
   createCards() {
@@ -84,43 +130,68 @@ class ServerState {
     }
   }
 
-  getDeck() {
-    return this.deck;
+  getFullState() {
+    return this.state;
   }
 
   deal() {
-    this.players.forEach(p => p.openHands = [[]]);
+    if (this.state.dealt) return false;
+    this.state.dealt = true;
+    console.log(this.state.players);
     [...Array(13).keys()].forEach(() =>
-      this.players.forEach(p => p.openHands.push(this.cards.shift())));
+      this.state.players.forEach(p => p.closed[0].push(this.state.deck.shift())));
+    this.connectors.forEach(c => c.stateChange({action: 'fullState', state: this.getFullState()}));
+  }
+
+  newOrder(player, order) {
+    let playersCards = this.state.players[player].closed.flat();
+    let cardIds = playersCards.map(card => card.i);
+    let cardsById = playersCards.reduce((acc, card) => ({...acc, [card.i]: card}), {});
+    if ([...cardIds].sort().join(',') !== [...order.flat()].sort().join(',')) {
+      console.log('different cards.')
+      return false;
+    }
+
+    let newSections = order.map(section => section.map(id => cardsById[id]));
+
+    console.log(newSections);
+    this.state.players[player].closed = newSections;
+    this.connectors.forEach(c => c.stateChange({action: 'fullState', state: this.getFullState()}));
   }
 
   showCard() {
     this.pile.unshift(this.deck.shift());
     return this.pile[0];
   }
+}
 
-  state = {
-    round: { index: 1, name: 'Kolmoset ja suora' },
-    roundStartedBy: 2,
-    players: [
-      { name: "Pasi" },
-      { name: "Inka" },
-      { name: "Hellevi" },
-      { name: "Artturi" },
-    ],
-    playerHands: [
-      { closedHand: [[0, 1, 0, 0, 1, 1, 1, 1, 0]], openHands: [{ type: 'set', cards: [10, 10, 10, 12, 12] }, {}] },
-      { closedHand: [[0, 1, 0, 0, 1, 1, 1, 1, 0, 1, 1]], openHands: [{ type: 'straight', cards: [] }, {}] },
-      { closedHand: [[0, 1, 0, 0, 1, 1, 1, 1, 0, 1, 1]], openHands: [{ type: 'straight', cards: [] }, {}] },
-    ],
-    myHands: { closedHand: [[82, 99, 14, 9], [104, 67]], openHands: [{ type: 'straight', cards: [] }, {}] },
+module.exports = {
+  ServerState: ServerState,
+  Card: Card
+};
 
-    deck: { firstCard: 0, count: 44 },
-    pile: { firstCard: 103, count: 25 },
+  // state = {
+  //   round: { index: 1, name: 'Kolmoset ja suora' },
+  //   roundStartedBy: 2,
+  //   players: [
+  //     { name: "Pasi" },
+  //     { name: "Inka" },
+  //     { name: "Hellevi" },
+  //     { name: "Artturi" },
+  //   ],
+  //   playerHands: [
+  //     { closedHand: [[0, 1, 0, 0, 1, 1, 1, 1, 0]], openHands: [{ type: 'set', cards: [10, 10, 10, 12, 12] }, {}] },
+  //     { closedHand: [[0, 1, 0, 0, 1, 1, 1, 1, 0, 1, 1]], openHands: [{ type: 'straight', cards: [] }, {}] },
+  //     { closedHand: [[0, 1, 0, 0, 1, 1, 1, 1, 0, 1, 1]], openHands: [{ type: 'straight', cards: [] }, {}] },
+  //   ],
+  //   myHands: { closedHand: [[82, 99, 14, 9], [104, 67]], openHands: [{ type: 'straight', cards: [] }, {}] },
 
-    playerActive: 2,
-    state: 'pick',
-  }
+  //   deck: { firstCard: 0, count: 44 },
+  //   pile: { firstCard: 103, count: 25 },
+
+  //   playerActive: 2,
+  //   state: 'pick',
+  // }
 
   // deal(deck, firstPlayer, firstCard, count, playerStartingRound) {}
   // showsFirstCard(card, firstInDeck, deckCount) {}
@@ -132,7 +203,6 @@ class ServerState {
   // willToBuy(seller, buyers) {} // [{player: 1, time: 123}]
   // sells(seller, buyer, cardInPile, firstCardIPile, pileCount, cardInDeck, firstCardInDeck, deckCount)
   // newDeck(firstCardInDeck, deckCount, firstCardInPile, pileCount)
-}
 
 // moveCard(from, to, closedhand)
 // showFirstCard()
@@ -143,8 +213,6 @@ class ServerState {
 // willBuy()
 // sell()
 // dontSell()
-
-export default ServerState;
 
 /*
 var OPEN_CARD = "OPEN_CARD";

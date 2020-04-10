@@ -5,8 +5,7 @@ import 'jquery-ui-bundle/jquery-ui.css';
 var cards = (function() {
 
 	var opt = {
-		cardSize : {width:69, height:94, spacing:40},
-		animationSpeed : 300
+		cardSize : {width:69, height:94, spacing:40}
 	};
 
 	var zIndexCounter = 1;	
@@ -28,18 +27,7 @@ var cards = (function() {
 	}
 	
 	function createCards(element, servercards) {
-		let cards = servercards.map(sc => new Card(sc.s, sc.r, sc.b, sc.id, element));
-
-		$('.playingcard').click(mouseEvent);
-
-		$('.playingcard').draggable({
-			stack: ".playingcard",
-			containment: ".CardTable",
-			placement: "top",
-			start: function() { $(this).stop(); }, // stop animations
-			drag: function() {},
-			stop: function() {}
-		})
+		let cards = servercards.map(sc => new Card(sc.s, sc.r, sc.b, sc.i, element));
 
 		return cards;
 	}
@@ -53,8 +41,8 @@ var cards = (function() {
 			this.id = id;
 			this.suit = suit;
 			this.rank = rank;
-			this.cardback = back == 1 ? 'red' : 'blue';
-			this.name = suit ? suit + rank : "b0"; 
+			this.cardback = back === 1 ? 'red' : 'blue';
+			this.name = suit ? suit + rank : "e"; 
 			this.faceUp = false;
 			this.el = $('<div/>')
 				.addClass('playingcard').data('card', this).appendTo($(table));
@@ -62,6 +50,26 @@ var cards = (function() {
 				+'<img src="svg/cardback_' + this.cardback + '.svg" alt="card face down" draggable="false" class="facedown-img"/>');
 			// this.showCard();
 			this.moveToFront();
+
+			$(this.el).click(mouseEvent);
+
+			$(this.el).draggable({
+				stack: ".playingcard",
+				containment: ".CardTable",
+				placement: "top",
+				start: function() { $(this).stop(); }, // stop animations
+				drag: function() {},
+				stop: function() {}
+			});	
+		},
+
+		reveal(suit, rank, back) {
+			this.suit = suit;
+			this.rank = rank;
+			this.cardback = back === 1 ? 'red' : 'blue';
+			this.name = suit ? suit + rank : "e"; 
+			$(this.el).find(".faceup-img").attr("src", "svg/" + this.name + ".svg");
+			$(this.el).find(".facedown-img").attr("src", "svg/cardback_" + this.cardback + ".svg");
 		},
 
 		toString: function () {
@@ -120,11 +128,11 @@ var cards = (function() {
 			if (doReorder) this.reorder();
 			if (this.setElementWidth) this.setElementWidth();
 		},
-		
 		removeCard : function(card) {
-			for (var i=0; i< this.length;i++) {
+			for (var i = 0; i < this.length; i++) {
 				if (this[i] === card) {
 					this.splice(i, 1);
+					card.container = null;
 					if (this.setElementWidth) this.setElementWidth();
 					return true;
 				}

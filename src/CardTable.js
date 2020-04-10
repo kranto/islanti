@@ -11,32 +11,27 @@ class CardTable extends Component {
 
   constructor() {
     super();
-    let endpoint = (window.location.hostname === 'localhost' ? "http://localhost:4000/" : "" );
+    let endpoint = (window.location.hostname === 'localhost' ? "http://localhost:4000" : "" );
     this.state = {
-      response: false,
       endpoint: endpoint,
       pad: 25,
       cardWidth: 64,
-      others: [13,13,13],
-      myhands: [5,2,6,1],
-      styles: {
-        top: 0,
-        left: 0
-      }
+      others: [13,13,13]
     };
   }
 
   componentDidMount() {
     const { endpoint } = this.state;
-    // const socket = socketIOClient(endpoint);
-    // socket.on('chat message', data => this.setState({ response: data }));
-    game.init();
-    this.setState({
-      styles: {
-        top: 100,
-        left: 200,
-      }
-    })
+    this.socket = socketIOClient(endpoint + "/game/dev");
+    game.init(this.socket);
+
+    this.socket.on('stateChange', args => {
+      game.stateChange(args);
+    });
+
+    let hash = window.location.hash;
+    let id = hash && hash.length > 2 ? hash[2] : "0";
+    this.socket.emit('authenticate', id);
   }
 
   createOthers() {
@@ -59,7 +54,8 @@ class CardTable extends Component {
   }
 
   deal(myTurn) {
-    game.deal(myTurn);
+    this.socket.emit('action', {action: 'deal'});
+    // game.deal(myTurn);
   }
 
   otherShowCard() {
@@ -74,6 +70,7 @@ class CardTable extends Component {
 
     return (
       <div className="CardTable selecting">
+        <div id="messages">{this.state.response}</div>
         <div id="otherplayers">
         {this.createOthers()}
         </div>

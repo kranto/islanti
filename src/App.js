@@ -15,11 +15,6 @@ class App extends Component {
     this.simulateOthers = this.simulateOthers.bind(this);
     this.dealMyTurn = this.dealMyTurn.bind(this);
     this.dealOthers = this.dealOthers.bind(this);
-
-    this.serverState = new ServerState();
-    this.serverState.init();
-
-    game.setDeck(this.serverState.getPlayerDeck(4, 3));
   }
 
   simulateOthers() {
@@ -46,6 +41,7 @@ class App extends Component {
           <button onClick={() => this.cardTable.current.otherShowCard()}>Joku muu aloittaa</button>
           <button onClick={() => this.cardTable.current.simulateOthers()}>Pelaa muiden vuorot</button>
           <button onClick={() => this.cardTable.current.takeTurn()}>Ota vuoro</button>
+          <button onClick={() => this.serverState.showCard()}>Aloita</button>
         </div>
         <CardTable ref={this.cardTable}></CardTable>
       </div>

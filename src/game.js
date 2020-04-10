@@ -5,6 +5,7 @@ import cards from './cards.js';
 import Popper from 'popper.js';
 import 'bootstrap/dist/js/bootstrap.bundle.min';
 
+
 window.jQuery = $;
 require('jquery-ui-touch-punch');
 
@@ -53,7 +54,7 @@ let discardPile;
 function moveOther(index, from, to) {
 	let hand = otherHands[index];
 	hand[from].pullUp();
-		let order = hand.map(c => c.id);
+	let order = hand.map(c => c.i);
 	order.splice(to, 0, order.splice(from, 1)[0]);
 	orderOther(index, order);
 }
@@ -78,6 +79,13 @@ function addToOther(index, card) {
 	hand.render();
 }
 
+function showCard(card) {
+	let c = allCards[card.i];
+	c.reveal(card.s, card.r);
+	discardPile.addCard(c);
+	discardPile.render();
+}
+
 function createNewOpenHand() {
 	var el = $("#open-hand-template").clone().removeAttr("id").addClass('hand-section').show();
 	el.insertBefore("#newopen");
@@ -95,6 +103,7 @@ function createNewOpenHand() {
 			hand.addCard(card, true);
 			removeEmptyOpenHands();
 			cards.refresh();
+			newOrder();
 		}
 	});
 	el.click(openHandClicked);
@@ -124,35 +133,6 @@ function deal(iStart) {
 		dealt = true;
 		setState(iStart, OPEN_CARD);
 	});
-}
-
-function sleep(fromMs, toMs) {
-	if (!toMs) toMs = fromMs;
-	return new Promise(resolve => setTimeout(resolve, Math.random()*(toMs - fromMs) + fromMs));
-  }
-  
-async function  simulateOthers() {
-	for (var i in otherHands) {
-		await simulateOnePlayer(otherHands[i]);
-	}
-	setState(true, PICK_CARD);
-}
-
-async function simulateOnePlayer(hand) {
-	await sleep(500, 2000);
-	var card = (Math.random() > 0.7 && discardPile.length > 0) ? discardPile.topCard() : deck.topCard();
-	hand.addCard(card);
-	hand.render();
-	card.moveToFront();
-
-	setState(false, TURN_ACTIVE);
-	await sleep(1000, 2000);
-	card = hand[Math.floor(Math.random()*hand.length)]
-	discardPile.addCard(card);
-	discardPile.render();
-	hand.render();
-	card.moveToFront();
-	setState(false, PICK_CARD);
 }
 
 function setState(_myTurn, _state) {
@@ -354,12 +334,66 @@ function testSet(hand) {
 	};
 }
 
-function setDeck(deck) {
-	console.log(serverDeck);
-	serverDeck = deck;
+function findCard(servercard) {
+	let card = allCards.filter(c => c.id === servercard.i)[0];
+	if (!card) {
+		card = new cards.Card(servercard.s, servercard.r, servercard.b, servercard.i, ".CardTable");
+		allCards.push(card);
+	}
+	card.reveal(servercard.s, servercard.r, servercard.b);
+	return card;
 }
 
-function init() {
+function updateContainer(container, servercards) {
+	let cards = servercards.map(servercard => findCard(servercard));
+	cards.forEach(card => {if (card.container) card.container.removeCard(card); });
+	cards.forEach(card => container.addCard(card));
+	container.render();
+}
+
+function populateState(state) {
+
+}
+
+function sendAction(action, params) {
+
+}
+
+function newOrder() {
+	let newOrder = openHands.map(hand => hand.map(card => card.id));
+	socket.emit('action', {action: 'newOrder', order: newOrder});
+}
+
+function stateChange(params) {
+	console.log(params);
+	switch (params.action) {
+		case 'init': case 'fullState':
+			updateContainer(deck, params.state.deck);
+			updateContainer(discardPile, params.state.pile);
+			params.state.players.forEach((p, i) => updateContainer(otherHands[i], p.closed));
+
+			openHands.forEach(hand => {hand.element.remove(); hand.element.popover('dispose'); });
+			openHands = [];
+
+			params.state.myhands.closed.forEach((c, i) => {
+				while (openHands.length - 1 < i) {
+					openHands.push(createNewOpenHand());
+				}
+				let hand = openHands[i];
+				updateContainer(hand, c);
+			});
+			break;
+		default:
+			break;
+	}
+}
+
+var socket;
+
+function init(_socket) {
+	console.log('game.init');
+	socket = _socket;
+
 	$(".CardTable").disableSelection();
 
 	cards.init();
@@ -368,22 +402,12 @@ function init() {
 		cards.refresh();
 	});
 
-	allCards = cards.createCards(".CardTable", serverDeck);
 	deck = new cards.Deck({element: $("#deck")}); 
-	deck.addCards(allCards.reverse());
 
-	deck.render();//{immediate:true});
-	
 	for (var i = 1; i <= 3; i++) {
 		var hand = new cards.Hand({faceUp:false, element: $("#hand" + i)});
 		otherHands.push(hand);
 	}
-	openHands.push(createNewOpenHand());
-
-	new cards.Hand({
-		faceUp:true,
-		element: $("#newopen")
-	});
 	
 	discardPile = new cards.Deck({faceUp:true, element: $("#pile"),
 	canDrop: function(card) {
@@ -397,20 +421,20 @@ function init() {
 	},
 	});
 
-	deck.click(function(card){	
-		if (card === deck.topCard() && myTurn) {
-			if (state === OPEN_CARD) {
-				discardPile.addCard(deck.topCard());
-				discardPile.render();
-				setState(true, PICK_CARD);	
-			} else if (state === PICK_CARD) {
-				setState(true, TURN_ACTIVE);
-				openHands[0].addCard(card);
-				openHands[0].render();
-				cards.refresh();
-			}
-		}
-	});
+	// deck.click(function(card){	
+	// 	if (card === deck.topCard() && myTurn) {
+	// 		if (state === OPEN_CARD) {
+	// 			discardPile.addCard(deck.topCard());
+	// 			discardPile.render();
+	// 			setState(true, PICK_CARD);	
+	// 		} else if (state === PICK_CARD) {
+	// 			setState(true, TURN_ACTIVE);
+	// 			openHands[0].addCard(card);
+	// 			openHands[0].render();
+	// 			cards.refresh();
+	// 		}
+	// 	}
+	// });
 	
 	discardPile.click(function(card){
 		if (card === discardPile.topCard() && myTurn && state === PICK_CARD) {
@@ -431,6 +455,7 @@ function init() {
 			openHands.push(openHand);
 			removeEmptyOpenHands();
 			cards.refresh();
+			newOrder();
 		}
 	});
 		
@@ -495,7 +520,6 @@ function init() {
 return {
 	init: init,
 	deal: deal,
-	simulateOthers: simulateOthers,
 	otherShowCard: () => {
 		discardPile.addCard(deck.topCard());
 		discardPile.render();
@@ -512,7 +536,7 @@ return {
 	pickFromPile: pickFromPile,
 	addToOther: addToOther,
 
-	setDeck: setDeck
+	stateChange: stateChange
 };
 
 })();

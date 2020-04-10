@@ -1,7 +1,7 @@
 {
-  "name": "socket-chat-example",
+  "name": "islanti-server",
   "version": "0.0.1",
-  "description": "my first socket.io app",
+  "description": "Islanti card game server",
   "dependencies": {
     "express": "^4.17.1",
     "socket.io": "^2.3.0"
