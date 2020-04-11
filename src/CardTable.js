@@ -76,7 +76,7 @@ class CardTable extends Component {
 
   createMyHands() {
     return this.state.myhands.map((count, index) => 
-    (<Hand key={"m" + index} classes="open-hand selected draggable-container" 
+    (<Hand key={"m" + index} classes="section selected draggable-container" 
     cardCount={count} padding={10} spacing={25} cardWidth={64}/>));
   }
 
@@ -101,7 +101,6 @@ class CardTable extends Component {
 
     return (
       <div className="CardTable selecting">
-        <div id="messages">{this.state.response}</div>
         <div id="otherplayers">
         {this.createOthers()}
         </div>
@@ -111,8 +110,8 @@ class CardTable extends Component {
             <div id="pile"></div>
           </div>
           <div id="instructions">
-            <div id="opencard_myturn">Sinä aloitat.<br/>Järjestä kortit ja odota, että kaikki ovat valmiita.<br/>Klikkaa sitten yksi kortti pakasta avopakkaan.</div>
-            <div id="opencard_others"><span>XXX</span> aloittaa.<br/>Järjestä kortit ja kerro, että olet valmis aloittamaan.</div>
+            <div id="showcard_myturn">Sinä aloitat.<br/>Järjestä kortit ja odota, että kaikki ovat valmiita.<br/>Klikkaa sitten yksi kortti pakasta avopakkaan.</div>
+            <div id="showcard_others"><span>XXX</span> aloittaa.<br/>Järjestä kortit ja kerro, että olet valmis aloittamaan.</div>
             <div id="pickcard" style={{display: 'none'}}>Klikkaa kortti pakasta tai avopakasta.</div>
             <div id="selectseries" style={{display: 'none'}}>Valitse <span>kolmoset ja suorat</span><div id="errormsg"></div></div>
           </div>
@@ -121,9 +120,9 @@ class CardTable extends Component {
             <button id="confirmOpenButton" style={{display: 'none'}}>Valmis</button>
             <button id="cancelOpenButton" style={{display: 'none'}}>En avaakaan</button>
           </div>
-          <div id="openhands">
-            <div id="open-hand-template" className="open-hand draggable-container" style={{display: 'none'}}></div>
-            <div id="newopen" className="new-open"><div>+</div></div>
+          <div id="my-closed-hand-sections">
+            <div id="section-template" className="section draggable-container" style={{display: 'none'}}></div>
+            <div id="newsection" className="new-section"><div>+</div></div>
           </div>
         </div>
       </div>

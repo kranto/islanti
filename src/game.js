@@ -19,7 +19,7 @@ var round = {
 	isFreestyle: false
 };
 
-var OPEN_CARD = "OPEN_CARD";
+var SHOW_CARD = "SHOW_CARD";
 var PICK_CARD = "PICK_CARD";
 var TURN_ACTIVE = "TURN_ACTIVE";
 var OPENING = "OPENING";
@@ -47,12 +47,12 @@ var allCards = [];
 
 let deck;
 let otherHands = [];
-let openHands = [];
+let myClosedHandSections = [];
 let discardPile;
 
-function createNewOpenHand() {
-	var el = $("#open-hand-template").clone().removeAttr("id").addClass('hand-section').show();
-	el.insertBefore("#newopen");
+function createNewSection() {
+	var el = $("#section-template").clone().removeAttr("id").addClass('hand-section').show();
+	el.insertBefore("#newsection");
 	var hand = new cards.Hand({
 		faceUp:true, 
 		element: el,
@@ -65,12 +65,12 @@ function createNewOpenHand() {
 		drop: function(event, ui) {
 			var card = ui.draggable.data('card');
 			hand.addCard(card, true);
-			removeEmptyOpenHands();
+			removeEmptySections();
 			cards.refresh();
 			newOrder();
 		}
 	});
-	el.click(openHandClicked);
+	el.click(sectionClicked);
 	el.popover({
 		container: '.CardTable',
 		placement: 'top',
@@ -80,22 +80,23 @@ function createNewOpenHand() {
 	return hand;
 }
 
-function removeEmptyOpenHands() {
-	for (var i = 0; i < openHands.length; i++) {
-		var openHand = openHands[i];
-		if (openHand.length === 0) {
-			openHands.splice(i, 1);
-			openHand.element.remove();
-			openHand.element.popover('dispose');
+function removeEmptySections() {
+	for (var i = 0; i < myClosedHandSections.length; i++) {
+		var section = myClosedHandSections[i];
+		if (section.length === 0) {
+			myClosedHandSections.splice(i, 1);
+			section.element.remove();
+			section.element.popover('dispose');
 			return;
 		}
 	}
 }
 
 function deal(iStart) {
-	deck.deal(13, otherHands.concat([openHands[0]]), 50, function() {
+	deck.deal(13, otherHands.concat([myClosedHandSections[0]]), 50, function() {
 		dealt = true;
-		setState(iStart, OPEN_CARD);
+    setState(iStart, SHOW_CARD
+    );
 	});
 }
 
@@ -109,22 +110,24 @@ function setState(_myTurn, _state) {
 	$("#confirmOpenButton").css('display', dealt && myTurn && !opened && state === OPENING ? "block": "none");
 	$("#cancelOpenButton").css('display', dealt && myTurn && !opened && state === OPENING ? "block": "none");
 
-	$("#opencard_others").css('display', function() {return state === OPEN_CARD && !myTurn? 'block' : 'none'});
-	$("#opencard_myturn").css('display', function() {return state === OPEN_CARD && myTurn? 'block' : 'none'});
+  $("#showcard_others").css('display', function() {return state === SHOW_CARD
+   && !myTurn? 'block' : 'none'});
+  $("#showcard_myturn").css('display', function() {return state === SHOW_CARD
+   && myTurn? 'block' : 'none'});
 	$("#pickcard").css('display', function() {return myTurn && state === PICK_CARD ? 'block' : 'none'});
 	$("#selectseries").css('display', dealt && myTurn && !opened && state === OPENING ? "block": "none");
 	$("#selectseries span").text(round.roundName);
 
 	$(".playingcard").draggable("disable");
 	if (state !== OPENING) {
-		openHands.forEach(function(hand) {hand.forEach(function(c) {$(c.el).draggable("enable")})});
+		myClosedHandSections.forEach(function(hand) {hand.forEach(function(c) {$(c.el).draggable("enable")})});
 	}
 
 	$(".CardTable").toggleClass('selecting', state === OPENING);
 }
 
 
-function openHandClicked() {
+function sectionClicked() {
 	if ($(this).hasClass("selected")) {
 		$(this).toggleClass("selected", false);
 		$(this).popover('hide');
@@ -138,11 +141,11 @@ function openHandClicked() {
 
 function updateConfirmButton() {
 	var selected = [];
-	$(".open-hand.selected").each(function() {
+	$(".section.selected").each(function() {
 		selected.push($(this).data('container'));
 	});
 
-	var myAllCards = openHands.reduce(function(acc, hand) {return acc + hand.length}, 0);
+	var myAllCards = myClosedHandSections.reduce(function(acc, hand) {return acc + hand.length}, 0);
 
 	validity = validateSelected(selected, myAllCards);
 	$("#confirmOpenButton").prop("disabled", !validity.valid);
@@ -195,7 +198,7 @@ function validateSelected(selected, cardCount) {
 }
 
 function validateHands() {
-	openHands.forEach((hand) => {
+	myClosedHandSections.forEach((hand) => {
 		hand.validity = validateHand(hand, round.expectedStraights > 0, round.expectedSets > 0);
 	});
 }
@@ -321,14 +324,15 @@ function populateState(state) {
 	updateContainer(discardPile, state.pile, true);
 	state.players.forEach((p, i) => updateContainer(otherHands[i], p.closed));
 
-	openHands.forEach(hand => {hand.element.remove(); hand.element.popover('dispose'); });
-	openHands = [];
+	myClosedHandSections.forEach(hand => {hand.element.remove(); hand.element.popover('dispose'); });
+	myClosedHandSections = [];
 
 	state.myhands.closed.forEach((c, i) => {
-		while (openHands.length - 1 < i) {
-			openHands.push(createNewOpenHand());
+		while (myClosedHandSections.length - 1 < i) {
+      myClosedHandSections.push(createNewSection
+      ());
 		}
-		let hand = openHands[i];
+		let hand = myClosedHandSections[i];
 		updateContainer(hand, c);
 	});
 }
@@ -338,7 +342,7 @@ function sendAction(action, params) {
 }
 
 function newOrder() {
-	let newOrder = openHands.map(hand => hand.map(card => card.id));
+	let newOrder = myClosedHandSections.map(hand => hand.map(card => card.id));
 	sendAction('newOrder', {order: newOrder});
 }
 
@@ -405,15 +409,16 @@ function init(_socket) {
 		}
 	});
 	
-	$("#newopen").droppable({
+	$("#newsection").droppable({
 		accept: ".playingcard",
 		greedy: true,
 		drop: function(event, ui) {
 			var card = ui.draggable.data('card');
-			var openHand = createNewOpenHand();
-			openHand.addCard(card, true);
-			openHands.push(openHand);
-			removeEmptyOpenHands();
+      var section = createNewSection
+    ();
+			section.addCard(card, true);
+			myClosedHandSections.push(section);
+			removeEmptySections();
 			// cards.refresh();
 			newOrder();
 		}
@@ -434,20 +439,20 @@ function init(_socket) {
 	});
 	
 	$("#cancelOpenButton").click(function() {
-		$(".open-hand").toggleClass("selected", false);
-		$(".open-hand").popover('hide');
+		$("section").toggleClass("selected", false);
+		$("section").popover('hide');
 		updateConfirmButton();
 		setState(true, TURN_ACTIVE);
 	});
 	
 	$("#confirmOpenButton").click(function() {
 		var selected = [];
-		$(".open-hand.selected").each(function() {
+		$("section.selected").each(function() {
 			selected.push($(this).data('container'));
 		});
 	
-		$(".open-hand").toggleClass("selected", false);
-		$(".open-hand").popover('hide');
+		$("section").toggleClass("selected", false);
+		$("section").popover('hide');
 	
 		alert("Avasit!");
 	
