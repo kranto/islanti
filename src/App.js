@@ -35,7 +35,7 @@ class App extends Component {
           <button onClick={() => game.pickFromPile(Math.floor(Math.random()*3))}>Nosta avopakasta</button> */}
 
           <button onClick={() => this.cardTable.current.deal()}>Jaa kortit</button>
-          <button onClick={() => this.cardTable.showCard()}>Aloita</button>
+          <button onClick={() => this.cardTable.current.showCard()}>Aloita</button>
           <button onClick={() => this.cardTable.current.simulateOthers()}>Pelaa muiden vuorot</button>
           <button onClick={() => this.cardTable.current.takeTurn()}>Ota vuoro</button>
         </div>

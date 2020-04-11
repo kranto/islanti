@@ -138,7 +138,7 @@ function setState(_myTurn, _state) {
 	myTurn = _myTurn;
 	state = _state;
 
-	$("#pile").droppable({disabled: !myTurn || state !== TURN_ACTIVE })
+	// $("#pile").droppable({disabled: !myTurn || state !== TURN_ACTIVE })
 
 	$("#openButton").css('display', dealt && myTurn && !opened && state === TURN_ACTIVE ? "block": "none");
 	$("#confirmOpenButton").css('display', dealt && myTurn && !opened && state === OPENING ? "block": "none");
@@ -404,20 +404,23 @@ function init(_socket) {
 	deck = new cards.Deck({element: $("#deck")}); 
 
 	for (var i = 1; i <= 3; i++) {
-		var hand = new cards.Hand({faceUp:false, element: $("#hand" + i)});
+		var hand = new cards.Hand({faceUp:true, element: $("#hand" + i)});
 		otherHands.push(hand);
 	}
 	
-	discardPile = new cards.Deck({faceUp:true, element: $("#pile"),
-	canDrop: function(card) {
-		return myTurn && state === TURN_ACTIVE;
-	},
-	drop: function(card) {
-		this.addCard(card);
-		removeEmptyOpenHands();
-		cards.refresh();
-		setState(false, "");
-	},
+	discardPile = new cards.Deck({
+		faceUp:true, element: $("#pile"),
+		canDrop: function(card) {
+      return true;
+			return myTurn && state === TURN_ACTIVE;
+		},
+		drop: function(card) {
+      sendAction('discarded', card.id);
+			// this.addCard(card);
+			// removeEmptyOpenHands();
+			// cards.refresh();
+			// setState(false, "");
+		},
 	});
 
 	// deck.click(function(card){	
@@ -504,12 +507,14 @@ function init(_socket) {
 		accept: ".playingcard",
 		greedy: true,
 		drop: function(event, ui) {
-			var card = ui.draggable.data('card');
-			if (!myTurn || state !== TURN_ACTIVE) { card.container.render(); return; };
-			discardPile.addCard(card);
-			removeEmptyOpenHands();
-			cards.refresh();
-			setState(false, "");
+      var card = ui.draggable.data('card');
+      sendAction('discarded', {card: card.id});
+
+			// if (!myTurn || state !== TURN_ACTIVE) { card.container.render(); return; };
+			// discardPile.addCard(card);
+			// removeEmptyOpenHands();
+			// cards.refresh();
+			// setState(false, "");
 		}
 	});
 	

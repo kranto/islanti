@@ -18,18 +18,8 @@ class Connector  {
     this.socket = socket;
 
     this.socket.on('action', args => {
-      console.log('action', this.index, args); 
-      switch (args.action) {
-        case 'deal':
-          this.serverstate.deal(this.index);
-          break;
-        case 'showCard':
-          this.serverstate.deal(this.index);
-          break;
-        case 'newOrder':
-          this.serverstate.newOrder(this.index, args.order);
-          break;
-      }
+      console.log('connector.onAction', this.index, args);
+      this.serverstate.onAction(this.index, args);
     });
 
     this.socket.on('state', () => this.stateChange({action: 'fullState', state: this.serverstate.getFullState()}));
@@ -50,18 +40,6 @@ class Connector  {
     this.socket.emit('stateChange', change);
   }
 
-  getDeck() {
-    return this.serverstate.getDeck().map((card, index) => card.toPlayer((index % this.serverstate.playerCount) == this.index && index < this.serverstate.playerCount * 13));
-  }
-
-  showCard() {
-    this.game.showCard(this.serverstate.showCard().toPlayer(true));
-  }
-
-  pickFromDeck() {
-    this.serverstate().pickFromDeck(this.index);
-  }
-  
 }
 
 class ServerState {
@@ -111,6 +89,28 @@ class ServerState {
 
   }
 
+  onAction(index, args) {
+    console.log('onAction', index, args);
+    switch (args.action) {
+      case 'deal':
+        this.deal(index);
+        break;
+      case 'showCard':
+        this.showCard(index);
+        break;
+      case 'newOrder':
+        this.newOrder(index, args.order);
+        break;
+      case 'discarded':
+        this.discarded(index, args.card);
+        break;
+      }
+  }
+  
+  notifyConnectors() {
+    this.connectors.forEach(c => c.stateChange({action: 'fullState', state: this.getFullState()}));
+  }
+  
   createCards() {
     return [0, 1].map(back =>
       ['h', 's', 'd', 'c'].map(suit =>
@@ -163,13 +163,21 @@ class ServerState {
     this.notifyConnectors();
   }
 
-  notifyConnectors() {
-    this.connectors.forEach(c => c.stateChange({action: 'fullState', state: this.getFullState()}));
+  showCard(player) {
+    console.log('showCard', player);
+    this.state.pile.unshift(this.state.deck.shift());
+    this.notifyConnectors();
   }
-  
-  showCard() {
-    this.pile.unshift(this.deck.shift());
-    return this.pile[0];
+
+  discarded(player, id) {
+    console.log('discarded', player, id);
+    let p = this.state.players[player];
+    let matchingCards = p.closed.flat().filter(c => c.i === id);
+    if (matchingCards.length !== 1) return; // not found
+    let card = matchingCards[0];
+    p.closed = p.closed.map(section => section.filter(c => c !== card));
+    this.state.pile.unshift(card);
+    this.notifyConnectors();
   }
 }
 

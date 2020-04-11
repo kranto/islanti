@@ -89,8 +89,8 @@ class CardTable extends Component {
     // game.deal(myTurn);
   }
 
-  otherShowCard() {
-    game.otherShowCard();
+  showCard() {
+    this.socket.emit('action', {action: 'showCard'});
   }
 
   takeTurn() {
