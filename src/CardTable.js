@@ -11,9 +11,7 @@ class CardTable extends Component {
     let endpoint = (window.location.hostname === 'localhost' ? "http://localhost:4000" : "" );
     this.state = {
       endpoint: endpoint,
-      pad: 25,
-      cardWidth: 64,
-      others: [13, 13, 13]
+      others: [1,2,3,4,5,6,7,8]
     };
   }
 
@@ -26,14 +24,7 @@ class CardTable extends Component {
 
   createOthers() {
     return this.state.others.map((count, index) => 
-    (<Hand id={"hand" + (index+1)} key={"o" + index} classes="player-hand"
-    cardCount={count} padding={10} spacing={25} cardWidth={64} style={{position: "relative"}}/>));
-  }
-
-  createMyHands() {
-    return this.state.myhands.map((count, index) => 
-    (<Hand key={"m" + index} classes="section selected draggable-container" 
-    cardCount={count} padding={10} spacing={25} cardWidth={64}/>));
+    (<Hand id={"hand" + (index+1)} key={"o" + index} classes="player-hand"/>));
   }
 
   render() {
@@ -41,7 +32,7 @@ class CardTable extends Component {
     return (
       <div className="CardTable selecting">
         <div id="otherplayers">
-        {this.createOthers()}
+            {this.createOthers()}
         </div>
         <div id="gamearea">
           <div id="deckandpile">
