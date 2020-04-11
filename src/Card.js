@@ -22,7 +22,7 @@ class Card extends Component {
   }
 
   setFaceUp(faceUp) {
-    this.setState({... this.state, faceUp: faceUp});
+    this.setState({...this.state, faceUp: faceUp});
   }
 
   getClasses() {

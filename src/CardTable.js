@@ -1,11 +1,9 @@
 
-import React, { Component, useRef } from "react";
+import React, { Component } from "react";
 import socketIOClient from "socket.io-client";
 import './CardTable.css';
 import Hand from './Hand.js';
 import game from "./game.js";
-import Card from './Card.js';
-import { findDOMNode } from 'react-dom';
 
 class CardTable extends Component {
 
@@ -21,6 +19,14 @@ class CardTable extends Component {
   }
 
   componentDidMount() {
+    this.initSocket();
+  }
+
+  initSocket() {
+    console.log('initSocket', this.socket);
+    if (this.socket) return;
+    console.log('initSocket contd');
+
     const { endpoint } = this.state;
     this.socket = socketIOClient(endpoint + "/game/dev");
     game.init(this.socket);
@@ -31,12 +37,11 @@ class CardTable extends Component {
 
     this.socket.on('connect', () => {
       console.log('connected');
-      this.loadFullState();
+      this.authenticate();
     });
 
     this.socket.on('reconnect', () => {
-      console.log('connected');
-      this.loadFullState();
+      console.log('reconnected');
     });
 
     this.socket.on('reconnect_attempt', (i) => {
@@ -46,12 +51,18 @@ class CardTable extends Component {
     this.socket.on('disconnect', () => {
       console.log('disconnected');
     });
+
+    this.socket.on('authenticated', () => this.getFullState());
   }
 
-  loadFullState() {
+  authenticate() {
     let hash = window.location.hash;
     let id = hash && hash.length > 2 ? hash[2] : "0";
     this.socket.emit('authenticate', id);
+  }
+
+  getFullState() {
+    this.socket.emit('state');
   }
 
   createOthers() {

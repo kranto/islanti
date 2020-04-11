@@ -2,7 +2,7 @@ import * as $ from 'jquery';
 import 'jquery-ui-bundle';
 import 'jquery-ui-bundle/jquery-ui.css';
 import cards from './cards.js';
-import Popper from 'popper.js';
+// import Popper from 'popper.js';
 import 'bootstrap/dist/js/bootstrap.bundle.min';
 
 
@@ -30,7 +30,6 @@ var opened = false;
 var state = "";
 
 var allCards = [];
-var serverDeck;
 
 
 // gameStates/events: 
@@ -79,12 +78,12 @@ function addToOther(index, card) {
 	hand.render();
 }
 
-function showCard(card) {
-	let c = allCards[card.i];
-	c.reveal(card.s, card.r);
-	discardPile.addCard(c);
-	discardPile.render();
-}
+// function showCard(card) {
+// 	let c = allCards[card.i];
+// 	c.reveal(card.s, card.r);
+// 	discardPile.addCard(c);
+// 	discardPile.render();
+// }
 
 function createNewOpenHand() {
 	var el = $("#open-hand-template").clone().removeAttr("id").addClass('hand-section').show();
@@ -195,7 +194,7 @@ function showValidityMessage() {
 function validateSelected(selected, cardCount) {
 	var sets = [];
 	var straights = [];
-	for (var i = 0; i < selected.length; i++) {
+	for (let i = 0; i < selected.length; i++) {
 		var hand = selected[i];
 
 		if (!hand.validity.valid) {
@@ -215,13 +214,13 @@ function validateSelected(selected, cardCount) {
 		return {valid: false, msg: "Pitäisi olla " + round.expectedStraights + " suoraa, mutta onkin " + straights.length};
 	}
 	var setsNumbers = [];
-	for (var i = 0; i < sets.length; i++) {
+	for (let i = 0; i < sets.length; i++) {
 		if (setsNumbers.indexOf(sets[i].number) >= 0) {
 			return {valid: false, msg: "Kaikki kolmossarjat täytyy olla eri numeroa"};
 		}
 	}
 	var straightsSuites = [];
-	for (var i = 0; i < straights.length; i++) {
+	for (let i = 0; i < straights.length; i++) {
 		if (straightsSuites.indexOf(straights[i].suit) >= 0) {
 			return {valid: false, msg: "Suorat täytyy olla eri maista"};
 		}
@@ -352,36 +351,36 @@ function updateContainer(container, servercards) {
 }
 
 function populateState(state) {
+	updateContainer(deck, state.deck);
+	updateContainer(discardPile, state.pile);
+	state.players.forEach((p, i) => updateContainer(otherHands[i], p.closed));
 
+	openHands.forEach(hand => {hand.element.remove(); hand.element.popover('dispose'); });
+	openHands = [];
+
+	state.myhands.closed.forEach((c, i) => {
+		while (openHands.length - 1 < i) {
+			openHands.push(createNewOpenHand());
+		}
+		let hand = openHands[i];
+		updateContainer(hand, c);
+	});
 }
 
 function sendAction(action, params) {
-
+	socket.emit('action', {...params, action: action});
 }
 
 function newOrder() {
 	let newOrder = openHands.map(hand => hand.map(card => card.id));
-	socket.emit('action', {action: 'newOrder', order: newOrder});
+	sendAction('newOrder', {order: newOrder});
 }
 
 function stateChange(params) {
 	console.log(params);
 	switch (params.action) {
 		case 'init': case 'fullState':
-			updateContainer(deck, params.state.deck);
-			updateContainer(discardPile, params.state.pile);
-			params.state.players.forEach((p, i) => updateContainer(otherHands[i], p.closed));
-
-			openHands.forEach(hand => {hand.element.remove(); hand.element.popover('dispose'); });
-			openHands = [];
-
-			params.state.myhands.closed.forEach((c, i) => {
-				while (openHands.length - 1 < i) {
-					openHands.push(createNewOpenHand());
-				}
-				let hand = openHands[i];
-				updateContainer(hand, c);
-			});
+			populateState(params.state);
 			break;
 		default:
 			break;
