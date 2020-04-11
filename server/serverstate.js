@@ -1,3 +1,4 @@
+const EventEmitter = require('events');
 
 class Card {
   constructor(back, suit, rank) {
@@ -24,9 +25,16 @@ class Connector  {
 
     this.socket.on('state', () => this.stateChange({action: 'fullState', state: this.serverstate.getFullState()}));
     this.socket.emit('authenticated');
+
+    this.serverstate.eventEmitter.on('stateChange', this.stateChange);
   }
 
-  stateChange = function(change) {
+  removeListeners() {
+    console.log('removing listener');
+    this.serverstate.eventEmitter.removeListener('stateChange', this.stateChange);
+  }
+
+  stateChange = (change) => {
     console.log('connector.stateChange', this.index, change.action);
     switch (change.action) {
       case 'fullState':
@@ -55,6 +63,8 @@ class ServerState {
     this.cards = this.createCards();
     this.connectors = [];
     this.state = false;
+
+    this.eventEmitter = new EventEmitter();
   }
 
   init() {
@@ -81,8 +91,9 @@ class ServerState {
         let connector = new Connector(this, id, socket);
         this.connectors.push(connector);  
         socket.on('disconnect', () => {
-          console.log('disconnected', connector.id);
+          console.log('disconnected', connector.index);
           this.connectors = this.connectors.filter(c => c !== connector);
+          connector.removeListeners();
         });
       });
     });
@@ -111,7 +122,7 @@ class ServerState {
   }
   
   notifyConnectors() {
-    this.connectors.forEach(c => c.stateChange({action: 'fullState', state: this.getFullState()}));
+    this.eventEmitter.emit('stateChange', {action: 'fullState', state: this.getFullState()});
   }
   
   createCards() {
