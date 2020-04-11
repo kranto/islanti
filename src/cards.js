@@ -66,7 +66,7 @@ var cards = (function() {
 
 		pullUp: function(pixels) {
 			var top = parseInt($(this.el).css('top'));
-			$(this.el).css({top: (top-15), transition: 'none'});
+			$(this.el).css({top: (top-pixels), transition: 'none'});
 		},
 
 		showCard : function() {
@@ -137,6 +137,7 @@ var cards = (function() {
 			this.faceUp = options.faceUp;
 			this.element = options.element;
 			this.isDraggable = options.isDraggable;
+			this.pullUp = options.pullUp;
 
 			if (this.element) {
 				this.element.data('container', this);
@@ -149,8 +150,26 @@ var cards = (function() {
 			this._click = {func:func,context:context};
 		},
 
+		getNewIndex: function (card) {
+			let newX = card.rect().x;
+			return this.filter(c => c !== card && c.rect().x < newX).length;
+		},
+
 		reorder : function() {
 			this.sort(function(a, b) { return a.rect().x - b.rect().x; });
+		},
+
+		moveCardToTarget: function(card) {
+			if (card.currTop !== card.targetTop || Math.abs(card.currLeft - card.targetLeft) > 1) {
+				if (this.pullUp && card.currTop === card.targetTop && card.currLeft > card.targetLeft) {
+					console.log(card.currTop, card.targetTop, card.currLeft, card.targetLeft);
+					card.pullUp(10);
+				}
+				setTimeout(() => {
+					var props = {top:card.targetTop, left:card.targetLeft, queue:false, transition: ""};
+					$(card.el).css(props);
+				}, 0);
+			}
 		},
 
 		render : function(options) {
@@ -160,19 +179,12 @@ var cards = (function() {
 			for (var i=0;i<this.length;i++) {
 				var card = this[i];
 				card.moveToFront();
-				var top = parseInt($(card.el).css('top'));
-				var left = parseInt($(card.el).css('left'));
-				if (top !== card.targetTop || left !== card.targetLeft) {
-					if (top === card.targetTop && left > card.targetLeft) {
-						console.log('pullingUp');
-						card.pullUp();
-					}
-					var props = {top:card.targetTop, left:card.targetLeft, queue:false, transition: ""};
-					$(card.el).css(props);
-				}
+				card.currTop = parseInt($(card.el).css('top'));
+				card.currLeft = parseInt($(card.el).css('left'));
+				this.moveCardToTarget(card);
 			}
 			var me = this;
-			var flip = function(){
+			var flip = function() {
 				for (var i=0;i<me.length;i++) {
 					if (me.faceUp) {
 						me[i].showCard();
@@ -181,7 +193,6 @@ var cards = (function() {
 					}
 				}
 			}
-			flip();
 			if (options.immediate) {
 				flip();
 			} else {

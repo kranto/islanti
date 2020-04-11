@@ -63,11 +63,9 @@ function createNewSection() {
 		accept: ".playingcard",
 		greedy: true,
 		drop: function(event, ui) {
-			var card = ui.draggable.data('card');
-			hand.addCard(card, true);
-			removeEmptySections();
-			cards.refresh();
-			newOrder();
+      var card = ui.draggable.data('card');
+      let index = hand.getNewIndex(card);
+			newOrder(card, hand, index);
 		}
 	});
 	el.click(sectionClicked);
@@ -324,16 +322,17 @@ function populateState(state) {
 	updateContainer(discardPile, state.pile, true);
 	state.players.forEach((p, i) => updateContainer(otherHands[i], p.closed));
 
-	myClosedHandSections.forEach(hand => {hand.element.remove(); hand.element.popover('dispose'); });
+  myClosedHandSections.forEach(hand => {hand.element.remove(); hand.element.popover('dispose'); });
 	myClosedHandSections = [];
 
 	state.myhands.closed.forEach((c, i) => {
 		while (myClosedHandSections.length - 1 < i) {
-      myClosedHandSections.push(createNewSection
-      ());
+      myClosedHandSections.push(createNewSection());
 		}
 		let hand = myClosedHandSections[i];
-		updateContainer(hand, c);
+    updateContainer(hand, c);
+    removeEmptySections();
+    cards.refresh();
 	});
 }
 
@@ -341,8 +340,17 @@ function sendAction(action, params) {
 	socket.emit('action', {...params, action: action});
 }
 
-function newOrder() {
-	let newOrder = myClosedHandSections.map(hand => hand.map(card => card.id));
+function newSection(firstCardInNewSection) {
+  let newOrder = myClosedHandSections.map(hand => hand.map(card => card.id).filter(id => id !== firstCardInNewSection.id));
+  newOrder = [...newOrder, [firstCardInNewSection.id]];
+  console.log(newOrder);
+	sendAction('newOrder', {order: newOrder});
+}
+
+function newOrder(movedCard, hand, index) {
+  let handIndex = myClosedHandSections.indexOf(hand);
+  let newOrder = myClosedHandSections.map(hand => hand.map(card => card.id).filter(id => id !== movedCard.id));
+  newOrder[handIndex].splice(index,0,movedCard.id);
 	sendAction('newOrder', {order: newOrder});
 }
 
@@ -373,7 +381,7 @@ function init(_socket) {
 
 
 	for (var i = 1; i <= 3; i++) {
-		var hand = new cards.Hand({faceUp:true, element: $("#hand" + i)});
+		var hand = new cards.Hand({faceUp:false, pullUp: true, element: $("#hand" + i)});
 		otherHands.push(hand);
 	}
 	
@@ -413,14 +421,8 @@ function init(_socket) {
 		accept: ".playingcard",
 		greedy: true,
 		drop: function(event, ui) {
-			var card = ui.draggable.data('card');
-      var section = createNewSection
-    ();
-			section.addCard(card, true);
-			myClosedHandSections.push(section);
-			removeEmptySections();
-			// cards.refresh();
-			newOrder();
+      var card = ui.draggable.data('card');
+      newSection(card);
 		}
 	});
 		
