@@ -101,6 +101,9 @@ class ServerState {
       case 'newOrder':
         this.newOrder(index, args.order);
         break;
+      case 'pickCard':
+        this.pickCard(index, args.fromDeck);
+        break;
       case 'discarded':
         this.discarded(index, args.card);
         break;
@@ -169,6 +172,13 @@ class ServerState {
     this.notifyConnectors();
   }
 
+  pickCard(player, fromDeck) {
+    console.log('pickCard', player, fromDeck);
+    let card = fromDeck ? this.state.deck.shift() : this.state.pile.shift();
+    this.state.players[player].closed[0].unshift(card);
+    this.notifyConnectors();
+  }
+
   discarded(player, id) {
     console.log('discarded', player, id);
     let p = this.state.players[player];
@@ -179,6 +189,7 @@ class ServerState {
     this.state.pile.unshift(card);
     this.notifyConnectors();
   }
+
 }
 
 module.exports = {

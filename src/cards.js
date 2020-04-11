@@ -17,6 +17,7 @@ var cards = (function() {
 
 	function mouseEvent(ev) {
 		var card = $(this).data('card');
+		console.log('mouseEvent', card);
 		if (card && card.container) {
 			var handler = card.container["_" + ev.type];
 			if (handler) {
