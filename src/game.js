@@ -50,41 +50,6 @@ let otherHands = [];
 let openHands = [];
 let discardPile;
 
-function moveOther(index, from, to) {
-	let hand = otherHands[index];
-	hand[from].pullUp();
-	let order = hand.map(c => c.i);
-	order.splice(to, 0, order.splice(from, 1)[0]);
-	orderOther(index, order);
-}
-
-function orderOther(index, newOrder) {
-	let hand = otherHands[index];
-	hand.sort((a, b) => newOrder.indexOf(a.id) < newOrder.indexOf(b.id) ? -1 : 1);
-	hand.render();
-}
-
-function pickFromDeck(index) {
-	addToOther(index, deck.topCard().id);
-}
-
-function pickFromPile(index) {
-	addToOther(index, discardPile.topCard().id);
-}
-
-function addToOther(index, card) {
-	let hand = otherHands[index];
-	hand.addCard(allCards.filter(c => c.id === card)[0]);
-	hand.render();
-}
-
-// function showCard(card) {
-// 	let c = allCards[card.i];
-// 	c.reveal(card.s, card.r);
-// 	discardPile.addCard(c);
-// 	discardPile.render();
-// }
-
 function createNewOpenHand() {
 	var el = $("#open-hand-template").clone().removeAttr("id").addClass('hand-section').show();
 	el.insertBefore("#newopen");
@@ -512,11 +477,6 @@ return {
 			setState(true, PICK_CARD);	
 		}		
 	},
-	moveOther: moveOther,
-	orderOther: orderOther,
-	pickFromDeck: pickFromDeck,
-	pickFromPile: pickFromPile,
-	addToOther: addToOther,
 
 	stateChange: stateChange
 };

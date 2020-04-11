@@ -17,22 +17,15 @@ var cards = (function() {
 
 	function mouseEvent(ev) {
 		var card = $(this).data('card');
-		console.log('mouseEvent', card);
 		if (card && card.container) {
 			var handler = card.container["_" + ev.type];
 			if (handler) {
 				handler.func.call(handler.context||window, card, ev);
 			}
 		}
-		$(this).draggable("enable");
+		// $(this).draggable("enable");
 	}
 	
-	function createCards(element, servercards) {
-		let cards = servercards.map(sc => new Card(sc.s, sc.r, sc.b, sc.i, element));
-
-		return cards;
-	}
-
 	function Card(suit, rank, back, id, table) {
 		this.init(suit, rank, back, id, table);
 	}
@@ -40,16 +33,14 @@ var cards = (function() {
 	Card.prototype = {
 		init: function (suit, rank, back, id, table) {
 			this.id = id;
-			this.suit = suit;
-			this.rank = rank;
-			this.cardback = back === 1 ? 'red' : 'blue';
-			this.name = suit ? suit + rank : "e"; 
-			this.faceUp = false;
 			this.el = $('<div/>')
 				.addClass('playingcard').data('card', this).appendTo($(table));
-			this.el.html('<img src="svg/' + this.name + '.svg" alt="' + this.name + '" draggable="false" class="faceup-img"/>' 
-				+'<img src="svg/cardback_' + this.cardback + '.svg" alt="card face down" draggable="false" class="facedown-img"/>');
-			// this.showCard();
+			this.el.html(
+				'<img src="" alt="card face up" draggable="false" class="faceup-img"/>' 
+				+'<img src="" alt="card face down" draggable="false" class="facedown-img"/>');
+			this.reveal(suit, rank, back);
+
+			this.faceUp = false;
 			this.moveToFront();
 
 			$(this.el).click(mouseEvent);
@@ -58,9 +49,9 @@ var cards = (function() {
 				stack: ".playingcard",
 				containment: ".CardTable",
 				placement: "top",
-				start: function() { $(this).stop(); }, // stop animations
-				drag: function() {},
-				stop: function() {}
+				// start: function() {},
+				// drag: function() {},
+				// stop: function() {}
 			});	
 		},
 
@@ -71,10 +62,6 @@ var cards = (function() {
 			this.name = suit ? suit + rank : "e"; 
 			$(this.el).find(".faceup-img").attr("src", "svg/" + this.name + ".svg");
 			$(this.el).find(".facedown-img").attr("src", "svg/cardback_" + this.cardback + ".svg");
-		},
-
-		toString: function () {
-			return this.name;
 		},
 
 		pullUp: function(pixels) {
@@ -109,6 +96,7 @@ var cards = (function() {
 			this[prop] = obj[prop];
 		}
 	}
+
 	Container.prototype.extend({
 		addCard : function(card, doReorder) {
 			this.addCards([card], doReorder);
@@ -130,15 +118,15 @@ var cards = (function() {
 			if (this.setElementWidth) this.setElementWidth();
 		},
 		removeCard : function(card) {
-			for (var i = 0; i < this.length; i++) {
-				if (this[i] === card) {
-					this.splice(i, 1);
-					card.container = null;
-					if (this.setElementWidth) this.setElementWidth();
-					return true;
-				}
+			let index = this.indexOf(card);
+			if (index >= 0) {
+				this.splice(this.indexOf(card), 1);
+				card.container = null;
+				if (this.setElementWidth) this.setElementWidth();
+				return true;	
+			} else {
+				return false;
 			}
-			return false;
 		},
 
 		init : function(options) {
@@ -161,14 +149,6 @@ var cards = (function() {
 			this._click = {func:func,context:context};
 		},
 
-		mousedown : function(func, context) {
-			this._mousedown = {func:func,context:context};
-		},
-		
-		mouseup : function(func, context) {
-			this._mouseup = {func:func,context:context};
-		},
-		
 		reorder : function() {
 			this.sort(function(a, b) { return a.rect().x - b.rect().x; });
 		},
@@ -183,12 +163,12 @@ var cards = (function() {
 				var top = parseInt($(card.el).css('top'));
 				var left = parseInt($(card.el).css('left'));
 				if (top !== card.targetTop || left !== card.targetLeft) {
-					var props = {top:card.targetTop, left:card.targetLeft, queue:false, transition: ""};
-					if (true || options.immediate) {
-						$(card.el).css(props);
-					} else {
-						$(card.el).animate(props, speed);
+					if (top === card.targetTop && left > card.targetLeft) {
+						console.log('pullingUp');
+						card.pullUp();
 					}
+					var props = {top:card.targetTop, left:card.targetLeft, queue:false, transition: ""};
+					$(card.el).css(props);
 				}
 			}
 			var me = this;
@@ -201,6 +181,7 @@ var cards = (function() {
 					}
 				}
 			}
+			flip();
 			if (options.immediate) {
 				flip();
 			} else {
@@ -224,11 +205,9 @@ var cards = (function() {
 	Deck.prototype = new Container();
 	Deck.prototype.extend({
 		calcPosition : function(options) {
-			options = options || {};
 			var boundingRect = this.element ? elementRect(this.element) : { x: this.x, y: this.y, width: 0, height: 0};
 			var centerX = boundingRect.x + boundingRect.width / 2;
 			var centerY = boundingRect.y + boundingRect.height / 2;
-			options = options || {};
 			var left = Math.round(centerX - opt.cardSize.width/2, 0);
 			var top = Math.round(centerY - opt.cardSize.height/2, 0);
 			var condenseCount = 6;
@@ -240,10 +219,6 @@ var cards = (function() {
 				this[i].targetTop = top;
 				this[i].targetLeft = left;
 			}
-		},
-		
-		toString : function() {
-			return 'Deck';
 		},
 		
 		deal : function(count, hands, speed, callback) {
@@ -298,10 +273,6 @@ var cards = (function() {
 				this[i].targetLeft = left + i * spacing;
 			}
 		},
-
-		toString : function() {
-			return 'Hand';
-		}
 	});
 	
 	var elementRect = function(element) {
@@ -328,7 +299,6 @@ var cards = (function() {
 		Deck : Deck,
 		Hand : Hand,
 		init: init,
-		createCards: createCards,
 		refresh: refresh
 	};
 	 
