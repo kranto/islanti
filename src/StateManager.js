@@ -13,8 +13,6 @@ class StateManager {
 
     this.socket = socketIOClient(this.endpoint + "/game/dev");
 
-    // game.init(this.socket);
-
     this.socket.on('stateChange', args => {
       this.stateChange(args);
     });

@@ -320,7 +320,8 @@ function updateContainer(container, servercards, reverse) {
 function populateState(state) {
 	updateContainer(deck, state.deck, true);
 	updateContainer(discardPile, state.pile, true);
-	state.players.forEach((p, i) => updateContainer(otherHands[i], p.closed));
+
+  state.players.forEach((p, i) => updateContainer(otherHands[i], p.closed));
 
   myClosedHandSections.forEach(hand => {hand.element.remove(); hand.element.popover('dispose'); });
 	myClosedHandSections = [];
@@ -370,7 +371,6 @@ var stateManager;
 function init(_stateManager) {
   console.log('game.init');
   stateManager = _stateManager;
-  stateManager.subscribeTo('stateChange', stateChange);
 
 	$(".CardTable").disableSelection();
 
@@ -380,8 +380,7 @@ function init(_stateManager) {
 		cards.refresh();
 	});
 
-
-	for (var i = 1; i <= 3; i++) {
+	for (var i = 1; i <= 6; i++) {
 		var hand = new cards.Hand({faceUp:false, pullUp: true, element: $("#hand" + i)});
 		otherHands.push(hand);
 	}
@@ -468,6 +467,8 @@ function init(_stateManager) {
 		trigger: 'manual',
 		content: () => validity.msg
 	});		
+
+  stateManager.subscribeTo('stateChange', stateChange);
 
 	setState(false, "");
 }
