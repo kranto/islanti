@@ -3,7 +3,6 @@ import React, { Component } from "react";
 import socketIOClient from "socket.io-client";
 import './CardTable.css';
 import Hand from './Hand.js';
-import game from "./game.js";
 
 class CardTable extends Component {
 
@@ -14,63 +13,20 @@ class CardTable extends Component {
       endpoint: endpoint,
       pad: 25,
       cardWidth: 64,
-      others: [13,13,13]
+      others: [13, 13, 13]
     };
   }
 
   componentDidMount() {
-    this.initSocket();
-  }
-
-  initSocket() {
-    console.log('initSocket', this.socket);
-    if (this.socket) return;
-    console.log('initSocket contd');
-
-    const { endpoint } = this.state;
-    this.socket = socketIOClient(endpoint + "/game/dev");
-    game.init(this.socket);
-
-    this.socket.on('stateChange', args => {
-      game.stateChange(args);
-    });
-
-    this.socket.on('connect', () => {
-      console.log('connected');
-      this.authenticate();
-    });
-
-    this.socket.on('reconnect', () => {
-      console.log('reconnected');
-    });
-
-    this.socket.on('reconnect_attempt', (i) => {
-      console.log('attempting to reconnect', i);
-    });
-
-    this.socket.on('disconnect', () => {
-      console.log('disconnected');
-    });
-
-    this.socket.on('authenticated', () => this.getFullState());
-  }
-
-  authenticate() {
-    let hash = window.location.hash;
-    let id = hash && hash.length > 2 ? hash[2] : "0";
-    this.socket.emit('authenticate', id);
-  }
-
-  getFullState() {
-    this.socket.emit('state');
+    this.props.stateManager.subscribeTo('stateChange', (params) => {
+      console.log('CardTable.listenToEvent', params);
+      this.setState({others: this.props.stateManager.getState().players.map(p => p.closed.length)})
+    })
   }
 
   createOthers() {
     return this.state.others.map((count, index) => 
     (<Hand id={"hand" + (index+1)} key={"o" + index} classes="player-hand"
-    // cards={<><Card name="d1" back="blue" left="10px" top="0px"></Card>
-    // <Card name="d2" back="red" left={null} top={null}></Card> 
-    // <Card name="d3" faceUp={true} back="red" left="50px" top="0px"></Card></>} 
     cardCount={count} padding={10} spacing={25} cardWidth={64} style={{position: "relative"}}/>));
   }
 
@@ -78,23 +34,6 @@ class CardTable extends Component {
     return this.state.myhands.map((count, index) => 
     (<Hand key={"m" + index} classes="section selected draggable-container" 
     cardCount={count} padding={10} spacing={25} cardWidth={64}/>));
-  }
-
-  simulateOthers() {
-    game.simulateOthers();
-  }
-
-  deal(myTurn) {
-    this.socket.emit('action', {action: 'deal'});
-    // game.deal(myTurn);
-  }
-
-  showCard() {
-    this.socket.emit('action', {action: 'showCard'});
-  }
-
-  takeTurn() {
-    game.takeTurn();
   }
 
   render() {

@@ -337,7 +337,7 @@ function populateState(state) {
 }
 
 function sendAction(action, params) {
-	socket.emit('action', {...params, action: action});
+  stateManager.sendAction(action, params);
 }
 
 function newSection(firstCardInNewSection) {
@@ -365,11 +365,12 @@ function stateChange(params) {
 	}
 }
 
-var socket;
+var stateManager;
 
-function init(_socket) {
-	console.log('game.init');
-	socket = _socket;
+function init(_stateManager) {
+  console.log('game.init');
+  stateManager = _stateManager;
+  stateManager.subscribeTo('stateChange', stateChange);
 
 	$(".CardTable").disableSelection();
 

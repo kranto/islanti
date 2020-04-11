@@ -162,7 +162,6 @@ var cards = (function() {
 		moveCardToTarget: function(card) {
 			if (card.currTop !== card.targetTop || Math.abs(card.currLeft - card.targetLeft) > 1) {
 				if (this.pullUp && card.currTop === card.targetTop && card.currLeft > card.targetLeft) {
-					console.log(card.currTop, card.targetTop, card.currLeft, card.targetLeft);
 					card.pullUp(10);
 				}
 				setTimeout(() => {
