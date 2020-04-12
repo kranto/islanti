@@ -6,12 +6,17 @@ class StateManager {
     this.endpoint = window.location.hostname === 'localhost' ? "http://localhost:4000" : "";
   }
 
-  initSocket() {
+  initSocket(gameId, credentials, callback) {
     console.log('initSocket', this.socket);
-    if (this.socket) return;
-    console.log('initSocket contd');
+    // if (this.socket) return;
+    // console.log('initSocket contd');
 
-    this.socket = socketIOClient(this.endpoint + "/game/dev");
+    if (this.socket) {
+      this.socket.close();
+      this.socket = null;
+    }
+
+    this.socket = socketIOClient(this.endpoint + "/game/" + gameId);
 
     this.socket.on('stateChange', args => {
       this.stateChange(args);
@@ -19,7 +24,7 @@ class StateManager {
 
     this.socket.on('connect', () => {
       console.log('connected');
-      this.authenticate();
+      this.authenticate(credentials, callback);
     });
 
     this.socket.on('reconnect', () => {
@@ -34,13 +39,14 @@ class StateManager {
       console.log('disconnected');
     });
 
-    this.socket.on('authenticated', () => this.requestFullState());
+    this.socket.on('authenticated', () => {
+      this.requestFullState();
+      callback({connected: true, authenticated: true, msg: "Yhteys ok"});
+    });
   }
 
-  authenticate() {
-    let hash = window.location.hash;
-    let id = hash && hash.length > 2 ? hash[2] : "0";
-    this.socket.emit('authenticate', id);
+  authenticate(credentials, callback) {
+    this.socket.emit('authenticate', credentials, isOk => callback({authenticationStatus: isOk}));
   }
 
   requestFullState() {

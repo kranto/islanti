@@ -67,6 +67,10 @@ class ServerState {
     this.eventEmitter = new EventEmitter();
   }
 
+  players = {
+
+  }
+
   init() {
     this.cards = this.createCards();
     this.shuffle(this.cards);
@@ -85,11 +89,12 @@ class ServerState {
 
     this.io.on('connection', socket => {
       console.log('someone connected', new Date());
-      socket.on('authenticate', args => {
-        let id = parseInt(args);
-        console.log(id + ' authenticated');
+      socket.on('authenticate', (args, callback) => {
+        let id = parseInt(args.id);
+        console.log(id + ' authenticated', args, callback);
         let connector = new Connector(this, id, socket);
-        this.connectors.push(connector);  
+        this.connectors.push(connector);
+        if (callback) callback(true);
         socket.on('disconnect', () => {
           console.log('disconnected', connector.index);
           this.connectors = this.connectors.filter(c => c !== connector);

@@ -11,12 +11,18 @@ class App extends Component {
   constructor() {
     super();
     this.cardTable = React.createRef();
+
     this.stateManager = new StateManager();
   }
 
   componentDidMount() {
     console.log('App did mount');
-    this.stateManager.initSocket();
+
+    let hash = window.location.hash;
+    let id = hash && hash.length > 2 ? hash[2] : "0";
+
+    this.stateManager.initSocket("dev", {id: id, secret: "nothing"}, (x) => console.log('App.callback', x) );
+
     game.init(this.stateManager);
   }
 
