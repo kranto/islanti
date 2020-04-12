@@ -380,8 +380,8 @@ function init(_stateManager) {
 		cards.refresh();
 	});
 
-	for (var i = 1; i <= 6; i++) {
-		var hand = new cards.Hand({faceUp:false, pullUp: true, element: $("#hand" + i)});
+	for (var i = 0; i <= 6; i++) {
+		var hand = new cards.Hand({faceUp:false, pullUp: true, element: $("#player" + i + " .closed-hand")});
 		otherHands.push(hand);
 	}
 	

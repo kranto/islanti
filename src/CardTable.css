@@ -55,6 +55,40 @@
 	box-shadow:#111 1px 1px 2px;
 }
 
+#otherplayers {
+	width: 100%;
+}
+.other-player {
+	width: 100%;
+	float: left;
+	margin: 5px;
+}
+
+.other-player.in-turn {
+	border: 1px solid lightyellow;
+}
+
+.other-player div {
+	display: inline-block;
+	clear: none;
+	float: left;
+}
+
+.other-player .player-name {
+	color: white;
+	writing-mode: vertical-rl;
+	transform: rotate(180deg);
+	height: 110px;
+	font-size: 1.2em;
+    overflow: hidden;
+    width: 30px;
+	padding: 3px;
+}
+
+.other-player.in-turn .player-name {
+	font-weight: bold;
+}
+
 .player-hand {
 	float: left;
 	margin: 5px;

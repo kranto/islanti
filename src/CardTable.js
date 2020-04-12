@@ -11,20 +11,26 @@ class CardTable extends Component {
     let endpoint = (window.location.hostname === 'localhost' ? "http://localhost:4000" : "" );
     this.state = {
       endpoint: endpoint,
-      others: [1,2,3,4,5,6,7,8]
+      others: [1,2,3,4,5,6,7]
     };
   }
 
   componentDidMount() {
     this.props.stateManager.subscribeTo('stateChange', (params) => {
       console.log('CardTable.listenToEvent', params);
-      this.setState({others: this.props.stateManager.getState().players.map(p => p.closed.length)})
+      this.setState({others: this.props.stateManager.getState().players})
     })
   }
 
   createOthers() {
-    return this.state.others.map((count, index) => 
-    (<Hand id={"hand" + (index+1)} key={"o" + index} classes="player-hand"/>));
+    return this.state.others.map((player, index) => {
+      console.log(player, index);
+      return (
+      <div id={"player" + index} key={"o" + index} className="other-player in-turn">
+        <div class="player-name">{player.name}</div>
+        <Hand classes="player-hand closed-hand"/>
+      </div>
+    )});
   }
 
   render() {

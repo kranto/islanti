@@ -67,9 +67,7 @@ class ServerState {
     this.eventEmitter = new EventEmitter();
   }
 
-  players = {
-
-  }
+  playerNames = ["HessuHopoliini", "Pelle Peloton", "Hupu", "Roope-Setä"];
 
   init() {
     this.cards = this.createCards();
@@ -84,7 +82,7 @@ class ServerState {
       dealt: false,
       deck: [...this.cards],
       pile: [],
-      players: [...Array(this.playerCount).keys()].map(() => ({closed: [[]], open: []}))
+      players: [...Array(this.playerCount).keys()].map((i) => ({name: this.playerNames[i], closed: [[]], open: []}))
     };
 
     this.io.on('connection', socket => {
