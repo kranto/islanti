@@ -23,7 +23,6 @@ var cards = (function() {
 				handler.func.call(handler.context||window, card, ev);
 			}
 		}
-		// $(this).draggable("enable");
 	}
 	
 	function Card(suit, rank, back, id, table) {
@@ -48,10 +47,7 @@ var cards = (function() {
 			$(this.el).draggable({
 				stack: ".playingcard",
 				containment: ".CardTable",
-				placement: "top",
-				// start: function() {},
-				// drag: function() {},
-				// stop: function() {}
+				placement: "top"
 			});	
 		},
 
@@ -263,15 +259,15 @@ var cards = (function() {
 			var width = Math.max(this.minWidth, desiredWidth);
 			this.element.width(width);
 		},
-		calcPadding: function(options) {
+		calcSpacing: function(options) {
 			var maxWidth = this.element ? elementRect(this.element).width - 10 : false || this.maxWidth;
-			var pad = options.spacing ? options.spacing : opt.cardSize.spacing;
-			var desiredWidth = Math.max(this.length - 1, 0) * pad + opt.cardSize.width;
-			return desiredWidth  <= maxWidth ? pad : (maxWidth - opt.cardSize.width) / Math.max(this.length - 1, 0);
+			var spacing = options.spacing ? options.spacing : opt.cardSize.spacing;
+			var desiredWidth = Math.max(this.length - 1, 0) * spacing + opt.cardSize.width;
+			return desiredWidth  <= maxWidth ? spacing : (maxWidth - opt.cardSize.width) / Math.max(this.length - 1, 0);
 		},
 		calcPosition : function(options) {
 			options = options || {};
-			var spacing = this.calcPadding(options);
+			var spacing = this.calcSpacing(options);
 			var cardWidth = opt.cardSize.width + (this.length-1)*spacing;
 			var boundingRect = this.element ? elementRect(this.element) : { x: this.x, y: this.y, width: 0, height: 0};
 			var centerX = boundingRect.x + boundingRect.width / 2;
@@ -309,7 +305,8 @@ var cards = (function() {
 		Deck : Deck,
 		Hand : Hand,
 		init: init,
-		refresh: refresh
+		refresh: refresh,
+		reset: () => containers = []
 	};
 	 
 })();

@@ -80,18 +80,6 @@ function createNewSection() {
 	return hand;
 }
 
-function removeEmptySections() {
-	for (var i = 0; i < myClosedHandSections.length; i++) {
-		var section = myClosedHandSections[i];
-		if (section.length === 0) {
-			myClosedHandSections.splice(i, 1);
-			section.element.remove();
-			section.element.popover('dispose');
-			return;
-		}
-	}
-}
-
 function deal(iStart) {
 	deck.deal(13, otherHands.concat([myClosedHandSections[0]]), 50, function() {
 		dealt = true;
@@ -314,7 +302,6 @@ function findCard(servercard) {
 function updateContainer(container, servercards, reverse) {
 	let cards = servercards.map(servercard => findCard(servercard));
 	cards.forEach(card => {if (card.container) card.container.removeCard(card); });
-  // cards.forEach(card => container.addCard(card));
   container.addCards(reverse ? cards.reverse() : cards);
 	container.render();
 }
@@ -334,8 +321,6 @@ function populateState(state) {
 		}
 		let hand = myClosedHandSections[i];
     updateContainer(hand, c);
-    removeEmptySections();
-    cards.refresh();
   });
   
   $("#pile").droppable({disabled: !state.myTurn || state.phase !== TURN_ACTIVE })
@@ -348,7 +333,7 @@ function sendAction(action, params) {
 
 function newSection(firstCardInNewSection) {
   let newOrder = myClosedHandSections.map(hand => hand.map(card => card.id).filter(id => id !== firstCardInNewSection.id));
-  newOrder = [...newOrder, [firstCardInNewSection.id]];
+  newOrder = [...newOrder, [firstCardInNewSection.id]].filter(section => section.length > 0);
   console.log(newOrder);
 	sendAction('newOrder', {order: newOrder});
 }
@@ -357,6 +342,7 @@ function newOrder(movedCard, hand, index) {
   let handIndex = myClosedHandSections.indexOf(hand);
   let newOrder = myClosedHandSections.map(hand => hand.map(card => card.id).filter(id => id !== movedCard.id));
   newOrder[handIndex].splice(index,0,movedCard.id);
+  newOrder = newOrder.filter(section => section.length > 0);
 	sendAction('newOrder', {order: newOrder});
 }
 
