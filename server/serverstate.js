@@ -41,13 +41,9 @@ class Connector  {
         console.log('connector.stateChange.fullState', this.index, change.state.index);
         let state = JSON.parse(JSON.stringify(change.state));
         state.players = [...state.players.slice(this.index, state.players.length), ...state.players.slice(0,this.index)];
-        // for (let i = this.index; i > 0; i--) {
-        //   state.players.push(state.players.shift());
-        //   state.playerInTurn = (state.playerInTurn + state.players.length - 1) % state.players.length;
-        //  }
-        state.playerInTurn = (state.playerInTurn + state.players.length - this.index) % state.players.length;
+        state.playerInTurn = this.rollIndex(state.playerInTurn, state);
+        state.buying = this.rollIndex(state.buying, state);
         state.myhands = state.players.splice(0, 1)[0];
-        state.playerInTurn--;
         state.myTurn = state.playerInTurn < 0;
         state.players = state.players.map(p => ({ ...p, closed: p.closed ? p.closed.flat() : p.closed}));
         state.can = {
@@ -55,6 +51,7 @@ class Connector  {
           show: state.phase === this.serverstate.SHOW_CARD && state.myTurn,
           pick: state.phase === this.serverstate.PICK_CARD && state.myTurn,
           buy: state.phase === this.serverstate.PICK_CARD && (state.playerInTurn >= 1 || !state.myTurn && state.turnIndex === 1) && state.myhands.bought < 3,
+          sell: state.phase === this.serverstate.PICK_CARD_BUYING && state.myTurn,
           open: state.phase === this.serverstate.TURN_ACTIVE && state.myTurn && state.myhands.open.length === 0,
           discard: state.phase === this.serverstate.TURN_ACTIVE && state.myTurn,
         }
@@ -64,13 +61,19 @@ class Connector  {
     this.socket.emit('stateChange', change);
   }
 
+  rollIndex(player, state) {
+    return player === null ? null : (player + state.players.length - this.index) % state.players.length - 1;
+  }
+
 }
 
 class ServerState {
 
   DEAL = 1;
   SHOW_CARD = 2;
-  PICK_CARD = 3; 
+  PICK_CARD = 3;
+  PICK_CARD_BUYING = 3.1;
+  PICK_CARD_BOUGHT = 3.2;
   TURN_ACTIVE = 4;
 
   constructor(io, gameId) {
@@ -99,6 +102,7 @@ class ServerState {
       playerInTurn: this.playerDealing,
       phase: this.DEAL,
       dealt: false,
+      buying: null,
       deck: [...this.cards],
       pile: [],
       players: [...Array(this.playerCount).keys()].map((i) => ({name: this.playerNames[i], closed: [[]], open: [], inTurn: this.playerDealing === i, bought: 0}))
@@ -143,6 +147,9 @@ class ServerState {
         break;
       case 'pickCard':
         this.pickCard(index, args.fromDeck);
+        break;
+      case 'requestToBuy':
+        this.requestToBuy(index);
         break;
       case 'discarded':
         this.discarded(index, args.card);
@@ -229,6 +236,16 @@ class ServerState {
     this.notifyConnectors();
   }
 
+  requestToBuy(player) {
+    console.log('requestToBuy', player);
+    if (player === this.state.playerInTurn || this.state.phase !== this.PICK_CARD || 
+      (this.turnIndex > 1 && player === this.previousPlayer(this.state.playerInTurn))) return false;
+    this.state.phase = this.PICK_CARD_BUYING;
+    this.state.buying = player;
+    this.state.index++;
+    this.notifyConnectors();
+  }
+
   discarded(player, id) {
     console.log('discarded', player, id);
     if (player !== this.state.playerInTurn || this.state.phase !== this.TURN_ACTIVE) return;
@@ -248,6 +265,10 @@ class ServerState {
     this.state.playerInTurn = ( this.state.playerInTurn + 1 ) % this.state.players.length;
     this.state.players.forEach((p, i) => p.inTurn = i === this.state.playerInTurn);
     this.state.turnIndex++;
+  }
+
+  previousPlayer(playerIndex) {
+    return (playerIndex + this.state.players.length - 1) % this.state.players.length;
   }
 
 }

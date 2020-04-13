@@ -53,6 +53,14 @@ class CardTable extends Component {
       } else {
         return <div><span>{state.players[state.playerInTurn].name}</span> nostaa. {state.can.buy ? "Voit yrittää ostaa kortin klikkaamalla avopakkaa.": ""} </div>
       }
+    } else if (state.phase === 3.1) {
+      if (state.buying < 0) {
+        return <div>Haluat ostaa. {state.players[state.playerInTurn].name} miettii.</div>
+      } else if (state.can.sell) {
+        return <div>{state.players[state.buying].name} haluaa ostaa. Myytkö?</div>
+      } else {
+        return <div>{state.players[state.buying].name} haluaa ostaa. {state.players[state.playerInTurn].name} miettii.</div>
+      }
     } else if (state.phase === 4) {
       if (state.myTurn) {
         return <div>
