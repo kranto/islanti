@@ -1,6 +1,5 @@
 
 import React, { Component } from "react";
-import socketIOClient from "socket.io-client";
 import './CardTable.css';
 import Hand from './Hand.js';
 
@@ -8,29 +7,30 @@ class CardTable extends Component {
 
   constructor() {
     super();
-    let endpoint = (window.location.hostname === 'localhost' ? "http://localhost:4000" : "" );
     this.state = {
-      endpoint: endpoint,
-      others: [1,2,3,4,5,6,7]
+      s: { players: [] }
     };
   }
 
   componentDidMount() {
     this.props.stateManager.subscribeTo('stateChange', (params) => {
       console.log('CardTable.listenToEvent', params);
-      this.setState({others: this.props.stateManager.getState().players})
+      this.setState({...this.state, s : this.props.stateManager.getState()})
     })
   }
 
-  createOthers() {
-    return this.state.others.map((player, index) => {
-      console.log(player, index);
+  createPlayers() {
+    let state = this.state.s;
+    return [...Array(7).keys()].map((player, index) => {
+      let p = state.players.length > index ? state.players[index] : {};
       return (
-      <div id={"player" + index} key={"o" + index} className="other-player in-turn">
-        <div class="player-name">{player.name}</div>
+      <div id={"player" + index} key={"o" + index} 
+        className={"other-player " + (state.playerInTurn == index ? "in-turn" : "")}  
+        style={{display: (p.closed ? 'initial' : 'none')}}>
+        <div className="player-name">{p.name}</div>
         <Hand classes="player-hand closed-hand"/>
       </div>
-    )});
+    );});
   }
 
   render() {
@@ -38,7 +38,7 @@ class CardTable extends Component {
     return (
       <div className="CardTable selecting">
         <div id="otherplayers">
-            {this.createOthers()}
+            {this.createPlayers()}
         </div>
         <div id="gamearea">
           <div id="deckandpile">

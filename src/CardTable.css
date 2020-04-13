@@ -43,7 +43,7 @@
 .CardTable {
 	position: relative;
 	max-width: 100%;
-	padding: 10px;
+	padding: 5px;
 	background-color:green;
 	overflow: hidden;
 	border:solid 6px brown;
@@ -61,7 +61,10 @@
 .other-player {
 	width: 100%;
 	float: left;
-	margin: 5px;
+	margin: 1px;
+	border-radius: 10px;
+	padding: 3px 0px;
+	heigth: 110px;
 }
 
 .other-player.in-turn {
@@ -78,11 +81,10 @@
 	color: white;
 	writing-mode: vertical-rl;
 	transform: rotate(180deg);
-	height: 110px;
 	font-size: 1.2em;
     overflow: hidden;
-    width: 30px;
-	padding: 3px;
+	width: 1.4em;
+	height: 110px;
 }
 
 .other-player.in-turn .player-name {

@@ -201,6 +201,7 @@ class ServerState {
     let card = matchingCards[0];
     p.closed = p.closed.map(section => section.filter(c => c !== card));
     this.state.pile.unshift(card);
+    this.state.playerInTurn = ( this.state.playerInTurn + 1 ) % this.state.players.length; 
     this.notifyConnectors();
   }
 
