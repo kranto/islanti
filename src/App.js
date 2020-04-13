@@ -2,7 +2,6 @@ import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import React, { Component } from "react";
 import CardTable from './CardTable.js';
-// import * as $ from 'jquery';
 import StateManager from './StateManager.js';
 import game from './game';
 

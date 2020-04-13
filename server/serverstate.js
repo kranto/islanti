@@ -236,6 +236,7 @@ class ServerState {
     console.log('pickCard', player, fromDeck);
     if (player !== this.state.playerInTurn || (this.state.phase !== this.PICK_CARD && this.state.phase !== this.PICK_CARD_BOUGHT)) return false;
     let card = fromDeck ? this.state.deck.shift() : this.state.pile.shift();
+    this.checkDeck();
     this.state.players[player].closed[0].unshift(card);
     this.state.phase = this.TURN_ACTIVE;
     this.state.index++;
@@ -257,6 +258,7 @@ class ServerState {
     if (player !== this.state.playerInTurn || this.state.phase !== this.PICK_CARD_BUYING) return false;
     this.state.players[this.state.buying].closed[0].unshift(this.state.pile.shift());
     this.state.players[this.state.buying].closed[0].unshift(this.state.deck.shift());
+    this.checkDeck();
     this.state.players[this.state.buying].bought++;
     this.state.buying = null;
     this.state.phase = this.PICK_CARD_BOUGHT;
@@ -293,6 +295,14 @@ class ServerState {
     this.state.playerInTurn = ( this.state.playerInTurn + 1 ) % this.state.players.length;
     this.state.players.forEach((p, i) => p.inTurn = i === this.state.playerInTurn);
     this.state.turnIndex++;
+  }
+
+  checkDeck() {
+    if (this.state.deck.length === 0) {
+      let newDeck = this.state.pile.splice(0,this.state.pile.length - 1);
+      this.shuffle(newDeck);
+      this.state.deck = newDeck;
+    }
   }
 
   previousPlayer(playerIndex) {
