@@ -327,7 +327,8 @@ function newOrder(movedCard, hand, index) {
   let newOrder = myClosedHandSections.map(hand => hand.map(card => card.id).filter(id => id !== movedCard.id));
   newOrder[handIndex].splice(index,0,movedCard.id);
   newOrder = newOrder.filter(section => section.length > 0);
-	sendAction('newOrder', {order: newOrder});
+  sendAction('newOrder', {order: newOrder});
+  stateManager.testSeries(handIndex, function(response) {console.log(response); });
 }
 
 function stateChange(params) {

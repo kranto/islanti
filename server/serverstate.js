@@ -23,6 +23,11 @@ class Connector  {
       this.serverstate.onAction(this.index, args);
     });
 
+    this.socket.on('testSeries', (args, callback) => {
+      console.log('connector.testSeries', this.index, args, callback);
+      this.serverstate.testSeries(this.index, args, callback);
+    });
+
     this.socket.on('state', () => this.stateChange({action: 'fullState', state: this.serverstate.getFullState()}));
     this.socket.emit('authenticated');
 
@@ -97,6 +102,13 @@ class ServerState {
     this.playerCount = 4;
 
     this.state = {
+      round: {
+        roundNumber: 1,
+        roundName: "kolmoset ja suora",
+        expectedSets: 1,
+        expectedStraights: 1,	
+        isFreestyle: false
+      },
       index: 0,
       turnIndex: 0,
       playerInTurn: this.playerDealing,
@@ -278,7 +290,7 @@ class ServerState {
 
   discarded(player, id) {
     console.log('discarded', player, id);
-    if (player !== this.state.playerInTurn || this.state.phase !== this.TURN_ACTIVE) return;
+    if (player !== this.state.playerInTurn || this.state.phase !== this.TURN_ACTIVE) return false;
     let p = this.state.players[player];
     let matchingCards = p.closed.flat().filter(c => c.i === id);
     if (matchingCards.length !== 1) return; // not found
@@ -309,6 +321,161 @@ class ServerState {
     return (playerIndex + this.state.players.length - 1) % this.state.players.length;
   }
 
+// ---------------------
+
+  testSeries(player, args, callback) {
+    let {sectionIndex} = args;
+    console.log('testSeries', player, sectionIndex);
+    if (player !== this.state.playerInTurn || this.state.phase !== this.TURN_ACTIVE) return false;
+
+    let section = this.state.players[player].closed[sectionIndex];
+    callback(this.testSection(section, this.state.round.expectedStraights > 0, this.state.round.expectedSets > 0));    
+  }
+
+
+  validateSelected = (selected, cardCount) => {
+    var sets = [];
+    var straights = [];
+    for (let i = 0; i < selected.length; i++) {
+      var hand = selected[i];
+  
+      if (!hand.validity.valid) {
+        return {valid: false, msg: "Joku valituista sarjoista ei ole sallittu."};
+      }
+      if (hand.validity.type === 'straight') {
+        straights.push(hand.validity.data);
+      }
+      if (hand.validity.type === 'set') {
+        sets.push(hand.validity.data);
+      }
+    }
+    if (sets.length !== round.expectedSets && !round.isFreestyle) {
+      return {valid: false, msg: "Pitäisi olla " + round.expectedSets + " kolmoset, mutta onkin " + sets.length};
+    }
+    if (straights.length !== round.expectedStraights && !round.isFreestyle) {
+      return {valid: false, msg: "Pitäisi olla " + round.expectedStraights + " suoraa, mutta onkin " + straights.length};
+    }
+    var setsNumbers = [];
+    for (let i = 0; i < sets.length; i++) {
+      if (setsNumbers.indexOf(sets[i].number) >= 0) {
+        return {valid: false, msg: "Kaikki kolmossarjat täytyy olla eri numeroa"};
+      }
+    }
+    var straightsSuites = [];
+    for (let i = 0; i < straights.length; i++) {
+      if (straightsSuites.indexOf(straights[i].s) >= 0) {
+        return {valid: false, msg: "Suorat täytyy olla eri maista"};
+      }
+    }
+  
+    return {valid: true};
+  }
+  
+  canOpen = () => {
+    myClosedHandSections.forEach((hand) => {
+      hand.validity = this.testSection(hand, round.expectedStraights > 0, round.expectedSets > 0);
+    });
+  }
+  
+  testSection = (section, testForStraight, testForSets) => {
+    console.log('testSection', section, testForStraight, testForSets);
+    var straight = testForStraight ? this.testStraight(section) : false;
+    var set = testForSets ? this.testSet(section) : false;
+  
+    if (straight && straight.valid) return {type: 'straight', valid: true, msg: 'Suora', data: straight};
+    if (set && set.valid) return {type: 'set', valid: true, msg: 'Kolmoset', data: set};
+    return {valid: false, type: false, msg: (straight ? (straight.msg + ". "): "") + (set ? (set.msg + ".") : "")};
+  }
+  
+  testStraight = (section) => {
+    if (section.length < 4) {
+      return {valid: false, msg: "Suorassa täytyy olla vähintään neljä korttia"};
+    }
+    if (section.length > 13) {
+      return {valid: false, msg: "Suorassa ei saa olla yli 13 korttia"};
+    }
+  
+    var others = section.filter(c => c.r > 0);
+    var jokers = section.filter(c => c.r === 0);
+    var aces = section.filter(c => c.r === 1);
+  
+    if (others.filter(c => c.s !== others[0].s).length > 0) {
+      return {valid: false, msg: "Suorassa saa olla vain yhtä maata"};
+    }
+    if (jokers.length >= others.length) {
+      return {valid: false, msg: "Suorassa vähintään puolet korteista pitää olla muita kuin jokereita"}
+    }
+  
+    var highAce = false;
+    if (aces.length > 1) {
+      return {valid: false, msg: "Suorassa voi olla vain yksi ässä"};
+    } else if (aces.length === 1) {
+      if (others[0] === aces[0]) {
+        highAce = others[1].r > 8;
+      } else if (others[others.length-1] === aces[0]) {
+        highAce = others[others.length-2].r > 8;
+      } else {
+        return {valid: false, msg: "Ässän täytyy olla suoran päässä"};
+      }
+    }
+  
+    var ranks = section.map(c => highAce && c.r === 1 ? 14 : c.r);
+    var otherRanks = ranks.filter(r => r > 0);
+  
+    var increasing = otherRanks[0] < otherRanks[1];
+    if (!increasing) {
+      section.reverse();
+      others.reverse();
+      jokers.reverse();
+      ranks.reverse();
+      otherRanks.reverse();
+    }
+  
+    var rankStart = otherRanks[0] - ranks.indexOf(otherRanks[0]);
+  
+    if (rankStart < 1 || rankStart + ranks.length - 1 > 14) {
+      return {valid: false, msg: "Suora ei voi mennä kulman ympäri"};
+    }
+  
+    for (var i = 0; i < ranks.length; i++) {
+      if (ranks[i] !== 0  && ranks[i] !== rankStart + i) {
+        return {valid: false, msg: "Suorassa täytyy olla kortit järjestyksessä"}
+      }
+    }
+  
+    return {
+      type: 'straight',
+      valid: true,
+      suit: others[0].s,
+      cards: section,
+      highAce: highAce
+    };
+  }
+  
+  testSet = (hand) => {
+    if (hand.length < 3) {
+      return {valid: false, msg: "Kolmosissa täytyy olla vähintään kolme korttia"};
+    }
+    if (hand.length > 8) {
+      return {valid: false, msg: "Kolmosissa ei saa olla yli 8 korttia"};
+    }
+    var jokers = hand.filter(c => c.r === 0);
+    var others = hand.filter(c => c.r > 0);
+    if (jokers.length >= others.length) {
+      return {valid: false, msg: "Kolmosissa vähintään puolet korteista pitää olla muita kuin jokereita"}
+    }
+    if (others.filter(c => c.r !== others[0].r).length > 0) {
+      return {valid: false, msg: "Kolmosissa saa olla vain yhtä numeroa"};
+    }
+  
+    return {
+      type: 'sets',
+      valid: true,
+      rank: others[0].r,
+      cards: hand,
+    };
+  }
+  
 }
 
 module.exports = {
@@ -556,7 +723,7 @@ function validateSelected(selected, cardCount) {
   }
   var flushesSuites = [];
   for (var i = 0; i < flushes.length; i++) {
-    if (flushesSuites.indexOf(flushes[i].suit) >= 0) {
+    if (flushesSuites.indexOf(flushes[i].s) >= 0) {
       return {valid: false, msg: "Suorat täytyy olla eri maista"};
     }
   }
