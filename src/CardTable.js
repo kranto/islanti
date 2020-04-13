@@ -51,11 +51,14 @@ class CardTable extends Component {
       if (state.myTurn) {
         return <div>Nosta kortti pakasta tai avopakasta klikkaamalla</div>
       } else {
-        return <div><span>{state.players[state.playerInTurn].name}</span> nostaa. Voit yrittää ostaa kortin klikkaamalla avopakkaa.</div>
+        return <div><span>{state.players[state.playerInTurn].name}</span> nostaa. {state.can.buy ? "Voit yrittää ostaa kortin klikkaamalla avopakkaa.": ""} </div>
       }
     } else if (state.phase === 4) {
       if (state.myTurn) {
-        return <div>Pelaa vuoro ja laita lopuksi kortti avopakkaan</div>
+        return <div>
+            Pelaa vuoro ja laita lopuksi kortti avopakkaan
+            {state.can.open ? <div>avaa</div> :""}
+          </div>
       } else {
         return <div><span>{state.players[state.playerInTurn].name}</span> pelaa vuoroaan.</div>
       }

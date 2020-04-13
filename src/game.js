@@ -19,9 +19,6 @@ var round = {
 	isFreestyle: false
 };
 
-const DEAL = 1;
-const SHOW_CARD = 2;
-const PICK_CARD = 3; 
 const TURN_ACTIVE = 4;
 
 var OPENING = "OPENING";
@@ -33,6 +30,7 @@ var state = "";
 
 var allCards = [];
 
+var serverState = {};
 
 // gameStates/events: 
 // OTHERS TURN START, OTHER PICKS FROM DECK, OTHER PICKS FROM DISCARD PILE, 
@@ -80,29 +78,14 @@ function createNewSection() {
 	return hand;
 }
 
-function deal(iStart) {
-	deck.deal(13, otherHands.concat([myClosedHandSections[0]]), 50, function() {
-		dealt = true;
-    setState(iStart, SHOW_CARD
-    );
-	});
-}
-
 function setState(_myTurn, _state) {
 	myTurn = _myTurn;
 	state = _state;
-
-	// $("#pile").droppable({disabled: !myTurn || state !== TURN_ACTIVE })
 
 	$("#openButton").css('display', dealt && myTurn && !opened && state === TURN_ACTIVE ? "block": "none");
 	$("#confirmOpenButton").css('display', dealt && myTurn && !opened && state === OPENING ? "block": "none");
 	$("#cancelOpenButton").css('display', dealt && myTurn && !opened && state === OPENING ? "block": "none");
 
-  $("#showcard_others").css('display', function() {return state === SHOW_CARD
-   && !myTurn? 'block' : 'none'});
-  $("#showcard_myturn").css('display', function() {return state === SHOW_CARD
-   && myTurn? 'block' : 'none'});
-	$("#pickcard").css('display', function() {return myTurn && state === PICK_CARD ? 'block' : 'none'});
 	$("#selectseries").css('display', dealt && myTurn && !opened && state === OPENING ? "block": "none");
 	$("#selectseries span").text(round.roundName);
 
@@ -307,7 +290,10 @@ function updateContainer(container, servercards, reverse) {
 }
 
 function populateState(state) {
-	updateContainer(deck, state.deck, true);
+
+  serverState = state;
+
+  updateContainer(deck, state.deck, true);
 	updateContainer(discardPile, state.pile, true);
 
   state.players.forEach((p, i) => updateContainer(otherHands[i], p.closed));
@@ -323,8 +309,7 @@ function populateState(state) {
     updateContainer(hand, c);
   });
   
-  $("#pile").droppable({disabled: !state.myTurn || state.phase !== TURN_ACTIVE })
-
+  $("#pile").droppable({disabled: !state.can.discard});  
 }
 
 function sendAction(action, params) {
@@ -334,7 +319,6 @@ function sendAction(action, params) {
 function newSection(firstCardInNewSection) {
   let newOrder = myClosedHandSections.map(hand => hand.map(card => card.id).filter(id => id !== firstCardInNewSection.id));
   newOrder = [...newOrder, [firstCardInNewSection.id]].filter(section => section.length > 0);
-  console.log(newOrder);
 	sendAction('newOrder', {order: newOrder});
 }
 
@@ -360,11 +344,11 @@ function stateChange(params) {
 var stateManager;
 
 function init(_stateManager) {
-  console.log('game.init');
+
   stateManager = _stateManager;
 
-	cards.init();
-
+  cards.init();
+  
 	$(window).resize(function(){
 		setTimeout( () =>cards.refresh(), 100);
 	});
@@ -379,20 +363,21 @@ function init(_stateManager) {
     element: $("#deck")
   }); 
 
-  deck.click(function(card){	
-    console.log('deck.click', card);
-		if (card === deck.topCard() /* && myTurn  && state === PICK_CARD */) {
+  deck.click(() => {
+		if (serverState.can.pick) {
       sendAction('pickCard', {fromDeck: true});
 		}
 	});
 	
 	discardPile = new cards.Deck({
-    faceUp:true, 
+    faceUp: true, 
     element: $("#pile")
 	});
 
-	discardPile.click(function(card){
-		if (card === discardPile.topCard() /* && myTurn && state === PICK_CARD */) {
+	discardPile.click(() => {
+    if (serverState.can.buy) {
+      sendAction('requestToBuy');
+    } else if (serverState.can.pick) {
       sendAction('pickCard', {fromDeck: false});
 		}
 	});
@@ -463,20 +448,7 @@ function init(_stateManager) {
 }
 
 return {
-	init: init,
-	deal: deal,
-	otherShowCard: () => {
-		discardPile.addCard(deck.topCard());
-		discardPile.render();
-		setState(false, PICK_CARD);
-	},
-	takeTurn: () => {
-		if (!myTurn) {
-			setState(true, PICK_CARD);	
-		}		
-	},
-
-	stateChange: stateChange
+	init: init
 };
 
 })();

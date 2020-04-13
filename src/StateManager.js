@@ -70,6 +70,7 @@ class StateManager {
 
   sendAction(action, params) {
     params = params || {};
+    console.log('sendAction', action, params);
     this.socket.emit('action', {...params, action: action});
   }
 

@@ -50,6 +50,14 @@ class Connector  {
         state.playerInTurn--;
         state.myTurn = state.playerInTurn < 0;
         state.players = state.players.map(p => ({ ...p, closed: p.closed ? p.closed.flat() : p.closed}));
+        state.can = {
+          deal: state.phase === this.serverstate.DEAL && state.myTurn,
+          show: state.phase === this.serverstate.SHOW_CARD && state.myTurn,
+          pick: state.phase === this.serverstate.PICK_CARD && state.myTurn,
+          buy: state.phase === this.serverstate.PICK_CARD && (state.playerInTurn >= 1 || !state.myTurn && state.turnIndex === 1) && state.myhands.bought < 3,
+          open: state.phase === this.serverstate.TURN_ACTIVE && state.myTurn && state.myhands.open.length === 0,
+          discard: state.phase === this.serverstate.TURN_ACTIVE && state.myTurn,
+        }
         change = {...change, state: state};
         break;
     }
@@ -87,12 +95,13 @@ class ServerState {
 
     this.state = {
       index: 0,
+      turnIndex: 0,
       playerInTurn: this.playerDealing,
       phase: this.DEAL,
       dealt: false,
       deck: [...this.cards],
       pile: [],
-      players: [...Array(this.playerCount).keys()].map((i) => ({name: this.playerNames[i], closed: [[]], open: [], inTurn: this.playerDealing === i}))
+      players: [...Array(this.playerCount).keys()].map((i) => ({name: this.playerNames[i], closed: [[]], open: [], inTurn: this.playerDealing === i, bought: 0}))
     };
 
     console.log(this.state, this.DEAL, this.SHOW_CARD);
@@ -227,7 +236,7 @@ class ServerState {
     let matchingCards = p.closed.flat().filter(c => c.i === id);
     if (matchingCards.length !== 1) return; // not found
     let card = matchingCards[0];
-    p.closed = p.closed.map(section => section.filter(c => c !== card));
+    p.closed = p.closed.map(section => section.filter(c => c !== card)).filter(section => section.length > 0);
     this.state.pile.unshift(card);
     this.nextPlayerInTurn();
     this.state.phase = this.PICK_CARD;
@@ -238,6 +247,7 @@ class ServerState {
   nextPlayerInTurn() {
     this.state.playerInTurn = ( this.state.playerInTurn + 1 ) % this.state.players.length;
     this.state.players.forEach((p, i) => p.inTurn = i === this.state.playerInTurn);
+    this.state.turnIndex++;
   }
 
 }

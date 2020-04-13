@@ -30,12 +30,6 @@ class App extends Component {
       return (
       <div className="App">
         <div>
-          {/* <button onClick={() => game.moveOther(Math.floor(Math.random()*3), Math.floor(Math.random()*13), Math.floor(Math.random()*13))}>Järjestä</button>
-          <button onClick={() => game.pickFromDeck(Math.floor(Math.random()*3))}>Nosta pakasta</button>
-          <button onClick={() => game.pickFromPile(Math.floor(Math.random()*3))}>Nosta avopakasta</button> */}
-
-          <button onClick={() => this.stateManager.sendAction('deal')}>Jaa kortit</button>
-          <button onClick={() => this.stateManager.sendAction('showCard')}>Aloita</button>
         </div>
         <CardTable ref={this.cardTable} stateManager={this.stateManager}></CardTable>
       </div>
