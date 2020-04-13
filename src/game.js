@@ -19,9 +19,11 @@ var round = {
 	isFreestyle: false
 };
 
-var SHOW_CARD = "SHOW_CARD";
-var PICK_CARD = "PICK_CARD";
-var TURN_ACTIVE = "TURN_ACTIVE";
+const DEAL = 1;
+const SHOW_CARD = 2;
+const PICK_CARD = 3; 
+const TURN_ACTIVE = 4;
+
 var OPENING = "OPENING";
 
 var dealt = false;
@@ -334,7 +336,10 @@ function populateState(state) {
     updateContainer(hand, c);
     removeEmptySections();
     cards.refresh();
-	});
+  });
+  
+  $("#pile").droppable({disabled: !state.myTurn || state.phase !== TURN_ACTIVE })
+
 }
 
 function sendAction(action, params) {
@@ -372,12 +377,10 @@ function init(_stateManager) {
   console.log('game.init');
   stateManager = _stateManager;
 
-	$(".CardTable").disableSelection();
-
 	cards.init();
 
 	$(window).resize(function(){
-		cards.refresh();
+		setTimeout( () =>cards.refresh(), 100);
 	});
 
 	for (var i = 0; i <= 6; i++) {

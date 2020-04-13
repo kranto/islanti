@@ -175,8 +175,8 @@ class ServerState {
     if (player !== this.state.playerInTurn || this.state.phase !== this.DEAL || this.state.dealt) return false;
     this.state.dealt = true;
     console.log(this.state.players);
-    [...Array(13).keys()].forEach(() =>
-      this.state.players.forEach(p => p.closed[0].push(this.state.deck.shift())));
+    [...Array(13).keys()].forEach(() => this.state.players.forEach(p => p.closed[0].push(this.state.deck.shift())));
+    this.nextPlayerInTurn();
     this.state.phase = this.SHOW_CARD;
     this.state.index++;
     this.notifyConnectors();

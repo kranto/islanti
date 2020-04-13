@@ -33,6 +33,38 @@ class CardTable extends Component {
     );});
   }
 
+  createInstructions() {
+    let state = this.state.s;
+    if (state.phase === 1) {
+      if (state.myTurn) {
+        return <div>Sinun vuorosi jakaa. <button onClick={() => this.props.stateManager.sendAction('deal')}>Jaa kortit</button></div>
+      } else {
+        return <div><span>{state.players[state.playerInTurn].name}</span> jakaa kortit</div>
+      }
+    } else if (state.phase === 2) {
+      if (state.myTurn) {
+        return <div>Sinä aloitat. Kun kaikki ovat järjestäneet korttinsa ja ovat valmiita, voit avata yhden kortin pakasta.<button onClick={() => this.props.stateManager.sendAction('showCard')}>Avaa kortti</button></div>
+      } else {
+        return <div><span>{state.players[state.playerInTurn].name}</span> aloittaa. Järjestä kortit ja ole valmis, kun peli alkaa.</div>
+      }
+    } else if (state.phase === 3) {
+      if (state.myTurn) {
+        return <div>Nosta kortti pakasta tai avopakasta klikkaamalla</div>
+      } else {
+        return <div><span>{state.players[state.playerInTurn].name}</span> nostaa. Voit yrittää ostaa kortin klikkaamalla avopakkaa.</div>
+      }
+    } else if (state.phase === 4) {
+      if (state.myTurn) {
+        return <div>Pelaa vuoro ja laita lopuksi kortti avopakkaan</div>
+      } else {
+        return <div><span>{state.players[state.playerInTurn].name}</span> pelaa vuoroaan.</div>
+      }
+    }
+    return "";
+    // <div id="selectseries" style={{display: 'none'}}>Valitse <span>kolmoset ja suorat</span><div id="errormsg"></div></div>
+
+  }
+
   render() {
 
     return (
@@ -46,6 +78,7 @@ class CardTable extends Component {
             <div id="pile"></div>
           </div>
           <div id="instructions">
+            {this.createInstructions()}
             <div id="showcard_myturn">Sinä aloitat.<br/>Järjestä kortit ja odota, että kaikki ovat valmiita.<br/>Klikkaa sitten yksi kortti pakasta avopakkaan.</div>
             <div id="showcard_others"><span>XXX</span> aloittaa.<br/>Järjestä kortit ja kerro, että olet valmis aloittamaan.</div>
             <div id="pickcard" style={{display: 'none'}}>Klikkaa kortti pakasta tai avopakasta.</div>

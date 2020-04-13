@@ -53,6 +53,7 @@
 	-ms-border-radius:8px;
 	-o-border-radius:8px;
 	box-shadow:#111 1px 1px 2px;
+	user-select: none;
 }
 
 #otherplayers {
@@ -145,11 +146,12 @@
 
 #instructions {
 	color: white;
+	float: left;
 }
 
-#instructions>div {
+/* #instructions>div {
 	display: none;
-}
+} */
 
 #my-closed-hand-sections {
 	overflow: visible;
