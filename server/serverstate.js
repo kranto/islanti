@@ -49,7 +49,7 @@ class Connector  {
         state.can = {
           deal: state.phase === this.serverstate.DEAL && state.myTurn,
           show: state.phase === this.serverstate.SHOW_CARD && state.myTurn,
-          pick: state.phase === this.serverstate.PICK_CARD && state.myTurn,
+          pick: (state.phase === this.serverstate.PICK_CARD || state.phase === this.serverstate.PICK_CARD_BOUGHT) && state.myTurn,
           buy: state.phase === this.serverstate.PICK_CARD && (state.playerInTurn >= 1 || !state.myTurn && state.turnIndex === 1) && state.myhands.bought < 3,
           sell: state.phase === this.serverstate.PICK_CARD_BUYING && state.myTurn,
           open: state.phase === this.serverstate.TURN_ACTIVE && state.myTurn && state.myhands.open.length === 0,
@@ -151,6 +151,12 @@ class ServerState {
       case 'requestToBuy':
         this.requestToBuy(index);
         break;
+      case 'sell':
+        this.sell(index);
+        break;
+      case 'dontsell':
+        this.dontsell(index);
+        break;
       case 'discarded':
         this.discarded(index, args.card);
         break;
@@ -228,7 +234,7 @@ class ServerState {
 
   pickCard(player, fromDeck) {
     console.log('pickCard', player, fromDeck);
-    if (player !== this.state.playerInTurn || this.state.phase !== this.PICK_CARD) return false;
+    if (player !== this.state.playerInTurn || (this.state.phase !== this.PICK_CARD && this.state.phase !== this.PICK_CARD_BOUGHT)) return false;
     let card = fromDeck ? this.state.deck.shift() : this.state.pile.shift();
     this.state.players[player].closed[0].unshift(card);
     this.state.phase = this.TURN_ACTIVE;
@@ -242,6 +248,28 @@ class ServerState {
       (this.turnIndex > 1 && player === this.previousPlayer(this.state.playerInTurn))) return false;
     this.state.phase = this.PICK_CARD_BUYING;
     this.state.buying = player;
+    this.state.index++;
+    this.notifyConnectors();
+  }
+
+  sell(player) {
+    console.log('sell', player);
+    if (player !== this.state.playerInTurn || this.state.phase !== this.PICK_CARD_BUYING) return false;
+    this.state.players[this.state.buying].closed[0].unshift(this.state.pile.shift());
+    this.state.players[this.state.buying].closed[0].unshift(this.state.deck.shift());
+    this.state.players[this.state.buying].bought++;
+    this.state.buying = null;
+    this.state.phase = this.PICK_CARD_BOUGHT;
+    this.state.index++;
+    this.notifyConnectors();
+  }
+
+  dontsell(player) {
+    console.log('sell', player);
+    if (player !== this.state.playerInTurn || this.state.phase !== this.PICK_CARD_BUYING) return false;
+    this.state.players[player].closed[0].unshift(this.state.pile.shift());
+    this.state.buying = null;
+    this.state.phase = this.TURN_ACTIVE;
     this.state.index++;
     this.notifyConnectors();
   }

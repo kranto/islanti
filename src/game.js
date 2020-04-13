@@ -377,6 +377,8 @@ function init(_stateManager) {
 	discardPile.click(() => {
     if (serverState.can.buy) {
       sendAction('requestToBuy');
+    } else if (serverState.can.sell) {
+      sendAction('dontsell');
     } else if (serverState.can.pick) {
       sendAction('pickCard', {fromDeck: false});
 		}

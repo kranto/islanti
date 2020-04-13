@@ -47,7 +47,7 @@ class CardTable extends Component {
       } else {
         return <div><span>{state.players[state.playerInTurn].name}</span> aloittaa. Järjestä kortit ja ole valmis, kun peli alkaa.</div>
       }
-    } else if (state.phase === 3) {
+    } else if (state.phase === 3 || state.phase === 3.2) {
       if (state.myTurn) {
         return <div>Nosta kortti pakasta tai avopakasta klikkaamalla</div>
       } else {
@@ -57,7 +57,10 @@ class CardTable extends Component {
       if (state.buying < 0) {
         return <div>Haluat ostaa. {state.players[state.playerInTurn].name} miettii.</div>
       } else if (state.can.sell) {
-        return <div>{state.players[state.buying].name} haluaa ostaa. Myytkö?</div>
+        return <div>{state.players[state.buying].name} haluaa ostaa. 
+          <button onClick={() => this.props.stateManager.sendAction('sell')}>Myyn</button>
+          <button onClick={() => this.props.stateManager.sendAction('dontsell')}>En myy</button>
+          </div>
       } else {
         return <div>{state.players[state.buying].name} haluaa ostaa. {state.players[state.playerInTurn].name} miettii.</div>
       }
