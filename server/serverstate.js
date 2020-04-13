@@ -40,7 +40,15 @@ class Connector  {
       case 'fullState':
         console.log('connector.stateChange.fullState', this.index, change.state.index);
         let state = JSON.parse(JSON.stringify(change.state));
-        state.myhands = state.players.splice(this.index, 1)[0];
+        state.players = [...state.players.slice(this.index, state.players.length), ...state.players.slice(0,this.index)];
+        // for (let i = this.index; i > 0; i--) {
+        //   state.players.push(state.players.shift());
+        //   state.playerInTurn = (state.playerInTurn + state.players.length - 1) % state.players.length;
+        //  }
+        state.playerInTurn = (state.playerInTurn + state.players.length - this.index) % state.players.length;
+        state.myhands = state.players.splice(0, 1)[0];
+        state.playerInTurn--;
+        state.myTurn = state.playerInTurn < 0;
         state.players = state.players.map(p => ({ ...p, closed: p.closed ? p.closed.flat() : p.closed}));
         change = {...change, state: state};
         break;
@@ -52,9 +60,10 @@ class Connector  {
 
 class ServerState {
 
-  static SHOW_CARD = 0;
-  static PICK_CARD = 1; 
-  static TURN_ACTIVE = 2;
+  DEAL = 1;
+  SHOW_CARD = 2;
+  PICK_CARD = 3; 
+  TURN_ACTIVE = 4;
 
   constructor(io, gameId) {
     this.gameId = gameId;
@@ -68,6 +77,7 @@ class ServerState {
   }
 
   playerNames = ["HessuHopoliini", "Pelle Peloton", "Hupu", "Roope-Setä"];
+  playerDealing = this.playerNames.length - 1;
 
   init() {
     this.cards = this.createCards();
@@ -77,13 +87,15 @@ class ServerState {
 
     this.state = {
       index: 0,
-      playerInTurn: 0,
-      phase: this.SHOW_CARD,
+      playerInTurn: this.playerDealing,
+      phase: this.DEAL,
       dealt: false,
       deck: [...this.cards],
       pile: [],
-      players: [...Array(this.playerCount).keys()].map((i) => ({name: this.playerNames[i], closed: [[]], open: []}))
+      players: [...Array(this.playerCount).keys()].map((i) => ({name: this.playerNames[i], closed: [[]], open: [], inTurn: this.playerDealing === i}))
     };
+
+    console.log(this.state, this.DEAL, this.SHOW_CARD);
 
     this.io.on('connection', socket => {
       console.log('someone connected', new Date());
@@ -93,6 +105,7 @@ class ServerState {
         let connector = new Connector(this, id, socket);
         this.connectors.push(connector);
         if (callback) callback(true);
+        this.updateConnected();
         socket.on('disconnect', () => {
           console.log('disconnected', connector.index);
           this.connectors = this.connectors.filter(c => c !== connector);
@@ -100,6 +113,10 @@ class ServerState {
         });
       });
     });
+
+  }
+
+  updateConnected() {
 
   }
 
@@ -153,17 +170,21 @@ class ServerState {
     return this.state;
   }
 
-  deal() {
-    if (this.state.dealt) return false;
+  deal(player) {
+    console.log('deal', player);
+    if (player !== this.state.playerInTurn || this.state.phase !== this.DEAL || this.state.dealt) return false;
     this.state.dealt = true;
     console.log(this.state.players);
     [...Array(13).keys()].forEach(() =>
       this.state.players.forEach(p => p.closed[0].push(this.state.deck.shift())));
+    this.state.phase = this.SHOW_CARD;
     this.state.index++;
     this.notifyConnectors();
+    return true;
   }
 
   newOrder(player, order) {
+    if (this.phase < this.SHOW_CARD) return false;
     let playersCards = this.state.players[player].closed.flat();
     let cardIds = playersCards.map(card => card.i);
     let cardsById = playersCards.reduce((acc, card) => ({...acc, [card.i]: card}), {});
@@ -174,35 +195,49 @@ class ServerState {
 
     let newSections = order.map(section => section.map(id => cardsById[id]));
 
-    console.log(newSections);
     this.state.players[player].closed = newSections;
     this.state.index++;
     this.notifyConnectors();
+    return true;
   }
 
   showCard(player) {
     console.log('showCard', player);
+    if (player !== this.state.playerInTurn || this.state.phase !== this.SHOW_CARD) return false;
     this.state.pile.unshift(this.state.deck.shift());
+    this.state.phase = this.PICK_CARD;
+    this.state.index++;
     this.notifyConnectors();
   }
 
   pickCard(player, fromDeck) {
     console.log('pickCard', player, fromDeck);
+    if (player !== this.state.playerInTurn || this.state.phase !== this.PICK_CARD) return false;
     let card = fromDeck ? this.state.deck.shift() : this.state.pile.shift();
     this.state.players[player].closed[0].unshift(card);
+    this.state.phase = this.TURN_ACTIVE;
+    this.state.index++;
     this.notifyConnectors();
   }
 
   discarded(player, id) {
     console.log('discarded', player, id);
+    if (player !== this.state.playerInTurn || this.state.phase !== this.TURN_ACTIVE) return;
     let p = this.state.players[player];
     let matchingCards = p.closed.flat().filter(c => c.i === id);
     if (matchingCards.length !== 1) return; // not found
     let card = matchingCards[0];
     p.closed = p.closed.map(section => section.filter(c => c !== card));
     this.state.pile.unshift(card);
-    this.state.playerInTurn = ( this.state.playerInTurn + 1 ) % this.state.players.length; 
+    this.nextPlayerInTurn();
+    this.state.phase = this.PICK_CARD;
+    this.state.index++;
     this.notifyConnectors();
+  }
+
+  nextPlayerInTurn() {
+    this.state.playerInTurn = ( this.state.playerInTurn + 1 ) % this.state.players.length;
+    this.state.players.forEach((p, i) => p.inTurn = i === this.state.playerInTurn);
   }
 
 }

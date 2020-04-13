@@ -25,7 +25,7 @@ class CardTable extends Component {
       let p = state.players.length > index ? state.players[index] : {};
       return (
       <div id={"player" + index} key={"o" + index} 
-        className={"other-player " + (state.playerInTurn == index ? "in-turn" : "")}  
+        className={"other-player turn-indicator" + (p.inTurn ? " in-turn" : "")}  
         style={{display: (p.closed ? 'initial' : 'none')}}>
         <div className="player-name">{p.name}</div>
         <Hand classes="player-hand closed-hand"/>
@@ -56,7 +56,7 @@ class CardTable extends Component {
             <button id="confirmOpenButton" style={{display: 'none'}}>Valmis</button>
             <button id="cancelOpenButton" style={{display: 'none'}}>En avaakaan</button>
           </div>
-          <div id="my-closed-hand-sections">
+          <div id="my-closed-hand-sections" className={"turn-indicator " + (this.state.s.myhands && this.state.s.myhands.inTurn ? "in-turn" : "")}>
             <div id="section-template" className="section draggable-container" style={{display: 'none'}}></div>
             <div id="newsection" className="new-section"><div>+</div></div>
           </div>
