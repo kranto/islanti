@@ -11,10 +11,6 @@ var cards = (function() {
 	var zIndexCounter = 1;	
 	var containers = [];
 
-	function init() {
-		
-	}
-
 	function mouseEvent(ev) {
 		var card = $(this).data('card');
 		if (card && card.container) {
@@ -32,11 +28,11 @@ var cards = (function() {
 	Card.prototype = {
 		init: function (suit, rank, back, id, table) {
 			this.id = id;
-			this.el = $('<div/>')
-				.addClass('playingcard').data('card', this).appendTo($(table));
+			this.el = $('<div/>').addClass('playingcard').data('card', this).appendTo($(table));
 			this.el.html(
-				'<img src="" alt="card face up" draggable="false" class="faceup-img"/>' 
-				+'<img src="" alt="card face down" draggable="false" class="facedown-img"/>');
+				'<img src="" alt="card face up" class="faceup-img"/>' +
+				'<img src="" alt="card face down" class="facedown-img"/>'
+			);
 			this.reveal(suit, rank, back);
 
 			this.faceUp = false;
@@ -82,8 +78,7 @@ var cards = (function() {
 		}
 	};
 	
-	function Container() {
-	
+	function Container() {	
 	}
 	
 	Container.prototype = [];
@@ -94,11 +89,10 @@ var cards = (function() {
 	}
 
 	Container.prototype.extend({
-		addCard : function(card, doReorder) {
-			this.addCards([card], doReorder);
-		},
-		
-		addCards : function(cards, doReorder) {
+		addCard : function(card) {
+			this.addCards([card]);
+		},		
+		addCards : function(cards) {
 			for (var i = 0; i < cards.length;i++) {
 				var card = cards[i];
 				if (card.container && card.container !== this) {
@@ -108,9 +102,8 @@ var cards = (function() {
 					this.push(card);
 				}
 				card.container = this;
-				$(card.el).draggable(this.isDraggable ? "enable" : "disable");
+				card.el.draggable(this.isDraggable ? "enable" : "disable");
 			}
-			if (doReorder) this.reorder();
 			if (this.setElementWidth) this.setElementWidth();
 		},
 		removeCard : function(card) {
@@ -119,9 +112,6 @@ var cards = (function() {
 				this.splice(this.indexOf(card), 1);
 				card.container = null;
 				if (this.setElementWidth) this.setElementWidth();
-				return true;	
-			} else {
-				return false;
 			}
 		},
 
@@ -146,13 +136,9 @@ var cards = (function() {
 			this._click = {func:func,context:context};
 		},
 
-		getNewIndex: function (card) {
+		getNewIndex: function(card) {
 			let newX = card.rect().x;
 			return this.filter(c => c !== card && c.rect().x < newX).length;
-		},
-
-		reorder : function() {
-			this.sort(function(a, b) { return a.rect().x - b.rect().x; });
 		},
 
 		moveCardToTarget: function(card) {
@@ -169,7 +155,7 @@ var cards = (function() {
 
 		render : function(options) {
 			options = options || {};
-			var speed = options.speed || opt.animationSpeed;
+			var speed = options.speed;
 			this.calcPosition(options);
 			for (var i=0;i<this.length;i++) {
 				var card = this[i];
@@ -225,24 +211,6 @@ var cards = (function() {
 				this[i].targetTop = top;
 				this[i].targetLeft = left;
 			}
-		},
-		
-		deal : function(count, hands, speed, callback) {
-			var me = this;
-			var i = 0;
-			var totalCount = count*hands.length;
-			function dealOne() {
-				if (me.length === 0 || i === totalCount) {
-					if (callback) {
-						callback();
-					}
-					return;
-				}
-				hands[i%hands.length].addCard(me.topCard());
-				hands[i%hands.length].render({callback:dealOne, speed:speed});
-				i++;
-			}
-			dealOne();
 		}
 	});
 
@@ -304,7 +272,6 @@ var cards = (function() {
 		Container : Container,
 		Deck : Deck,
 		Hand : Hand,
-		init: init,
 		refresh: refresh,
 		reset: () => containers = []
 	};

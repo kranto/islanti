@@ -82,7 +82,7 @@ class CardTable extends Component {
   render() {
 
     return (
-      <div className="CardTable selecting">
+      <div className="CardTable">
         <div id="otherplayers">
             {this.createPlayers()}
         </div>

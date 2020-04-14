@@ -11,39 +11,11 @@ require('jquery-ui-touch-punch');
 
 var game = (function() {
 
-var round = {
-	roundNumber: 1,
-	roundName: "kolmoset ja suora",
-	expectedSets: 1,
-	expectedStraights: 1,	
-	isFreestyle: false
-};
-
-const TURN_ACTIVE = 4;
-
 var OPENING = "OPENING";
-
-var dealt = false;
-var myTurn = false;
-var opened = false;
-var state = "";
 
 var allCards = [];
 
-var serverState = {};
-
-// gameStates/events: 
-// OTHERS TURN START, OTHER PICKS FROM DECK, OTHER PICKS FROM DISCARD PILE, 
-// OTHERS_TURN_IDLE,
-// OTHER OPENS, OTHER COMPLETES, OTHER DISCARDS A CARD, OTHER_FINISH_TURN, OTHER WINS THE GAME,
-// BUYABLE_APPEARS [I CAN/CANNOT BUY], NO-ONE BOUGHT, SOMEONE ELSE WINS, I WIN, OTHER_WONT_SELL
-// MY_TURN_STARTS, NOONE BUYS, I DECIDE IF I SELL, I SELL, I DONT SELL, 
-// I OPEN, I COMPLETE, I PUT CARD AWAY, I WON THE GAME
-// I reorder, Other reorder
-// Out of cards
-
-//Create a new deck of cards
-
+var state = {};
 
 let deck;
 let otherHands = [];
@@ -54,7 +26,7 @@ function createNewSection() {
 	var el = $("#section-template").clone().removeAttr("id").addClass('hand-section').show();
 	el.insertBefore("#newsection");
 	var hand = new cards.Hand({
-		faceUp:true, 
+		faceUp: true,
 		element: el,
 		minWidth: 80,
 		isDraggable: true
@@ -74,29 +46,9 @@ function createNewSection() {
 		placement: 'top',
 		trigger: 'manual',
 		content: () => hand.validity.msg
-	  });
+	});
 	return hand;
 }
-
-function setState(_myTurn, _state) {
-	myTurn = _myTurn;
-	state = _state;
-
-	$("#openButton").css('display', dealt && myTurn && !opened && state === TURN_ACTIVE ? "block": "none");
-	$("#confirmOpenButton").css('display', dealt && myTurn && !opened && state === OPENING ? "block": "none");
-	$("#cancelOpenButton").css('display', dealt && myTurn && !opened && state === OPENING ? "block": "none");
-
-	$("#selectseries").css('display', dealt && myTurn && !opened && state === OPENING ? "block": "none");
-	$("#selectseries span").text(round.roundName);
-
-	$(".playingcard").draggable("disable");
-	if (state !== OPENING) {
-		myClosedHandSections.forEach(function(hand) {hand.forEach(function(c) {$(c.el).draggable("enable")})});
-	}
-
-	$(".CardTable").toggleClass('selecting', state === OPENING);
-}
-
 
 function sectionClicked() {
 	if ($(this).hasClass("selected")) {
@@ -118,7 +70,7 @@ function updateConfirmButton() {
 
 	var myAllCards = myClosedHandSections.reduce(function(acc, hand) {return acc + hand.length}, 0);
 
-	validity = validateSelected(selected, myAllCards);
+	// validity = validateSelected(selected, myAllCards);
 	$("#confirmOpenButton").prop("disabled", !validity.valid);
 	showValidityMessage();
 }
@@ -129,148 +81,6 @@ function showValidityMessage() {
 }
 
 // ===========
-
-function validateSelected(selected, cardCount) {
-	var sets = [];
-	var straights = [];
-	for (let i = 0; i < selected.length; i++) {
-		var hand = selected[i];
-
-		if (!hand.validity.valid) {
-			return {valid: false, msg: "Joku valituista sarjoista ei ole sallittu."};
-		}
-		if (hand.validity.type === 'straight') {
-			straights.push(hand.validity.data);
-		}
-		if (hand.validity.type === 'set') {
-			sets.push(hand.validity.data);
-		}
-	}
-	if (sets.length !== round.expectedSets && !round.isFreestyle) {
-		return {valid: false, msg: "Pitäisi olla " + round.expectedSets + " kolmoset, mutta onkin " + sets.length};
-	}
-	if (straights.length !== round.expectedStraights && !round.isFreestyle) {
-		return {valid: false, msg: "Pitäisi olla " + round.expectedStraights + " suoraa, mutta onkin " + straights.length};
-	}
-	var setsNumbers = [];
-	for (let i = 0; i < sets.length; i++) {
-		if (setsNumbers.indexOf(sets[i].number) >= 0) {
-			return {valid: false, msg: "Kaikki kolmossarjat täytyy olla eri numeroa"};
-		}
-	}
-	var straightsSuites = [];
-	for (let i = 0; i < straights.length; i++) {
-		if (straightsSuites.indexOf(straights[i].suit) >= 0) {
-			return {valid: false, msg: "Suorat täytyy olla eri maista"};
-		}
-	}
-
-	return {valid: true};
-}
-
-function validateHands() {
-	myClosedHandSections.forEach((hand) => {
-		hand.validity = validateHand(hand, round.expectedStraights > 0, round.expectedSets > 0);
-	});
-}
-
-function validateHand(hand, testForStraight, testForSets) {
-	var straight = testForStraight ? testStraight(hand) : false;
-	var set = testForSets ? testSet(hand) : false;
-
-	if (straight && straight.valid) return {type: 'straight', valid: true, msg: 'Suora', data: straight};
-	if (set && set.valid) return {type: 'set', valid: true, msg: 'Kolmoset', data: set};
-	return {valid: false, type: false, msg: (straight ? (straight.msg + ". "): "") + (set ? (set.msg + ".") : "")};
-}
-
-function testStraight(hand) {
-	if (hand.length < 4) {
-		return {valid: false, msg: "Suorassa täytyy olla vähintään neljä korttia"};
-	}
-	if (hand.length > 13) {
-		return {valid: false, msg: "Suorassa ei saa olla yli 13 korttia"};
-	}
-
-	var others = hand.filter(c => c.rank > 0);
-	var jokers = hand.filter(c => c.rank === 0);
-	var aces = hand.filter(c => c.rank === 1);
-
-	if (others.filter(c => c.suit !== others[0].suit).length > 0) {
-		return {valid: false, msg: "Suorassa saa olla vain yhtä maata"};
-	}
-	if (jokers.length >= others.length) {
-		return {valid: false, msg: "Suorassa vähintään puolet korteista pitää olla muita kuin jokereita"}
-	}
-
-	var highAce = false;
-	if (aces.length > 1) {
-		return {valid: false, msg: "Suorassa voi olla vain yksi ässä"};
-	} else if (aces.length === 1) {
-		if (others[0] === aces[0]) {
-			highAce = others[1].rank > 8;
-		} else if (others[others.length-1] === aces[0]) {
-			highAce = others[others.length-2].rank > 8;
-		} else {
-			return {valid: false, msg: "Ässän täytyy olla suoran päässä"};
-		}
-	}
-
-	var ranks = hand.map(c => highAce && c.rank === 1 ? 14 : c.rank);
-	var otherRanks = ranks.filter(r => r > 0);
-
-	var increasing = otherRanks[0] < otherRanks[1];
-	if (!increasing) {
-		hand.reverse();
-		others.reverse();
-		jokers.reverse();
-		ranks.reverse();
-		otherRanks.reverse();
-	}
-
-	var rankStart = otherRanks[0] - ranks.indexOf(otherRanks[0]);
-
-	if (rankStart < 1 || rankStart + ranks.length - 1 > 14) {
-		return {valid: false, msg: "Suora ei voi mennä kulman ympäri"};
-	}
-
-	for (var i = 0; i < ranks.length; i++) {
-		if (ranks[i] !== 0  && ranks[i] !== rankStart + i) {
-			return {valid: false, msg: "Suorassa täytyy olla kortit järjestyksessä"}
-		}
-	}
-
-	return {
-		type: 'straight',
-		valid: true,
-		suit: others[0].suit,
-		cards: hand,
-		highAce: highAce
-	};
-}
-
-function testSet(hand) {
-	if (hand.length < 3) {
-		return {valid: false, msg: "Kolmosissa täytyy olla vähintään kolme korttia"};
-	}
-	if (hand.length > 8) {
-		return {valid: false, msg: "Kolmosissa ei saa olla yli 8 korttia"};
-	}
-	var jokers = hand.filter(c => c.rank === 0);
-	var others = hand.filter(c => c.rank > 0);
-	if (jokers.length >= others.length) {
-		return {valid: false, msg: "Kolmosissa vähintään puolet korteista pitää olla muita kuin jokereita"}
-	}
-	if (others.filter(c => c.rank !== others[0].rank).length > 0) {
-		return {valid: false, msg: "Kolmosissa saa olla vain yhtä numeroa"};
-	}
-
-	return {
-		type: 'sets',
-		valid: true,
-		rank: others[0].rank,
-		cards: hand,
-	};
-}
 
 function findCard(servercard) {
 	let card = allCards.filter(c => c.id === servercard.i)[0];
@@ -289,9 +99,9 @@ function updateContainer(container, servercards, reverse) {
 	container.render();
 }
 
-function populateState(state) {
+function populateState(newState) {
 
-  serverState = state;
+  state = newState;
 
   updateContainer(deck, state.deck, true);
 	updateContainer(discardPile, state.pile, true);
@@ -347,8 +157,6 @@ var stateManager;
 function init(_stateManager) {
 
   stateManager = _stateManager;
-
-  cards.init();
   
 	$(window).resize(function(){
 		setTimeout( () =>cards.refresh(), 100);
@@ -365,7 +173,7 @@ function init(_stateManager) {
   }); 
 
   deck.click(() => {
-		if (serverState.can.pick) {
+		if (state.can.pick) {
       sendAction('pickCard', {fromDeck: true});
 		}
 	});
@@ -376,11 +184,11 @@ function init(_stateManager) {
 	});
 
 	discardPile.click(() => {
-    if (serverState.can.buy) {
+    if (state.can.buy) {
       sendAction('requestToBuy');
-    } else if (serverState.can.sell) {
+    } else if (state.can.sell) {
       sendAction('dontsell');
-    } else if (serverState.can.pick) {
+    } else if (state.can.pick) {
       sendAction('pickCard', {fromDeck: false});
 		}
 	});
@@ -411,32 +219,32 @@ function init(_stateManager) {
 		}
 	});
 	
-	$("#openButton").click(() => {
-		validateHands();
-		setState(true, OPENING);
-		updateConfirmButton();
-	});
+	// $("#openButton").click(() => {
+	// 	validateHands();
+	// 	setState(true, OPENING);
+	// 	updateConfirmButton();
+	// });
 	
-	$("#cancelOpenButton").click(function() {
-		$("section").toggleClass("selected", false);
-		$("section").popover('hide');
-		updateConfirmButton();
-		setState(true, TURN_ACTIVE);
-	});
+	// $("#cancelOpenButton").click(function() {
+	// 	$("section").toggleClass("selected", false);
+	// 	$("section").popover('hide');
+	// 	updateConfirmButton();
+	// 	setState(true, TURN_ACTIVE);
+	// });
 	
-	$("#confirmOpenButton").click(function() {
-		var selected = [];
-		$("section.selected").each(function() {
-			selected.push($(this).data('container'));
-		});
+	// $("#confirmOpenButton").click(function() {
+	// 	var selected = [];
+	// 	$("section.selected").each(function() {
+	// 		selected.push($(this).data('container'));
+	// 	});
 	
-		$("section").toggleClass("selected", false);
-		$("section").popover('hide');
+	// 	$("section").toggleClass("selected", false);
+	// 	$("section").popover('hide');
 	
-		alert("Avasit!");
+	// 	alert("Avasit!");
 	
-		setState(true, TURN_ACTIVE);
-	});
+	// 	setState(true, TURN_ACTIVE);
+	// });
 	
 	$("#selectseries").popover({
 		container: '.CardTable',
@@ -447,7 +255,7 @@ function init(_stateManager) {
 
   stateManager.subscribeTo('stateChange', stateChange);
 
-	setState(false, "");
+	// setState(false, "");
 }
 
 return {
