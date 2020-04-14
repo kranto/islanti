@@ -146,8 +146,11 @@ var cards = (function() {
 				if (this.pullUp && card.currTop === card.targetTop && card.currLeft > card.targetLeft) {
 					card.pullUp(10);
 				}
+				let distance = Math.max(Math.abs(card.currTop-card.targetTop), Math.abs(card.currLeft-card.targetLeft)); 
+				card.el.toggleClass("fast-move", (distance < opt.cardSize.height && !this.pullUp));
+
 				setTimeout(() => {
-					var props = {top:card.targetTop, left:card.targetLeft, queue:false, transition: ""};
+					var props = {top:card.targetTop, left:card.targetLeft, transition: ""};
 					$(card.el).css(props);
 				}, 0);
 			}

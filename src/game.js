@@ -37,7 +37,7 @@ function createNewSection() {
 		drop: function(event, ui) {
       var card = ui.draggable.data('card');
       let index = hand.getNewIndex(card);
-			newOrder(card, hand, index);
+      newOrder(card, hand, index);
 		}
 	});
 	el.click(sectionClicked);
