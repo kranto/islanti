@@ -142,9 +142,9 @@ var cards = (function() {
 		},
 
 		moveCardToTarget: function(card) {
-			if (card.currTop !== card.targetTop || Math.abs(card.currLeft - card.targetLeft) > 1) {
-				if (this.pullUp && card.currTop === card.targetTop && card.currLeft > card.targetLeft) {
-					card.pullUp(10);
+			if (card.currTop !== card.targetTop || Math.abs(card.currLeft - card.targetLeft) > 5) {
+				if (this.pullUp && card.currTop === card.targetTop) {
+					card.pullUp(15 *  Math.sign(card.currLeft - card.targetLeft));
 				}
 				let distance = Math.max(Math.abs(card.currTop-card.targetTop), Math.abs(card.currLeft-card.targetLeft)); 
 				card.el.toggleClass("fast-move", (distance < opt.cardSize.height && !this.pullUp));
