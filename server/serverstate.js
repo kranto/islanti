@@ -326,7 +326,7 @@ class ServerState {
   testSeries(player, args, callback) {
     let {sectionIndex} = args;
     console.log('testSeries', player, sectionIndex);
-    if (player !== this.state.playerInTurn || this.state.phase !== this.TURN_ACTIVE) return false;
+    if (player !== this.state.playerInTurn || this.state.phase !== this.TURN_ACTIVE || this.state.players[player].closed.length <= sectionIndex) return false;
 
     let section = this.state.players[player].closed[sectionIndex];
     callback(this.testSection(section, this.state.round.expectedStraights > 0, this.state.round.expectedSets > 0));    
