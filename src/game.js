@@ -25,7 +25,7 @@ let discardPile;
 function createNewSection() {
 	var el = $("#section-template").clone().removeAttr("id").addClass('hand-section').show();
 	el.insertBefore("#newsection");
-	var hand = new cards.Hand({
+	var section = new cards.Hand({
 		faceUp: true,
 		element: el,
 		minWidth: 80,
@@ -36,8 +36,8 @@ function createNewSection() {
 		greedy: true,
 		drop: function(event, ui) {
       var card = ui.draggable.data('card');
-      let index = hand.getNewIndex(card);
-      newOrder(card, hand, index);
+      let index = section.getNewIndex(card);
+      newOrder(card, section, index);
 		}
 	});
 	el.click(sectionClicked);
@@ -45,19 +45,25 @@ function createNewSection() {
 		container: '.CardTable',
 		placement: 'top',
 		trigger: 'manual',
-		content: () => "testiviesti" //hand.validity.msg
+		content: () => section.validity.msg
 	});
-	return hand;
+	return section;
 }
 
 function sectionClicked() {
-	if ($(this).hasClass("selected")) {
-		$(this).toggleClass("selected", false);
+  console.log('sectionClicked');
+  $(this).toggleClass("selected");
+	if (!$(this).hasClass("selected")) {
 		$(this).popover('hide');
 	} else {
-		$(this).toggleClass("selected", true);
-		// $(this).toggleClass("error", !$(this).data("container").validity.valid);
-		$(this).popover('show');
+    let section = $(this).data("container");
+    let sectionIndex = myClosedHandSections.indexOf(section);
+    stateManager.testSeries(sectionIndex, response => {
+      console.log('response', response);
+      section.validity = response;
+		  $(this).toggleClass("error", !section.validity.valid);
+      $(this).popover('show');
+    });
 	}
 	updateConfirmButton();
 }
@@ -123,7 +129,9 @@ function populateState() {
     updateContainer(hand, c);
   });
   
-  $("#pile").droppable({disabled: !state.can.discard});  
+  $("#pile").droppable({disabled: !state.can.discard});
+
+  $(".hand-section").popover('hide');
 }
 
 function sendAction(action, params) {

@@ -24,7 +24,7 @@ class CardTable extends Component {
 
   componentDidUpdate() {
     console.log('componentDidUpdate');
-    game.stateChange({action: 'fullState', state: this.state.s});    
+    game.stateChange({action: 'fullState', state: {...this.state.s, opening: this.state.opening}});    
   }
 
   createPlayers() {

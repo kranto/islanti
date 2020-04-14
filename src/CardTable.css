@@ -233,6 +233,7 @@
 
 .CardTable.selecting .playingcard {
 	pointer-events: none;
+	transform: scale(0.9);
 }
 
 .popover {
