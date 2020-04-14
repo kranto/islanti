@@ -15,7 +15,7 @@ class Hand extends Component {
 
   render() {
     return (
-      <div id={this.props.id} className={"Hand " + this.props.classes}>
+      <div id={this.props.id} className={"Hand " + this.props.classes} style={this.props.style}>
       </div>
     );
   }

@@ -22,9 +22,8 @@ let otherHands = [];
 let myClosedHandSections = [];
 let discardPile;
 
-function createNewSection() {
-	var el = $("#section-template").clone().removeAttr("id").addClass('hand-section').show();
-	el.insertBefore("#newsection");
+function createNewSection(index) {
+	var el = $("#section" + index);
 	var section = new cards.Hand({
 		faceUp: true,
 		element: el,
@@ -102,7 +101,7 @@ function updateContainer(container, servercards, reverse) {
 	let cards = servercards.map(servercard => findCard(servercard));
 	cards.forEach(card => {if (card.container) card.container.removeCard(card); });
   container.addCards(reverse ? cards.reverse() : cards);
-	container.render();
+	setTimeout(() => container.render(), 0);
 }
 
 function populateState() {
@@ -118,20 +117,17 @@ function populateState() {
     updateContainer(otherHands[i], p.closed);
   });
 
-  myClosedHandSections.forEach(hand => {hand.element.remove(); hand.element.popover('dispose'); });
-	myClosedHandSections = [];
-
-	state.myhands.closed.forEach((c, i) => {
-		while (myClosedHandSections.length - 1 < i) {
-      myClosedHandSections.push(createNewSection());
-		}
-		let hand = myClosedHandSections[i];
-    updateContainer(hand, c);
+	state.myhands.closed.forEach((section, i) => {
+    let hand = myClosedHandSections[i];
+    updateContainer(hand, section);
   });
-  
+
   $("#pile").droppable({disabled: !state.can.discard});
 
-  $(".hand-section").popover('hide');
+  if (!state.opening) {
+    $(".hand-section").popover('hide');
+    $(".hand-section").toggleClass("selected", false);
+  }
 }
 
 function sendAction(action, params) {
@@ -227,7 +223,28 @@ function init(_stateManager) {
 			card.container.render();
 		}
 	});
-	
+  
+  $(".hand-section").each(index => myClosedHandSections.push(createNewSection(index)));
+  //  droppable({
+	// 	accept: ".playingcard",
+	// 	greedy: true,
+	// 	drop: function(event, ui) {
+  //     var card = ui.draggable.data('card');
+  //     var section = $(this).data('container');
+  //     let index = section.getNewIndex(card);
+  //     newOrder(card, section, index);
+	// 	}
+	// });
+
+  // $(".hand-section").click(sectionClicked);
+
+  // $(".hand-section").popover({
+	// 	container: '.CardTable',
+	// 	placement: 'top',
+	// 	trigger: 'manual',
+	// 	content: () => $(this).data('container').validity.msg
+	// });
+
 	// $("#openButton").click(() => {
 	// 	validateHands();
 	// 	setState(true, OPENING);

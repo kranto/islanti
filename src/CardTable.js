@@ -9,7 +9,7 @@ class CardTable extends Component {
   constructor() {
     super();
     this.state = {
-      s: { can: {}, players: [] }
+      s: { can: {}, players: [], myhands: {closed: []} }
     };
   }
 
@@ -38,6 +38,15 @@ class CardTable extends Component {
         <Hand classes="player-hand closed-hand"/>
       </div>
     );});
+  }
+
+  createMySections() {
+    let sections = this.state.s.myhands.closed;
+    return (
+      <div>
+        {[...Array(20).keys()].map(i => <Hand id={"section" + i} classes="hand-section section" style={{display: i < sections.length ? 'block' : 'none'}}/>)}
+      </div>
+    );
   }
 
   startOpening() {
@@ -135,7 +144,8 @@ class CardTable extends Component {
             <button id="cancelOpenButton" style={{display: 'none'}}>En avaakaan</button>
           </div>
           <div id="my-closed-hand-sections" className={"turn-indicator " + (this.state.s.myhands && this.state.s.myhands.inTurn ? "in-turn" : "")}>
-            <div id="section-template" className="section draggable-container" style={{display: 'none'}}></div>
+            <div id="section-template" className="section" style={{display: 'none'}}></div>
+            {this.createMySections()}
             <div id="newsection" className="new-section"><div>+</div></div>
           </div>
         </div>

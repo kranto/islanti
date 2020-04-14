@@ -238,4 +238,5 @@
 
 .popover {
 	z-index: 1000000;
+	pointer-events: none;
 }
