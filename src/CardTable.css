@@ -153,10 +153,6 @@
 	float: left;
 }
 
-/* #instructions>div {
-	display: none;
-} */
-
 #my-closed-hand-sections {
 	overflow: visible;
 	float: left;
@@ -192,7 +188,7 @@
 }
 
 .CardTable .ui-droppable-hover {
-	border-style: solid;
+	border-style: solid !important; 
 	border-color: gold !important;
 }
 
@@ -213,24 +209,24 @@
     transform: translateX(-50%) translateY(-50%);
 }
 
-.CardTable.selecting .my-closed-hand-section {
+.CardTable.selecting .hand-section {
 	pointer-events: all;
 }
 
-.CardTable.selecting .my-closed-hand-section:not(.selected) {
+.CardTable.selecting .hand-section:not(.selected) {
 	border-color: gray;
 }
 
-.CardTable.selecting .my-closed-hand-section:hover {
+.CardTable.selecting .hand-section:hover {
 	border-color: orange;
 }
 
-.CardTable.selecting .my-closed-hand-section.selected {
+.CardTable.selecting .hand-section.selected {
 	background-color: orange;
 	border-color: orange;
 }
 
-.CardTable.selecting .my-closed-hand-section.selected.error {
+.CardTable.selecting .hand-section.selected.error {
 	background-color: darkred;
 	border-color: darkred;
 }

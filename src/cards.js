@@ -9,7 +9,6 @@ var cards = (function() {
 	};
 
 	var zIndexCounter = 1;	
-	var containers = [];
 
 	function mouseEvent(ev) {
 		var card = $(this).data('card');
@@ -128,8 +127,6 @@ var cards = (function() {
 			if (this.element) {
 				this.element.data('container', this);
 			}
-
-			containers.push(this);
 		},
 
 		click : function(func, context) {
@@ -265,18 +262,12 @@ var cards = (function() {
 		};
 	}
 
-	var refresh = function() {
-		containers.forEach(function(c) { c.render(); });
-	}
-
 	return {
 		options : opt,
 		Card : Card,
 		Container : Container,
 		Deck : Deck,
 		Hand : Hand,
-		refresh: refresh,
-		reset: () => containers = []
 	};
 	 
 })();

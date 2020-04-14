@@ -3,7 +3,6 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import React, { Component } from "react";
 import CardTable from './CardTable.js';
 import StateManager from './StateManager.js';
-import game from './game';
 
 class App extends Component {
 
@@ -21,8 +20,6 @@ class App extends Component {
     let id = hash && hash.length > 2 ? hash[2] : "0";
 
     this.stateManager.initSocket("dev", {id: id, secret: "nothing"}, (x) => console.log('App.callback', x) );
-
-    game.init(this.stateManager);
   }
 
   render() {

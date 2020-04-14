@@ -45,7 +45,7 @@ function createNewSection() {
 		container: '.CardTable',
 		placement: 'top',
 		trigger: 'manual',
-		content: () => hand.validity.msg
+		content: () => "testiviesti" //hand.validity.msg
 	});
 	return hand;
 }
@@ -56,7 +56,7 @@ function sectionClicked() {
 		$(this).popover('hide');
 	} else {
 		$(this).toggleClass("selected", true);
-		$(this).toggleClass("error", !$(this).data("container").validity.valid);
+		// $(this).toggleClass("error", !$(this).data("container").validity.valid);
 		$(this).popover('show');
 	}
 	updateConfirmButton();
@@ -71,11 +71,11 @@ function updateConfirmButton() {
 	var myAllCards = myClosedHandSections.reduce(function(acc, hand) {return acc + hand.length}, 0);
 
 	// validity = validateSelected(selected, myAllCards);
-	$("#confirmOpenButton").prop("disabled", !validity.valid);
+	// $("#confirmOpenButton").prop("disabled", !validity.valid);
 	showValidityMessage();
 }
 
-var validity; 
+var validity = {valid: true, msg: "Kaikki kunnossa"}; 
 function showValidityMessage() {
 	$("#errormsg").text(validity.valid ? "" : validity.msg);
 }
@@ -99,14 +99,18 @@ function updateContainer(container, servercards, reverse) {
 	container.render();
 }
 
-function populateState(newState) {
-
-  state = newState;
+function populateState() {
 
   updateContainer(deck, state.deck, true);
 	updateContainer(discardPile, state.pile, true);
 
-  state.players.forEach((p, i) => updateContainer(otherHands[i], p.closed));
+  state.players.forEach((p, i) => {
+    while (otherHands.length - 1 < i) {
+      var hand = new cards.Hand({faceUp:false, pullUp: true, element: $("#player" + i + " .closed-hand")});
+      otherHands.push(hand);
+    }
+    updateContainer(otherHands[i], p.closed);
+  });
 
   myClosedHandSections.forEach(hand => {hand.element.remove(); hand.element.popover('dispose'); });
 	myClosedHandSections = [];
@@ -145,7 +149,8 @@ function stateChange(params) {
 	console.log(params);
 	switch (params.action) {
 		case 'init': case 'fullState':
-			populateState(params.state);
+      state = params.state;
+			populateState();
 			break;
 		default:
 			break;
@@ -159,14 +164,10 @@ function init(_stateManager) {
   stateManager = _stateManager;
   
 	$(window).resize(function(){
-		setTimeout( () =>cards.refresh(), 100);
+		// setTimeout( () =>cards.refresh(), 100);
+		setTimeout(populateState, 100);
 	});
 
-	for (var i = 0; i <= 6; i++) {
-		var hand = new cards.Hand({faceUp:false, pullUp: true, element: $("#player" + i + " .closed-hand")});
-		otherHands.push(hand);
-	}
-	
 	deck = new cards.Deck({
     faceUp: false,
     element: $("#deck")
@@ -253,13 +254,14 @@ function init(_stateManager) {
 		content: () => validity.msg
 	});		
 
-  stateManager.subscribeTo('stateChange', stateChange);
+  // stateManager.subscribeTo('stateChange', stateChange);
 
 	// setState(false, "");
 }
 
 return {
-	init: init
+  init: init,
+  stateChange: stateChange
 };
 
 })();
