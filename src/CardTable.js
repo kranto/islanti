@@ -9,7 +9,10 @@ class CardTable extends Component {
   constructor() {
     super();
     this.state = {
-      s: { can: {}, players: [], myhands: {closed: []} }
+      s: { can: {}, players: [], myhands: {closed: []} },
+      selected: [],
+      selectionOk: false,
+      opening: false
     };
   }
 
@@ -50,19 +53,60 @@ class CardTable extends Component {
           visible={i < sections.length}
           error={this.state.opening && i < sections.length && !this.state.s.myhands.validity[i].valid}
           selected = {this.state.selected && this.state.selected.length > i ? this.state.selected[i] : false}
-          onClick={() => {let sel = [...this.state.selected]; sel[i] = !sel[i]; this.setState({selected: sel});
-        }}>
+          onClick={() => this.onSectionClicked(i)}>
         </Hand>)}
       </div>
     );
   }
 
+  validateSelection = (sel, callback) => {
+    let state = this.state.s; 
+    let selection = sel.reduce((acc, selected, i) => (
+      !selected ? acc :
+      {...acc, 
+        sets: acc.sets + (state.myhands.validity[i].type === 'set' ? 1 : 0),
+        straights: acc.straights + (state.myhands.validity[i].type === 'straight' ? 1 : 0),
+        cards: acc.cards + state.myhands.closed[i].length
+      }), {sets: 0, straights: 0, cards: 0});
+    console.log(selection);
+    let selectionOk = 
+      (!state.round.isFreestyle 
+        && selection.sets === state.round.expectedSets
+        && selection.straights === state.round.expectedStraights) ||
+      (state.round.isFreestyle
+        && state.myhands.closed.flat().length - selection.cards <= 1);
+
+    if (selectionOk) {
+      this.props.stateManager.validateSelection(sel.map((x, i) => x ? i : -1).filter(i => i >= 0), result => {
+        console.log(result);
+        callback (result.valid, result.msg);
+      });
+    } else {
+      callback(false);
+    }
+  }
+
+  onSectionClicked = (index) => {
+    let state = this.state.s; 
+    if (!state.myhands.validity[index].valid) return;
+    let sel = [...this.state.selected];
+    sel[index] = !sel[index];
+    console.log(index, state.myhands.validity, this.state.selected);
+
+    this.validateSelection(sel, (ok, msg) => this.setState({selected: sel, selectionOk: ok, msg: msg}));
+  }
+
   startOpening() {
-    this.setState({opening: true, selected: this.state.s.myhands.closed.map(() => false)});
+    this.setState({opening: true, selected: this.state.s.myhands.closed.map(() => false), selectionOk: false});
   }
 
   cancelOpening() {
     this.setState({opening: false});
+  }
+
+  confirmOpening() {
+    this.props.stateManager.sendAction('open', {selectedIndices: this.state.selected.map((x, i) => x ? i : -1).filter(i => i >= 0)});
+    this.setState({opening: false, selectionOk: false});
   }
 
   createInstructions() {
@@ -123,7 +167,10 @@ class CardTable extends Component {
     } else if (state.can.open && !this.state.opening) {
       return <button onClick={() => this.startOpening()}>Avaan</button>
     } else if (this.state.opening) {
-      return <button onClick={() => this.cancelOpening()}>En avaakaan</button>
+      return (<div>
+        <button onClick={() => this.confirmOpening()} disabled={this.state.selectionOk ? "" : "true"}>Avaa valitut</button>
+        <button onClick={() => this.cancelOpening()}>En avaakaan</button>
+      </div>);
     }
     return "";
   }

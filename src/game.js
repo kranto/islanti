@@ -60,7 +60,8 @@ function findCard(servercard) {
 
 function updateContainer(container, servercards, reverse) {
 	let cards = servercards.map(servercard => findCard(servercard));
-	cards.forEach(card => {if (card.container) card.container.removeCard(card); });
+  cards.forEach(card => {if (card.container) card.container.removeCard(card); });
+  container.forEach(card => container.removeCard(card));
   container.addCards(reverse ? cards.reverse() : cards);
 	setTimeout(() => container.render(), 0);
 }

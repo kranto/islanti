@@ -68,9 +68,9 @@ class StateManager {
     }
   }
 
-  testSeries(index, callback) {
-    console.log('testSeries', index);
-    this.socket.emit('testSeries', {sectionIndex: index}, callback);
+  validateSelection(indices, callback) {
+    console.log('validateSelection', indices);
+    this.socket.emit('validateSelection', {selectedIndices: indices}, callback);
   }
   
   sendAction(action, params) {

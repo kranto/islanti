@@ -213,22 +213,22 @@
 	pointer-events: all;
 }
 
-.CardTable.selecting .hand-section:not(.selected) {
+.CardTable.selecting .hand-section:not(.selected):not(.error) {
 	border-color: gray;
 }
 
-.CardTable.selecting .hand-section:hover {
+.CardTable.selecting .hand-section:hover:not(.error) {
 	border-color: orange;
 }
+
+/* .CardTable.selecting .hand-section.error:hover {
+	border-color: darkred;
+	border-style: dashed;
+} */
 
 .CardTable.selecting .hand-section.selected {
 	background-color: orange;
 	border-color: orange;
-}
-
-.CardTable.selecting .hand-section.selected.error {
-	background-color: darkred;
-	border-color: darkred;
 }
 
 .CardTable.selecting .playingcard {

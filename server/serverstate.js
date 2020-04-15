@@ -23,9 +23,14 @@ class Connector  {
       this.serverstate.onAction(this.index, args);
     });
 
-    this.socket.on('testSeries', (args, callback) => {
-      console.log('connector.testSeries', this.index, args, callback);
-      this.serverstate.testSeries(this.index, args, callback);
+    // this.socket.on('testSeries', (args, callback) => {
+    //   console.log('connector.testSeries', this.index, args, callback);
+    //   this.serverstate.testSeries(this.index, args, callback);
+    // });
+
+    this.socket.on('validateSelection', (args, callback) => {
+      console.log('connector.validateSelection', this.index, args, callback);
+      this.serverstate.validateSelection(this.index, args, callback);
     });
 
     this.socket.on('state', () => this.stateChange({action: 'fullState', state: this.serverstate.getFullState()}));
@@ -332,40 +337,34 @@ class ServerState {
 
 // ---------------------
 
-  testSeries(player, args, callback) {
-    let {sectionIndex} = args;
-    console.log('testSeries', player, sectionIndex);
-    if (player !== this.state.playerInTurn || this.state.phase !== this.TURN_ACTIVE || this.state.players[player].closed.length <= sectionIndex) return false;
-
-    let section = this.state.players[player].closed[sectionIndex];
-    callback(this.testSection(section, this.state.round.expectedStraights > 0, this.state.round.expectedSets > 0));    
-  }
-
+  validateSelection = (player, args, callback) => {
+    let result = this.validateSelected(player, args.selectedIndices);
+    if (callback) callback(result);
+    return result;
+  } 
 
   validateSelected = (player, selectedIndices) => {
     var sets = [];
     var straights = [];
     let round = this.state.round;
 
-    let selected = selectedIndices.map(i => {
-      return {index: i, validity: this.testSection(this.state.players[player].closed[i])}
-    });
+    let selected = selectedIndices.map(i => this.state.players[player].validity[i]);
 
     console.log(selected);
 
     for (let i = 0; i < selected.length; i++) {
-      var hand = selected[i];
-  
-      if (!hand.validity.valid) {
+      let validity = selected[i];
+      if (!validity.valid) {
         return {valid: false, msg: "Joku valituista sarjoista ei ole sallittu."};
       }
-      if (hand.validity.type === 'straight') {
-        straights.push(hand.validity.data);
+      if (validity.type === 'straight') {
+        straights.push(validity.data);
       }
-      if (hand.validity.type === 'set') {
-        sets.push(hand.validity.data);
+      if (validity.type === 'set') {
+        sets.push(validity.data);
       }
     }
+
     if (sets.length !== round.expectedSets && !round.isFreestyle) {
       return {valid: false, msg: "Pitäisi olla " + round.expectedSets + " kolmoset, mutta onkin " + sets.length};
     }
@@ -387,13 +386,7 @@ class ServerState {
   
     return {valid: true};
   }
-  
-  canOpen = () => {
-    myClosedHandSections.forEach((hand) => {
-      hand.validity = this.testSection(hand, round.expectedStraights > 0, round.expectedSets > 0);
-    });
-  }
-  
+    
   testSection = (section, testForStraight, testForSets) => {
     console.log('testSection', section, testForStraight, testForSets);
     var straight = testForStraight ? this.testStraight(section) : false;
@@ -423,6 +416,7 @@ class ServerState {
       return {valid: false, msg: "Suorassa vähintään puolet korteista pitää olla muita kuin jokereita"}
     }
   
+    // FIXME this does not work with jokers as aces
     var highAce = false;
     if (aces.length > 1) {
       return {valid: false, msg: "Suorassa voi olla vain yksi ässä"};
@@ -441,11 +435,11 @@ class ServerState {
   
     var increasing = otherRanks[0] < otherRanks[1];
     if (!increasing) {
-      section.reverse();
-      others.reverse();
-      jokers.reverse();
-      ranks.reverse();
-      otherRanks.reverse();
+      section = [...section].reverse();
+      others = [...others].reverse();
+      jokers = [...jokers].reverse();
+      ranks = [...ranks].reverse();
+      otherRanks = [...otherRanks].reverse();
     }
   
     var rankStart = otherRanks[0] - ranks.indexOf(otherRanks[0]);
