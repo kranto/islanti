@@ -50,7 +50,7 @@ class Connector  {
         state.buying = this.rollIndex(state.buying, state);
         state.myhands = state.players.splice(0, 1)[0];
         state.myTurn = state.playerInTurn < 0;
-        state.players = state.players.map(p => ({ ...p, closed: p.closed ? p.closed.flat() : p.closed}));
+        state.players = state.players.map(p => ({...p, validity: undefined, closed: p.closed ? p.closed.flat() : p.closed}));
         state.can = {
           deal: state.phase === this.serverstate.DEAL && state.myTurn,
           show: state.phase === this.serverstate.SHOW_CARD && state.myTurn,
@@ -117,7 +117,14 @@ class ServerState {
       buying: null,
       deck: [...this.cards],
       pile: [],
-      players: [...Array(this.playerCount).keys()].map((i) => ({name: this.playerNames[i], closed: [[]], open: [], inTurn: this.playerDealing === i, bought: 0}))
+      players: [...Array(this.playerCount).keys()].map((i) => ({
+        name: this.playerNames[i], 
+        closed: [[]],
+        validity: [{}],
+        open: [], 
+        inTurn: this.playerDealing === i, 
+        bought: 0
+      }))
     };
 
     console.log(this.state, this.DEAL, this.SHOW_CARD);
@@ -230,6 +237,8 @@ class ServerState {
     let newSections = order.map(section => section.map(id => cardsById[id]));
 
     this.state.players[player].closed = newSections;
+    this.state.players[player].validity = newSections.map(section => 
+      this.testSection(section, this.state.round.expectedStraights > 0, this.state.round.expectedSets > 0));
     this.state.index++;
     this.notifyConnectors();
     return true;
@@ -343,7 +352,7 @@ class ServerState {
     });
 
     console.log(selected);
-    
+
     for (let i = 0; i < selected.length; i++) {
       var hand = selected[i];
   

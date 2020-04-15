@@ -70,7 +70,7 @@ class StateManager {
 
   testSeries(index, callback) {
     console.log('testSeries', index);
-    this.socket.emit('testSeries', {sectionIndex: index, test: 'a'}, callback);
+    this.socket.emit('testSeries', {sectionIndex: index}, callback);
   }
   
   sendAction(action, params) {

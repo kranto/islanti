@@ -35,7 +35,7 @@ class CardTable extends Component {
         className={"other-player turn-indicator" + (p.inTurn ? " in-turn" : "")}  
         style={{display: (p.closed ? 'initial' : 'none')}}>
         <div className="player-name">{p.name}</div>
-        <Hand classes="player-hand closed-hand"/>
+        <Hand classes="player-hand closed-hand" visible={true}/>
       </div>
     );});
   }
@@ -47,9 +47,10 @@ class CardTable extends Component {
         {[...Array(20).keys()].map(i => 
         <Hand key={i} id={"section" + i} 
           classes="hand-section section" 
-          style={{display: i < sections.length ? 'block' : 'none'}}
+          visible={i < sections.length}
+          error={this.state.opening && i < sections.length && !this.state.s.myhands.validity[i].valid}
           selected = {this.state.selected && this.state.selected.length > i ? this.state.selected[i] : false}
-          onClick={() => {console.log('hand ' + i + ' clicked'); let sel = [...this.state.selected]; sel[i] = !sel[i]; this.setState({selected: sel});
+          onClick={() => {let sel = [...this.state.selected]; sel[i] = !sel[i]; this.setState({selected: sel});
         }}>
         </Hand>)}
       </div>
@@ -97,14 +98,13 @@ class CardTable extends Component {
         if (state.can.open && !this.state.opening) {
           return <div>Pelaa vuoro ja laita lopuksi kortti avopakkaan</div>
         } else if (this.state.opening) {
-          return <div>Valitse sarjat</div>
+          return <div>Valitse {this.state.s.round.roundName}</div>
         }
       } else {
         return <div><span>{state.players[state.playerInTurn].name}</span> pelaa vuoroaan.</div>
       }
     }
     return "";
-    // <div id="selectseries" style={{display: 'none'}}>Valitse <span>kolmoset ja suorat</span><div id="errormsg"></div></div>
 
   }
 
