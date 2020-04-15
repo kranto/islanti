@@ -146,7 +146,6 @@ function newOrder(movedCard, hand, index) {
   newOrder[handIndex].splice(index,0,movedCard.id);
   newOrder = newOrder.filter(section => section.length > 0);
   sendAction('newOrder', {order: newOrder});
-  stateManager.testSeries(handIndex, function(response) {console.log(response); });
 }
 
 function stateChange(params) {

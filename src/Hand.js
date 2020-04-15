@@ -13,9 +13,15 @@ class Hand extends Component {
     
   }
 
+  onClick = () => {
+    if (this.props.onClick) this.props.onClick(); // call parent
+  }
+
+  getClasses = () => "Hand " + this.props.classes  + " " + (this.props.selected1 ? "selected1" : "")
+
   render() {
     return (
-      <div id={this.props.id} className={"Hand " + this.props.classes} style={this.props.style}>
+      <div id={this.props.id} className={this.getClasses()} style={this.props.style} onClick={this.onClick}>
       </div>
     );
   }

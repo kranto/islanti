@@ -44,13 +44,20 @@ class CardTable extends Component {
     let sections = this.state.s.myhands.closed;
     return (
       <div>
-        {[...Array(20).keys()].map(i => <Hand id={"section" + i} classes="hand-section section" style={{display: i < sections.length ? 'block' : 'none'}}/>)}
+        {[...Array(20).keys()].map(i => 
+        <Hand key={i} id={"section" + i} 
+          classes="hand-section section" 
+          style={{display: i < sections.length ? 'block' : 'none'}}
+          selected = {this.state.selected && this.state.selected.length > i ? this.state.selected[i] : false}
+          onClick={() => {console.log('hand ' + i + ' clicked'); let sel = [...this.state.selected]; sel[i] = !sel[i]; this.setState({selected: sel});
+        }}>
+        </Hand>)}
       </div>
     );
   }
 
   startOpening() {
-    this.setState({opening: true});
+    this.setState({opening: true, selected: this.state.s.myhands.closed.map(() => false)});
   }
 
   cancelOpening() {
@@ -135,13 +142,9 @@ class CardTable extends Component {
           </div>
           <div id="instructions">
             {this.createInstructions()}
-            <div id="selectseries" style={{display: 'none'}}>Valitse <span>kolmoset ja suorat</span><div id="errormsg"></div></div>
           </div>
           <div id="controls">
             {this.createControls()}
-            <button id="openButton" style={{display: 'none'}}>Avaan!</button>
-            <button id="confirmOpenButton" style={{display: 'none'}}>Valmis</button>
-            <button id="cancelOpenButton" style={{display: 'none'}}>En avaakaan</button>
           </div>
           <div id="my-closed-hand-sections" className={"turn-indicator " + (this.state.s.myhands && this.state.s.myhands.inTurn ? "in-turn" : "")}>
             <div id="section-template" className="section" style={{display: 'none'}}></div>

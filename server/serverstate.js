@@ -333,9 +333,17 @@ class ServerState {
   }
 
 
-  validateSelected = (selected, cardCount) => {
+  validateSelected = (player, selectedIndices) => {
     var sets = [];
     var straights = [];
+    let round = this.state.round;
+
+    let selected = selectedIndices.map(i => {
+      return {index: i, validity: this.testSection(this.state.players[player].closed[i])}
+    });
+
+    console.log(selected);
+    
     for (let i = 0; i < selected.length; i++) {
       var hand = selected[i];
   
