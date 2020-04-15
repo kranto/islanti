@@ -118,7 +118,7 @@ var cards = (function() {
 			options = options || {};
 			this.maxWidth = options.maxWidth || 1000000;
 			this.minWidth = options.minWidth;
-			this.spacing = options.spacing;
+			this.spacing = options.spacing || opt.cardSize.spacing;
 			this.faceUp = options.faceUp;
 			this.element = options.element;
 			this.isDraggable = options.isDraggable;
@@ -222,7 +222,7 @@ var cards = (function() {
 	Hand.prototype.extend({
 		setElementWidth: function() {
 			if (!this.minWidth) return;
-			var pad = opt.cardSize.spacing;
+			var pad = this.spacing;
 			var desiredWidth = opt.cardSize.width + Math.max(this.length - 1, 0) * pad;
 			var width = Math.max(this.minWidth, desiredWidth);
 			this.element.width(width);

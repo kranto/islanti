@@ -39,6 +39,7 @@ class CardTable extends Component {
         style={{display: (p.closed ? 'initial' : 'none')}}>
         <div className="player-name">{p.name}</div>
         <Hand classes="player-hand closed-hand" visible={true}/>
+        {p.open.map((h, i) => <Hand id={"p" + index + "o" + i} classes="open-hand" visible={true}></Hand>)}
       </div>
     );});
   }

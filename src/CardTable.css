@@ -39,7 +39,7 @@
 }
 
 .playingcard.ui-draggable-dragging {
-	transform: scale(1.2) rotateX(10);
+	transform: scale(1.2) ;
 	opacity: 0.6;
 	transition: none;
 }
@@ -70,6 +70,14 @@
 	border-radius: 10px;
 	padding: 3px 0px;
 	height: 110px;
+}
+
+.other-player .open-hand {
+	border: 1px dotted lightgray;
+	min-width: 100px;
+	height: 110px;
+	margin: 0px 10px;
+	float:left;
 }
 
 .turn-indicator {
