@@ -23,11 +23,6 @@ class Connector  {
       this.serverstate.onAction(this.index, args);
     });
 
-    // this.socket.on('testSeries', (args, callback) => {
-    //   console.log('connector.testSeries', this.index, args, callback);
-    //   this.serverstate.testSeries(this.index, args, callback);
-    // });
-
     this.socket.on('validateSelection', (args, callback) => {
       console.log('connector.validateSelection', this.index, args, callback);
       this.serverstate.validateSelection(this.index, args, callback);
@@ -127,6 +122,7 @@ class ServerState {
         closed: [[]],
         validity: [{}],
         open: [], 
+        opened: false,
         inTurn: this.playerDealing === i, 
         bought: 0
       }))
@@ -183,6 +179,9 @@ class ServerState {
         break;
       case 'discarded':
         this.discarded(index, args.card);
+        break;
+      case 'open':
+        this.open(index, args.selectedIndices);
         break;
       }
   }
@@ -313,6 +312,19 @@ class ServerState {
     this.state.pile.unshift(card);
     this.nextPlayerInTurn();
     this.state.phase = this.PICK_CARD;
+    this.state.index++;
+    this.notifyConnectors();
+  }
+
+  open(player, selectedIndices) {
+    console.log('open', player, selectedIndices);
+    if (player !== this.state.playerInTurn || this.state.phase !== this.TURN_ACTIVE) return false;
+    if (!this.validateSelected(player, selectedIndices).valid) return false;
+
+    let p = this.state.players[player];
+    selectedIndices.sort().reverse();
+    selectedIndices.forEach(ind => p.open.unshift(p.closed.splice(ind, 1)));
+    p.opened = true;
     this.state.index++;
     this.notifyConnectors();
   }
