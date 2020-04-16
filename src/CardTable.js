@@ -150,6 +150,12 @@ class CardTable extends Component {
       } else {
         return <div><span>{state.players[state.playerInTurn].name}</span> pelaa vuoroaan.</div>
       }
+    } else if (state.phase === 5) {
+      if (state.winner < 0) {
+        return <div>Sinä voitit!!</div>
+      } else {
+        return <div><span>{state.players[state.winner].name}</span> voitti</div>
+      }
     }
     return "";
 
@@ -200,7 +206,7 @@ class CardTable extends Component {
           <div id="my-closed-hand-sections" className={"turn-indicator " + (this.state.s.myhands && this.state.s.myhands.inTurn ? "in-turn" : "")}>
             <div id="section-template" className="section" style={{display: 'none'}}></div>
             {this.createMySections()}
-            <div id="newsection" className="new-section"><div>+</div></div>
+            <div id="newsection" className="new-section" style={{visibility: (this.state.s.phase >= 2 && this.state.s.phase <= 4) ? "visible" : "hidden"}}><div>+</div></div>
           </div>
         </div>
       </div>

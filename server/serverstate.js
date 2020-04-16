@@ -50,6 +50,7 @@ class Connector  {
         state.players = [...state.players.slice(this.index, state.players.length), ...state.players.slice(0,this.index)];
         state.playerInTurn = this.rollIndex(state.playerInTurn, state);
         state.buying = this.rollIndex(state.buying, state);
+        state.winner = this.rollIndex(state.winner, state);
         state.myhands = state.players.splice(0, 1)[0];
         state.myTurn = state.playerInTurn < 0;
         state.players = state.players.map(p => ({...p, validity: undefined, closed: p.closed ? anonymise(p.closed.flat()) : p.closed}));
@@ -69,7 +70,7 @@ class Connector  {
   }
 
   rollIndex(player, state) {
-    return player === null ? null : (player + state.players.length - this.index) % state.players.length - 1;
+    return player === null ? null : (((player + state.players.length - this.index) % state.players.length) - 1);
   }
 
 }
@@ -82,6 +83,7 @@ class ServerState {
   PICK_CARD_BUYING = 3.1;
   PICK_CARD_BOUGHT = 3.2;
   TURN_ACTIVE = 4;
+  FINISHED = 5;
 
   constructor(io, gameId) {
     this.gameId = gameId;
@@ -225,7 +227,7 @@ class ServerState {
     if (player !== this.state.playerInTurn || this.state.phase !== this.DEAL || this.state.dealt) return false;
     this.state.dealt = true;
     console.log(this.state.players);
-    [...Array(13).keys()].forEach(() => this.state.players.forEach(p => p.closed[0].push(this.state.deck.shift())));
+    [...Array(0).keys()].forEach(() => this.state.players.forEach(p => p.closed[0].push(this.state.deck.shift())));
     // this.state.players.forEach(p => p.open.push([]));
     // this.state.players.forEach(p => p.open.push([]));
     // this.state.players.forEach(p => p.open.push([]));
@@ -321,9 +323,13 @@ class ServerState {
     let card = matchingCards[0];
     p.closed = p.closed.map(section => section.filter(c => c !== card)).filter(section => section.length > 0);
     this.state.pile.unshift(card);
-    this.nextPlayerInTurn();
-    this.state.phase = this.PICK_CARD;
     this.state.index++;
+
+    if (!this.checkIfFinished(player)) {
+      this.nextPlayerInTurn();
+      this.state.phase = this.PICK_CARD;
+    };
+
     this.notifyConnectors();
   }
 
@@ -338,6 +344,7 @@ class ServerState {
     console.log(p.open, p.closed);
     p.opened = true;
     this.state.index++;
+    this.checkIfFinished(player);
     this.notifyConnectors();
   }
 
@@ -346,6 +353,17 @@ class ServerState {
     this.state.players.forEach((p, i) => p.inTurn = i === this.state.playerInTurn);
     this.state.turnIndex++;
   }
+
+  checkIfFinished(player) {
+    console.log('checkIfFinished', player);
+    if (this.state.players[player].closed.flat().length === 0) {
+      this.state.phase = this.FINISHED;
+      this.state.winner = player;
+      return true;
+    }
+    return false;
+  }
+
 
   checkDeck() {
     if (this.state.deck.length === 0) {
