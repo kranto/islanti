@@ -1,5 +1,7 @@
 const EventEmitter = require('events');
 
+anonymise = (cards) => cards.map(card => ({...card, s:undefined, r:undefined}));
+
 class Card {
   constructor(back, suit, rank) {
     this.b = back;
@@ -50,7 +52,7 @@ class Connector  {
         state.buying = this.rollIndex(state.buying, state);
         state.myhands = state.players.splice(0, 1)[0];
         state.myTurn = state.playerInTurn < 0;
-        state.players = state.players.map(p => ({...p, validity: undefined, closed: p.closed ? p.closed.flat() : p.closed}));
+        state.players = state.players.map(p => ({...p, validity: undefined, closed: p.closed ? anonymise(p.closed.flat()) : p.closed}));
         state.can = {
           deal: state.phase === this.serverstate.DEAL && state.myTurn,
           show: state.phase === this.serverstate.SHOW_CARD && state.myTurn,
@@ -212,7 +214,10 @@ class ServerState {
   }
 
   getFullState() {
-    return this.state;
+    return {...this.state, 
+      deck: anonymise(this.state.deck), 
+      pile: [...this.state.pile.slice(0,2), ...anonymise(this.state.pile.slice(2))]
+    };
   }
 
   deal(player) {
