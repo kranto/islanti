@@ -121,7 +121,7 @@ class ServerState {
         name: this.playerNames[i], 
         closed: [[]],
         validity: [{}],
-        open: [], 
+        open: [],
         opened: false,
         inTurn: this.playerDealing === i, 
         bought: 0
@@ -221,12 +221,12 @@ class ServerState {
     this.state.dealt = true;
     console.log(this.state.players);
     [...Array(13).keys()].forEach(() => this.state.players.forEach(p => p.closed[0].push(this.state.deck.shift())));
-    this.state.players.forEach(p => p.open.push([]));
-    this.state.players.forEach(p => p.open.push([]));
-    this.state.players.forEach(p => p.open.push([]));
-    [...Array(4).keys()].forEach(() => this.state.players.forEach(p => p.open[0].push(this.state.deck.shift())));
-    [...Array(4).keys()].forEach(() => this.state.players.forEach(p => p.open[1].push(this.state.deck.shift())));
-    [...Array(4).keys()].forEach(() => this.state.players.forEach(p => p.open[2].push(this.state.deck.shift())));
+    // this.state.players.forEach(p => p.open.push([]));
+    // this.state.players.forEach(p => p.open.push([]));
+    // this.state.players.forEach(p => p.open.push([]));
+    // [...Array(4).keys()].forEach(() => this.state.players.forEach(p => p.open[0].push(this.state.deck.shift())));
+    // [...Array(4).keys()].forEach(() => this.state.players.forEach(p => p.open[1].push(this.state.deck.shift())));
+    // [...Array(4).keys()].forEach(() => this.state.players.forEach(p => p.open[2].push(this.state.deck.shift())));
     this.nextPlayerInTurn();
     this.state.phase = this.SHOW_CARD;
     this.state.index++;

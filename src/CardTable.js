@@ -144,6 +144,8 @@ class CardTable extends Component {
           return <div>Pelaa vuoro ja laita lopuksi kortti avopakkaan</div>
         } else if (this.state.opening) {
           return <div>Valitse {this.state.s.round.roundName}</div>
+        } else {
+          return <div>Pelaa vuoro ja laita lopuksi kortti avopakkaan</div>
         }
       } else {
         return <div><span>{state.players[state.playerInTurn].name}</span> pelaa vuoroaan.</div>
@@ -179,7 +181,7 @@ class CardTable extends Component {
   render() {
 
     return (
-      <div className={"CardTable " + (this.state.opening ? "selecting" : "")}>
+      <div className={"CardTable " + (this.state.opening ? "selecting" : "") + (this.state.s.myhands.inTurn ? " in-turn" : "")}>
         <div id="otherplayers">
             {this.createPlayers()}
         </div>

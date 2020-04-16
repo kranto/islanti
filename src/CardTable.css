@@ -58,6 +58,11 @@
 	-o-border-radius:8px;
 	box-shadow:#111 1px 1px 2px;
 	user-select: none;
+	transition: border-color 1s;
+}
+
+.CardTable.in-turn {
+	border-color: orange;
 }
 
 #otherplayers {
@@ -75,9 +80,11 @@
 .open-hand {
 	border: 1px dotted lightgray;
 	min-width: 100px;
-	height: 110px;
+	height: 105px;
 	margin: 0px 10px;
 	float:left;
+	border-radius: 10px;
+	margin: 0px 5px;
 }
 
 .turn-indicator {
