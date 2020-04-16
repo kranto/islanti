@@ -9,7 +9,7 @@ class CardTable extends Component {
   constructor() {
     super();
     this.state = {
-      s: { can: {}, players: [], myhands: {closed: []} },
+      s: { can: {}, players: [], myhands: {closed: [], open: []} },
       selected: [],
       selectionOk: false,
       opening: false
@@ -188,6 +188,7 @@ class CardTable extends Component {
             <div id="deck"></div>
             <div id="pile"></div>
           </div>
+          {this.state.s.myhands.open.map((h, i) => <Hand id={"myopen" + i} classes="open-hand" visible={true}></Hand>)}
           <div id="instructions">
             {this.createInstructions()}
           </div>

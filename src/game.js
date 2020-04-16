@@ -17,8 +17,8 @@ var state = {};
 
 let deck;
 let otherPlayers = [];
-let otherHands = [];
 let myClosedHandSections = [];
+let myOpenHandSections = [];
 let discardPile;
 
 function createNewSection(index) {
@@ -89,15 +89,20 @@ function populateState() {
     });
   });
   
-  // while (otherHands.length - 1 < i) {
-  //     var hand = new cards.Hand({faceUp:false, pullUp: true, element: $("#player" + i + " .closed-hand")});
-  //     otherHands.push(hand);
-  //   }
-  //   updateContainer(otherHands[i], p.closed);
-  // });
-
 	state.myhands.closed.forEach((section, i) => {
     let hand = myClosedHandSections[i];
+    updateContainer(hand, section);
+  });
+
+  let i = 0;
+  while (myOpenHandSections.length < state.myhands.open.length) {
+    let openhand = new cards.Hand({faceUp:true, spacing: 25, minWidth: 100, element: $("#myopen" + i)});
+    myOpenHandSections.push(openhand);
+    i++;
+  }
+
+  state.myhands.open.forEach((section, i) => {
+    let hand = myOpenHandSections[i];
     updateContainer(hand, section);
   });
 
