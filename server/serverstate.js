@@ -61,7 +61,8 @@ class Connector  {
           pick: (state.phase === this.serverstate.PICK_CARD || state.phase === this.serverstate.PICK_CARD_BOUGHT) && state.myTurn,
           buy: state.phase === this.serverstate.PICK_CARD && (state.playerInTurn >= 1 || !state.myTurn && state.turnIndex === 1) && state.myhands.bought < 3,
           sell: state.phase === this.serverstate.PICK_CARD_BUYING && state.myTurn,
-          open: state.phase === this.serverstate.TURN_ACTIVE && state.myTurn && state.myhands.open.length === 0,
+          open: state.phase === this.serverstate.TURN_ACTIVE && state.myTurn && !state.myhands.opened,
+          complete: state.phase === this.serverstate.TURN_ACTIVE && state.myTurn && state.myhands.opened,
           discard: state.phase === this.serverstate.TURN_ACTIVE && state.myTurn,
         }
         change = {...change, state: state};
@@ -104,6 +105,7 @@ class ServerState {
     this.cards = this.createCards();
     this.shuffle(this.cards);
     this.cards.forEach((card, index) => card.i = index);
+    this.shuffle(this.cards);
     this.playerCount = this.playerNames.length;
 
     this.state = {
@@ -123,11 +125,12 @@ class ServerState {
       deck: [...this.cards],
       pile: [],
       players: [...Array(this.playerCount).keys()].map((i) => ({
-        name: this.playerNames[i], 
+        id: i,
+        name: this.playerNames[i],
         closed: [[]],
         validity: [{}],
         open: [],
-        opened: false,
+        opened: true,
         inTurn: this.playerDealing === i, 
         bought: 0
       }))
@@ -188,6 +191,9 @@ class ServerState {
       case 'open':
         this.open(index, args.selectedIndices);
         break;
+      case 'complete':
+        this.complete(index, args.player, args.hand, args.card, args.firstHalf);
+        break;
       }
   }
   
@@ -205,7 +211,7 @@ class ServerState {
   }
 
   shuffle(anyArray) {
-    for (var k in [1, 2, 3]) {
+    for (var k in [1, 2, 3, 4, 5, 6]) {
       var i = anyArray.length;
       while (--i >= 0) {
         var j = Math.floor(Math.random() * anyArray.length);
@@ -228,12 +234,12 @@ class ServerState {
     if (player !== this.state.playerInTurn || this.state.phase !== this.DEAL || this.state.dealt) return false;
     this.state.dealt = true;
     [...Array(13).keys()].forEach(() => this.state.players.forEach(p => p.closed[0].push(this.state.deck.shift())));
-    // this.state.players.forEach(p => p.open.push([]));
-    // this.state.players.forEach(p => p.open.push([]));
-    // this.state.players.forEach(p => p.open.push([]));
-    // [...Array(4).keys()].forEach(() => this.state.players.forEach(p => p.open[0].push(this.state.deck.shift())));
-    // [...Array(4).keys()].forEach(() => this.state.players.forEach(p => p.open[1].push(this.state.deck.shift())));
-    // [...Array(4).keys()].forEach(() => this.state.players.forEach(p => p.open[2].push(this.state.deck.shift())));
+    this.state.players.forEach(p => p.open.push({cards: [], accepts: [{r:0, l:-1}, {r:0, l:4}, {r:1, l:-1}, {r:2, l:-1}, {r:3, l:2}, {r:4, l:2}, {r:5, l:4}, {r:6, l:4}, {r:7, l:4}, {r:8, l:4}]}));
+    this.state.players.forEach(p => p.open.push({cards: [], accepts: []}));
+    this.state.players.forEach(p => p.open.push({cards: [], accepts: []}));
+    [...Array(4).keys()].forEach(() => this.state.players.forEach(p => p.open[0].cards.push(this.state.deck.shift())));
+    [...Array(4).keys()].forEach(() => this.state.players.forEach(p => p.open[1].cards.push(this.state.deck.shift())));
+    [...Array(4).keys()].forEach(() => this.state.players.forEach(p => p.open[2].cards.push(this.state.deck.shift())));
     this.nextPlayerInTurn();
     this.state.phase = this.SHOW_CARD;
     this.state.index++;
@@ -242,7 +248,8 @@ class ServerState {
   }
 
   newOrder(player, order) {
-    if (this.phase < this.SHOW_CARD) return false;
+    console.log('newOrder', player, order);
+    if (this.phase < this.SHOW_CARD || this.phase >= this.FINISHED) return false;
     let playersCards = this.state.players[player].closed.flat();
     let cardIds = playersCards.map(card => card.i);
     let cardsById = playersCards.reduce((acc, card) => ({...acc, [card.i]: card}), {});
@@ -346,6 +353,35 @@ class ServerState {
     this.state.index++;
     this.checkIfFinished(player);
     this.notifyConnectors();
+  }
+
+  complete(player, handPlayer, handIndex, cardId, firstHalf) {
+    console.log('complete', player, handPlayer, handIndex, cardId, firstHalf);
+    if (player !== this.state.playerInTurn || this.state.phase !== this.TURN_ACTIVE || !this.state.players[player].opened) return false;
+
+    console.log('completing');
+
+    let p = this.state.players[player];
+    let playersCards = p.closed.flat();
+    let cardIds = playersCards.map(card => card.i);
+    if (cardIds.indexOf(cardId) < 0) return false;
+
+    let card = playersCards.filter(c => c.i === cardId)[0];
+    let newSections = p.closed.map(section => section.filter(c => c.i !== cardId));
+
+    let hand = this.state.players[handPlayer].open[handIndex];
+
+    if (firstHalf) {
+      hand.cards.unshift(card);
+    } else {
+      hand.cards.push(card);
+    }
+    p.closed = newSections;
+    p.validity = newSections.map(section => 
+      this.testSection(section, this.state.round.expectedStraights > 0, this.state.round.expectedSets > 0));
+    this.state.index++;
+    this.notifyConnectors();
+    return true;
   }
 
   nextPlayerInTurn() {

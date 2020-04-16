@@ -5,6 +5,9 @@ import cards from './cards.js';
 // import Popper from 'popper.js';
 import 'bootstrap/dist/js/bootstrap.bundle.min';
 
+function centerX(element) {
+  return parseInt(element.position().left) + parseInt(element.css("border-left-width")) + parseInt(element.css("margin-left")) + element.width() / 2;
+}
 
 window.jQuery = $;
 require('jquery-ui-touch-punch');
@@ -47,6 +50,27 @@ function createNewSection(index) {
 	return section;
 }
 
+function createNewOpenHand(playerId, handArray, selector) {
+  let element = $(selector);
+  let openhand = new cards.Hand({faceUp:true, spacing: 25, minWidth: 100, element: element});
+  let index = handArray.length;
+  handArray.push(openhand);
+
+  element.droppable({
+		accept: (cardElement) => {
+      let card = cardElement.data('card');
+      console.log(card, openhand, openhand.accepts);
+      return openhand.accepts.filter(acc => acc.r === card.rank && (!acc.s || acc.s === card.suit)).length > 0;    
+    },
+		greedy: true,
+		drop: function(event, ui) {
+      var card = ui.draggable.data('card');
+      let firstHalf = centerX(ui.draggable) < centerX(element);
+      sendAction('complete', {card: card.id, player: playerId, hand: index, firstHalf: firstHalf});
+		}
+	});
+}
+
 // ===========
 
 function findCard(servercard) {
@@ -80,16 +104,16 @@ function populateState() {
     let otherPlayer = otherPlayers[i];
     updateContainer(otherPlayer.closed, p.closed);
 
-    p.open.forEach((c, i2) => {
+    p.open.forEach((open, i2) => {
       while (otherPlayer.open.length - 1 < i2) {
-        let openhand = new cards.Hand({faceUp:true, spacing: 25, minWidth: 100, element: $("#p" + i + "o" + i2)});
-        otherPlayer.open.push(openhand);
+        createNewOpenHand(p.id, otherPlayer.open, "#p" + i + "o" + i2);
       }
-      updateContainer(otherPlayer.open[i2], p.open[i2]);
+      updateContainer(otherPlayer.open[i2], open.cards);
+      otherPlayer.open[i2].accepts = open.accepts;
     });
   });
 
-  if (state.phase === 5) { // when finished, reveal cards
+  if (state.phase === 5) { // when finished, reveal cards after timeout
     setTimeout(() => {
       otherPlayers.forEach(p => {p.closed.faceUp = true; p.closed.render(); });
     }, 3000);
@@ -104,17 +128,18 @@ function populateState() {
 
   let i = 0;
   while (myOpenHandSections.length < state.myhands.open.length) {
-    let openhand = new cards.Hand({faceUp:true, spacing: 25, minWidth: 100, element: $("#myopen" + i)});
-    myOpenHandSections.push(openhand);
+    createNewOpenHand(state.myhands.id, myOpenHandSections, "#myopen" + i);
     i++;
   }
 
-  state.myhands.open.forEach((section, i) => {
+  state.myhands.open.forEach((open, i) => {
     let hand = myOpenHandSections[i];
-    updateContainer(hand, section);
+    updateContainer(hand, open.cards);
+    hand.accepts = open.accepts;
   });
 
   $("#pile").droppable({disabled: !state.can.discard});
+  $(".open-hand").droppable({disabled: !state.can.complete});
 }
 
 function sendAction(action, params) {
