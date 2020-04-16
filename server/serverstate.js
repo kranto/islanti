@@ -92,14 +92,14 @@ class ServerState {
     this.eventEmitter = new EventEmitter();
   }
 
-  playerNames = ["HessuHopoliini", "Pelle Peloton", "Hupu", "Roope-Setä"];
+  playerNames = ["HessuHopoliini", "Pelle Peloton"]; //, "Hupu", "Roope-Setä"];
   playerDealing = this.playerNames.length - 1;
 
   init() {
     this.cards = this.createCards();
     this.shuffle(this.cards);
     this.cards.forEach((card, index) => card.i = index);
-    this.playerCount = 4;
+    this.playerCount = this.playerNames.length;
 
     this.state = {
       round: {
@@ -486,9 +486,9 @@ class ServerState {
     if (hand.length < 3) {
       return {valid: false, msg: "Kolmosissa täytyy olla vähintään kolme korttia"};
     }
-    if (hand.length > 8) {
-      return {valid: false, msg: "Kolmosissa ei saa olla yli 8 korttia"};
-    }
+    // if (hand.length > 8) {
+    //   return {valid: false, msg: "Kolmosissa ei saa olla yli 8 korttia"};
+    // }
     var jokers = hand.filter(c => c.r === 0);
     var others = hand.filter(c => c.r > 0);
     if (jokers.length >= others.length) {
