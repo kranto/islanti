@@ -329,7 +329,8 @@ class ServerState {
 
     let p = this.state.players[player];
     selectedIndices.sort().reverse();
-    selectedIndices.forEach(ind => p.open.unshift(p.closed.splice(ind, 1)));
+    selectedIndices.forEach(ind => p.open.unshift(p.closed.splice(ind, 1)[0]));
+    console.log(p.open, p.closed);
     p.opened = true;
     this.state.index++;
     this.notifyConnectors();
