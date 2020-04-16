@@ -88,7 +88,15 @@ function populateState() {
       updateContainer(otherPlayer.open[i2], p.open[i2]);
     });
   });
-  
+
+  if (state.phase === 5) { // when finished, reveal cards
+    setTimeout(() => {
+      otherPlayers.forEach(p => {p.closed.faceUp = true; p.closed.render(); });
+    }, 3000);
+  } else {
+    otherPlayers.forEach(p => {p.closed.faceUp = false;});
+  }
+
 	state.myhands.closed.forEach((section, i) => {
     let hand = myClosedHandSections[i];
     updateContainer(hand, section);

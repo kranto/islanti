@@ -53,7 +53,8 @@ class Connector  {
         state.winner = this.rollIndex(state.winner, state);
         state.myhands = state.players.splice(0, 1)[0];
         state.myTurn = state.playerInTurn < 0;
-        state.players = state.players.map(p => ({...p, validity: undefined, closed: p.closed ? anonymise(p.closed.flat()) : p.closed}));
+        state.players = state.players.map(p => ({...p, validity: undefined, 
+          closed: p.closed ? (state.phase < 5 ? anonymise(p.closed.flat()) : p.closed.flat()) : []}));
         state.can = {
           deal: state.phase === this.serverstate.DEAL && state.myTurn,
           show: state.phase === this.serverstate.SHOW_CARD && state.myTurn,
@@ -227,12 +228,12 @@ class ServerState {
     if (player !== this.state.playerInTurn || this.state.phase !== this.DEAL || this.state.dealt) return false;
     this.state.dealt = true;
     [...Array(13).keys()].forEach(() => this.state.players.forEach(p => p.closed[0].push(this.state.deck.shift())));
-    this.state.players.forEach(p => p.open.push([]));
-    this.state.players.forEach(p => p.open.push([]));
-    this.state.players.forEach(p => p.open.push([]));
-    [...Array(4).keys()].forEach(() => this.state.players.forEach(p => p.open[0].push(this.state.deck.shift())));
-    [...Array(4).keys()].forEach(() => this.state.players.forEach(p => p.open[1].push(this.state.deck.shift())));
-    [...Array(4).keys()].forEach(() => this.state.players.forEach(p => p.open[2].push(this.state.deck.shift())));
+    // this.state.players.forEach(p => p.open.push([]));
+    // this.state.players.forEach(p => p.open.push([]));
+    // this.state.players.forEach(p => p.open.push([]));
+    // [...Array(4).keys()].forEach(() => this.state.players.forEach(p => p.open[0].push(this.state.deck.shift())));
+    // [...Array(4).keys()].forEach(() => this.state.players.forEach(p => p.open[1].push(this.state.deck.shift())));
+    // [...Array(4).keys()].forEach(() => this.state.players.forEach(p => p.open[2].push(this.state.deck.shift())));
     this.nextPlayerInTurn();
     this.state.phase = this.SHOW_CARD;
     this.state.index++;
