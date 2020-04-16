@@ -59,7 +59,6 @@ function createNewOpenHand(playerId, handArray, selector) {
   element.droppable({
 		accept: (cardElement) => {
       let card = cardElement.data('card');
-      console.log(card, openhand, openhand.accepts);
       return openhand.accepts.filter(acc => acc.r === card.rank && (!acc.s || acc.s === card.suit)).length > 0;    
     },
 		greedy: true,
