@@ -39,7 +39,7 @@ class CardTable extends Component {
         style={{display: (p.closed ? 'initial' : 'none')}}>
         <div className="player-name">{p.name}</div>
         <Hand classes="player-hand closed-hand" visible={true}/>
-        {p.open.map((h, i) => <Hand id={"p" + index + "o" + i} classes="open-hand" visible={true}></Hand>)}
+        {p.open.map((h, i) => <Hand key={"p" + index + "o" + i} id={"p" + index + "o" + i} classes="open-hand" visible={true}></Hand>)}
       </div>
     );});
   }
@@ -196,7 +196,7 @@ class CardTable extends Component {
             <div id="deck"></div>
             <div id="pile"></div>
           </div>
-          {this.state.s.myhands.open.map((h, i) => <Hand id={"myopen" + i} classes="open-hand" visible={true}></Hand>)}
+          {this.state.s.myhands.open.map((h, i) => <Hand key={"m" + i} id={"myopen" + i} classes="open-hand" visible={true}></Hand>)}
           <div id="instructions">
             {this.createInstructions()}
           </div>

@@ -47,12 +47,15 @@ var cards = (function() {
 		},
 
 		reveal(suit, rank, back) {
-			this.suit = suit;
-			this.rank = rank;
-			this.cardback = back === 1 ? 'red' : 'blue';
-			this.name = suit ? suit + rank : "e"; 
-			$(this.el).find(".faceup-img").attr("src", "svg/" + this.name + ".svg");
-			$(this.el).find(".facedown-img").attr("src", "svg/cardback_" + this.cardback + ".svg");
+			if (this.suit === suit && this.rank === rank && this.back === back) return;
+			setTimeout(() => {
+				this.suit = suit;
+				this.rank = rank;
+				this.cardback = back === 1 ? 'red' : 'blue';
+				this.name = suit ? suit + rank : "e"; 
+				$(this.el).find(".faceup-img").attr("src", "svg/" + this.name + ".svg");
+				$(this.el).find(".facedown-img").attr("src", "svg/cardback_" + this.cardback + ".svg");	
+			}, this.suit !== undefined && suit === undefined ? 2000 : 0); // delay anonymisign so that the card has been flipped
 		},
 
 		pullUp: function(pixels) {
