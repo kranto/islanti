@@ -205,9 +205,22 @@ class ServerState {
   }
   
   notifyConnectors() {
-    let data = JSON.stringify(this.state);
-    fs.writeFileSync('/tmp/islantistate.json', data);
-    this.eventEmitter.emit('stateChange', {action: 'fullState', state: this.getFullState()});
+    fs.rename('/tmp/islantistate.json.4', '/tmp/islantistate.json.5', () => {
+      fs.rename('/tmp/islantistate.json.3', '/tmp/islantistate.json.4', () => {
+        fs.rename('/tmp/islantistate.json.2', '/tmp/islantistate.json.3', () => {
+          fs.rename('/tmp/islantistate.json.1', '/tmp/islantistate.json.2', () => {
+            fs.rename('/tmp/islantistate.json', '/tmp/islantistate.json.1', () => {
+
+              let data = JSON.stringify(this.state);
+              fs.writeFileSync('/tmp/islantistate.json', data);
+              this.eventEmitter.emit('stateChange', {action: 'fullState', state: this.getFullState()});
+          
+            });
+          });
+        });
+      });
+    });
+
   }
   
   createCards() {
@@ -410,9 +423,7 @@ class ServerState {
     console.log('joker', joker, hand);
 
     if (accept.replace && joker.length === 1) {
-      this.state.players[player].closed[0].unshift(joker[0]);
-      this.state.players[player].validity[0] = 
-        this.testSection(this.state.players[player].closed[0], this.state.round.expectedStraights > 0, this.state.round.expectedSets > 0);  
+      newSections[0].unshift(joker[0]);
     }
 
     hand.accepts = this.testSection(hand.cards, this.state.round.expectedStraights > 0, this.state.round.expectedSets > 0).data.accepts;
@@ -421,6 +432,7 @@ class ServerState {
     p.validity = newSections.map(section => 
       this.testSection(section, this.state.round.expectedStraights > 0, this.state.round.expectedSets > 0));
     this.state.index++;
+    this.checkIfFinished(player);
     this.notifyConnectors();
     return true;
   }
@@ -586,7 +598,7 @@ class ServerState {
     }
 
     if (maxRank < 14 && ranks.length < 13) {
-      accepts.push({s: suit, r: maxRank + 1, ind: ranks.length});
+      accepts.push({s: suit, r: (maxRank == 13 ? 1 : maxRank + 1), ind: ranks.length});
       if (acceptsJoker) {
         accepts.push({r: 0, ind: ranks.length});
       }
