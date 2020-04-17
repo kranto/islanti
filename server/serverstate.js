@@ -367,7 +367,7 @@ class ServerState {
     if (cardIds.indexOf(cardId) < 0) return false;
 
     let card = playersCards.filter(c => c.i === cardId)[0];
-    let newSections = p.closed.map(section => section.filter(c => c.i !== cardId));
+    let newSections = p.closed.map(section => section.filter(c => c.i !== cardId)).filter(section => section.length > 0);
 
     let hand = this.state.players[handPlayer].open[handIndex];
 
