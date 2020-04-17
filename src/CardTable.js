@@ -181,7 +181,7 @@ class CardTable extends Component {
       return <button onClick={() => this.startOpening()}>Avaan</button>
     } else if (this.state.opening) {
       return (<div>
-        <button onClick={() => this.confirmOpening()} disabled={this.state.selectionOk ? "" : "true"}>Avaa valitut</button>
+        <button onClick={() => this.confirmOpening()} disabled={!this.state.selectionOk}>Avaa valitut</button>
         <button onClick={() => this.cancelOpening()}>En avaakaan</button>
       </div>);
     }

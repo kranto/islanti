@@ -1,3 +1,5 @@
+const fs = require('fs');
+
 const EventEmitter = require('events');
 
 anonymise = (cards) => cards.map(card => ({...card, s:undefined, r:undefined}));
@@ -130,13 +132,18 @@ class ServerState {
         closed: [[]],
         validity: [{}],
         open: [],
-        opened: true,
+        opened: false,
         inTurn: this.playerDealing === i, 
         bought: 0
       }))
     };
 
-    console.log(this.state, this.DEAL, this.SHOW_CARD);
+    if (fs.existsSync('/tmp/islantistate.json')) {
+      let rawdata = fs.readFileSync('/tmp/islantistate.json');
+      this.state = JSON.parse(rawdata);
+    }
+
+    console.log(this.state);
 
     this.io.on('connection', socket => {
       console.log('someone connected', new Date());
@@ -192,12 +199,14 @@ class ServerState {
         this.open(index, args.selectedIndices);
         break;
       case 'complete':
-        this.complete(index, args.player, args.hand, args.card, args.firstHalf);
+        this.complete(index, args.player, args.hand, args.card, args.dropIndex);
         break;
       }
   }
   
   notifyConnectors() {
+    let data = JSON.stringify(this.state);
+    fs.writeFileSync('/tmp/islantistate.json', data);
     this.eventEmitter.emit('stateChange', {action: 'fullState', state: this.getFullState()});
   }
   
@@ -234,12 +243,12 @@ class ServerState {
     if (player !== this.state.playerInTurn || this.state.phase !== this.DEAL || this.state.dealt) return false;
     this.state.dealt = true;
     [...Array(13).keys()].forEach(() => this.state.players.forEach(p => p.closed[0].push(this.state.deck.shift())));
-    this.state.players.forEach(p => p.open.push({cards: [], accepts: [{r:0, l:-1}, {r:0, l:4}, {r:1, l:-1}, {r:2, l:-1}, {r:3, l:2}, {r:4, l:2}, {r:5, l:4}, {r:6, l:4}, {r:7, l:4}, {r:8, l:4}]}));
-    this.state.players.forEach(p => p.open.push({cards: [], accepts: []}));
-    this.state.players.forEach(p => p.open.push({cards: [], accepts: []}));
-    [...Array(4).keys()].forEach(() => this.state.players.forEach(p => p.open[0].cards.push(this.state.deck.shift())));
-    [...Array(4).keys()].forEach(() => this.state.players.forEach(p => p.open[1].cards.push(this.state.deck.shift())));
-    [...Array(4).keys()].forEach(() => this.state.players.forEach(p => p.open[2].cards.push(this.state.deck.shift())));
+    // this.state.players.forEach(p => p.open.push({cards: [], accepts: [{r:0, l:-1}, {r:0, l:4}, {r:1, l:-1}, {r:2, l:-1}, {r:3, l:2}, {r:4, l:2}, {r:5, l:4}, {r:6, l:4}, {r:7, l:4}, {r:8, l:4}]}));
+    // this.state.players.forEach(p => p.open.push({cards: [], accepts: []}));
+    // this.state.players.forEach(p => p.open.push({cards: [], accepts: []}));
+    // [...Array(4).keys()].forEach(() => this.state.players.forEach(p => p.open[0].cards.push(this.state.deck.shift())));
+    // [...Array(4).keys()].forEach(() => this.state.players.forEach(p => p.open[1].cards.push(this.state.deck.shift())));
+    // [...Array(4).keys()].forEach(() => this.state.players.forEach(p => p.open[2].cards.push(this.state.deck.shift())));
     this.nextPlayerInTurn();
     this.state.phase = this.SHOW_CARD;
     this.state.index++;
@@ -283,6 +292,9 @@ class ServerState {
     let card = fromDeck ? this.state.deck.shift() : this.state.pile.shift();
     this.checkDeck();
     this.state.players[player].closed[0].unshift(card);
+    this.state.players[player].validity[0] = 
+      this.testSection(this.state.players[player].closed[0], this.state.round.expectedStraights > 0, this.state.round.expectedSets > 0);
+
     this.state.phase = this.TURN_ACTIVE;
     this.state.index++;
     this.notifyConnectors();
@@ -303,6 +315,8 @@ class ServerState {
     if (player !== this.state.playerInTurn || this.state.phase !== this.PICK_CARD_BUYING) return false;
     this.state.players[this.state.buying].closed[0].unshift(this.state.pile.shift());
     this.state.players[this.state.buying].closed[0].unshift(this.state.deck.shift());
+    this.state.players[this.state.buying].validity[0] = 
+      this.testSection(this.state.players[this.state.buying].closed[0], this.state.round.expectedStraights > 0, this.state.round.expectedSets > 0);
     this.checkDeck();
     this.state.players[this.state.buying].bought++;
     this.state.buying = null;
@@ -315,6 +329,8 @@ class ServerState {
     console.log('sell', player);
     if (player !== this.state.playerInTurn || this.state.phase !== this.PICK_CARD_BUYING) return false;
     this.state.players[player].closed[0].unshift(this.state.pile.shift());
+    this.state.players[player].validity[0] = 
+      this.testSection(this.state.players[player].closed[0], this.state.round.expectedStraights > 0, this.state.round.expectedSets > 0);
     this.state.buying = null;
     this.state.phase = this.TURN_ACTIVE;
     this.state.index++;
@@ -329,6 +345,8 @@ class ServerState {
     if (matchingCards.length !== 1) return; // not found
     let card = matchingCards[0];
     p.closed = p.closed.map(section => section.filter(c => c !== card)).filter(section => section.length > 0);
+    p.validity = p.closed.map(section => 
+      this.testSection(section, this.state.round.expectedStraights > 0, this.state.round.expectedSets > 0));
     this.state.pile.unshift(card);
     this.state.index++;
 
@@ -347,7 +365,11 @@ class ServerState {
 
     let p = this.state.players[player];
     selectedIndices.sort().reverse();
-    selectedIndices.forEach(ind => p.open.unshift(p.closed.splice(ind, 1)[0]));
+    selectedIndices.forEach(ind => {
+      p.closed.splice(ind, 1);
+      let validity = p.validity.splice(ind, 1)[0]
+      p.open.unshift({cards: validity.data.cards, accepts: validity.data.accepts});
+    });
     console.log(p.open, p.closed);
     p.opened = true;
     this.state.index++;
@@ -355,8 +377,8 @@ class ServerState {
     this.notifyConnectors();
   }
 
-  complete(player, handPlayer, handIndex, cardId, firstHalf) {
-    console.log('complete', player, handPlayer, handIndex, cardId, firstHalf);
+  complete(player, handPlayer, handIndex, cardId, dropIndex) {
+    console.log('complete', player, handPlayer, handIndex, cardId, dropIndex);
     if (player !== this.state.playerInTurn || this.state.phase !== this.TURN_ACTIVE || !this.state.players[player].opened) return false;
 
     console.log('completing');
@@ -371,11 +393,30 @@ class ServerState {
 
     let hand = this.state.players[handPlayer].open[handIndex];
 
-    if (firstHalf) {
-      hand.cards.unshift(card);
+    console.log(hand, card);
+
+    let accepts = hand.accepts.filter(acc => acc.r === card.r && (!acc.s || acc.s === card.s));
+    let accept = null;
+    console.log(accepts);
+    if (accepts.length === 0) return false;
+    if (accepts.length === 2) {
+      accept = (Math.abs(accepts[0].ind - dropIndex) < Math.abs(accepts[1].ind - dropIndex)) ? accepts[0] : accepts[1];
     } else {
-      hand.cards.push(card);
+      accept = accepts[0];
     }
+    console.log(accept);
+
+    let joker = hand.cards.splice(accept.ind, accept.replace ? 1 : 0, card);
+    console.log('joker', joker, hand);
+
+    if (accept.replace && joker.length === 1) {
+      this.state.players[player].closed[0].unshift(joker[0]);
+      this.state.players[player].validity[0] = 
+        this.testSection(this.state.players[player].closed[0], this.state.round.expectedStraights > 0, this.state.round.expectedSets > 0);  
+    }
+
+    hand.accepts = this.testSection(hand.cards, this.state.round.expectedStraights > 0, this.state.round.expectedSets > 0).data.accepts;
+
     p.closed = newSections;
     p.validity = newSections.map(section => 
       this.testSection(section, this.state.round.expectedStraights > 0, this.state.round.expectedSets > 0));
@@ -470,8 +511,12 @@ class ServerState {
     var straight = testForStraight ? this.testStraight(section) : false;
     var set = testForSets ? this.testSet(section) : false;
   
+    console.log(set);
+    console.log(straight);
+
     if (straight && straight.valid) return {type: 'straight', valid: true, msg: 'Suora', data: straight};
     if (set && set.valid) return {type: 'set', valid: true, msg: 'Kolmoset', data: set};
+
     return {valid: false, type: false, msg: (straight ? (straight.msg + ". "): "") + (set ? (set.msg + ".") : "")};
   }
   
@@ -483,61 +528,78 @@ class ServerState {
       return {valid: false, msg: "Suorassa ei saa olla yli 13 korttia"};
     }
   
-    var others = section.filter(c => c.r > 0);
-    var jokers = section.filter(c => c.r === 0);
-    var aces = section.filter(c => c.r === 1);
-  
-    if (others.filter(c => c.s !== others[0].s).length > 0) {
+    let others = section.filter(c => c.r > 0);
+    let jokers = section.filter(c => c.r === 0);
+    let aces = others.filter(c => c.r === 1);
+    let suit = others[0].s;
+
+    if (others.filter(c => c.s !== suit).length > 0) {
       return {valid: false, msg: "Suorassa saa olla vain yhtä maata"};
     }
     if (jokers.length >= others.length) {
       return {valid: false, msg: "Suorassa vähintään puolet korteista pitää olla muita kuin jokereita"}
     }
-  
-    // FIXME this does not work with jokers as aces
-    var highAce = false;
     if (aces.length > 1) {
       return {valid: false, msg: "Suorassa voi olla vain yksi ässä"};
-    } else if (aces.length === 1) {
-      if (others[0] === aces[0]) {
-        highAce = others[1].r > 8;
-      } else if (others[others.length-1] === aces[0]) {
-        highAce = others[others.length-2].r > 8;
-      } else {
-        return {valid: false, msg: "Ässän täytyy olla suoran päässä"};
-      }
     }
-  
-    var ranks = section.map(c => highAce && c.r === 1 ? 14 : c.r);
-    var otherRanks = ranks.filter(r => r > 0);
-  
-    var increasing = otherRanks[0] < otherRanks[1];
+
+    let ranks = section.map(c => c.r);
+    let otherRanks = ranks.filter(r => r > 0);
+    let otherRanksThanAces = otherRanks.filter(r => r > 1);
+
+    if (otherRanksThanAces.length < 2) { // this should never occur
+      return {valid: false, msg: "Suorassa pitää olla ainakin 2 muuta korttia kuin ässä ja jokeri"};
+    }
+    
+    let increasing = otherRanksThanAces[0] < otherRanksThanAces[1];
+
     if (!increasing) {
       section = [...section].reverse();
       others = [...others].reverse();
       jokers = [...jokers].reverse();
       ranks = [...ranks].reverse();
       otherRanks = [...otherRanks].reverse();
+      otherRanksThanAces = [...otherRanksThanAces].reverse();
     }
-  
-    var rankStart = otherRanks[0] - ranks.indexOf(otherRanks[0]);
-  
-    if (rankStart < 1 || rankStart + ranks.length - 1 > 14) {
-      return {valid: false, msg: "Suora ei voi mennä kulman ympäri"};
+
+    let minRank = otherRanksThanAces[0] - ranks.indexOf(otherRanksThanAces[0]);
+    let maxRank = minRank + ranks.length - 1;
+    if (minRank < 1 || maxRank > 14) {
+      return {valid: false, msg: "Suorassa täytyy olla kortit oikeassa järjestyksessä"};
     }
-  
-    for (var i = 0; i < ranks.length; i++) {
-      if (ranks[i] !== 0  && ranks[i] !== rankStart + i) {
-        return {valid: false, msg: "Suorassa täytyy olla kortit järjestyksessä"}
+
+    let accepts = [];
+    let acceptsJoker = jokers.length < others.length - 1;
+    if (minRank > 1 && ranks.length < 13) {
+      accepts.push({s: suit, r: minRank - 1, ind: 0});
+      if (acceptsJoker) {
+        accepts.push({r: 0, ind: 0});
       }
     }
-  
+
+    for (var i = 0; i < ranks.length; i++) {
+      if (ranks[i] === 0) {
+        accepts.push({s: suit, r: minRank + i, ind: i, replace: true})
+      } else if (ranks[i] !== minRank + i && (ranks[i] !== 1 || minRank + i !== 14)) {
+        return {valid: false, msg: "Suorassa täytyy olla kortit oikeassa järjestyksessä"}
+      }
+    }
+
+    if (maxRank < 14 && ranks.length < 13) {
+      accepts.push({s: suit, r: maxRank + 1, ind: ranks.length});
+      if (acceptsJoker) {
+        accepts.push({r: 0, ind: ranks.length});
+      }
+    }
+    
     return {
       type: 'straight',
       valid: true,
-      suit: others[0].s,
+      suit: suit,
       cards: section,
-      highAce: highAce
+      minRank: minRank,
+      maxRank: maxRank,
+      accepts: accepts
     };
   }
   
@@ -545,23 +607,28 @@ class ServerState {
     if (hand.length < 3) {
       return {valid: false, msg: "Kolmosissa täytyy olla vähintään kolme korttia"};
     }
-    // if (hand.length > 8) {
-    //   return {valid: false, msg: "Kolmosissa ei saa olla yli 8 korttia"};
-    // }
+
     var jokers = hand.filter(c => c.r === 0);
     var others = hand.filter(c => c.r > 0);
+
     if (jokers.length >= others.length) {
       return {valid: false, msg: "Kolmosissa vähintään puolet korteista pitää olla muita kuin jokereita"}
     }
-    if (others.filter(c => c.r !== others[0].r).length > 0) {
+
+    let rank = others[0].r;
+    if (others.filter(c => c.r !== rank).length > 0) {
       return {valid: false, msg: "Kolmosissa saa olla vain yhtä numeroa"};
     }
   
+    let accepts = [{r: rank, ind: 0}];
+    if (jokers.length < others.length - 1) accepts.push({r: 0, ind: 0});
+
     return {
-      type: 'sets',
+      type: 'set',
       valid: true,
-      rank: others[0].r,
+      rank: rank,
       cards: hand,
+      accepts: accepts
     };
   }
   

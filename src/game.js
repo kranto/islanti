@@ -53,20 +53,25 @@ function createNewSection(index) {
 
 function createNewOpenHand(playerId, handArray, selector) {
   let element = $(selector);
+  console.log("createNewOpenHand", selector, element);
   let openhand = new cards.Hand({faceUp:true, spacing: 25, minWidth: 100, element: element});
   let index = handArray.length;
   handArray.push(openhand);
 
+  console.log(playerId, index);
   element.droppable({
 		accept: (cardElement) => {
       let card = cardElement.data('card');
+      console.log(openhand);
       return openhand.accepts.filter(acc => acc.r === card.rank && (!acc.s || acc.s === card.suit)).length > 0;    
     },
 		greedy: true,
 		drop: function(event, ui) {
       var card = ui.draggable.data('card');
       let firstHalf = centerX(ui.draggable) < centerX(element);
-      sendAction('complete', {card: card.id, player: playerId, hand: index, firstHalf: firstHalf});
+      let dropIndex = openhand.getNewIndex(card);
+      console.log(dropIndex);
+      sendAction('complete', {card: card.id, player: playerId, hand: index, firstHalf: firstHalf, dropIndex: dropIndex});
 		}
 	});
 }
