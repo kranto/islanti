@@ -32,10 +32,15 @@ var cards = (function() {
 				'<img src="" alt="card face up" class="faceup-img"/>' +
 				'<img src="" alt="card face down" class="facedown-img"/>'
 			);
-			this.reveal(suit, rank, back);
 
+
+			$(this.el).css("opacity", 0);
+			setTimeout(() => $(this.el).css("opacity", 1), 1000);
+
+			this.reveal(suit, rank, back);
 			this.faceUp = false;
 			this.moveToFront();
+
 
 			$(this.el).click(mouseEvent);
 
@@ -52,7 +57,7 @@ var cards = (function() {
 				this.suit = suit;
 				this.rank = rank;
 				this.cardback = back === 1 ? 'red' : 'blue';
-				this.name = suit ? suit + rank : "e"; 
+				this.name = suit ? suit + rank : "e";
 				$(this.el).find(".faceup-img").attr("src", "svg/" + this.name + ".svg");
 				$(this.el).find(".facedown-img").attr("src", "svg/cardback_" + this.cardback + ".svg");	
 			}, this.suit !== undefined && suit === undefined ? 2000 : 0); // delay anonymisign so that the card has been flipped
