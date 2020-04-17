@@ -224,7 +224,7 @@ var cards = (function() {
 	Hand.prototype = new Container();
 	Hand.prototype.extend({
 		setElementWidth: function() {
-			if (!this.minWidth) return;
+			if (!this.minWidth || !this.element) return;
 			var pad = this.spacing;
 			var desiredWidth = opt.cardSize.width + Math.max(this.length - 1, 0) * pad;
 			var width = Math.max(this.minWidth, desiredWidth);

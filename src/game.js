@@ -25,7 +25,8 @@ let myOpenHandSections = [];
 let discardPile;
 
 function createNewSection(index) {
-	var el = $("#section" + index);
+  console.log('createNewSection', index);
+  var el = $("#section" + index);
 	var section = new cards.Hand({
 		faceUp: true,
 		element: el,
@@ -92,6 +93,10 @@ function updateContainer(container, servercards, reverse) {
 
 function populateState() {
 
+  myClosedHandSections.forEach(section => section.element = null);
+  myClosedHandSections = [];
+  $(".hand-section").each(index => myClosedHandSections.push(createNewSection(index)));
+
   updateContainer(deck, state.deck, true);
 	updateContainer(discardPile, state.pile, true);
 
@@ -139,6 +144,7 @@ function populateState() {
 
   $("#pile").droppable({disabled: !state.can.discard});
   $(".open-hand").droppable({disabled: !state.can.complete});
+
 }
 
 function sendAction(action, params) {
@@ -153,6 +159,7 @@ function newSection(firstCardInNewSection) {
 
 function newOrder(movedCard, hand, index) {
   let handIndex = myClosedHandSections.indexOf(hand);
+  console.log(hand, handIndex, myClosedHandSections);
   let newOrder = myClosedHandSections.map(hand => hand.map(card => card.id).filter(id => id !== movedCard.id));
   newOrder[handIndex].splice(index,0,movedCard.id);
   newOrder = newOrder.filter(section => section.length > 0);
@@ -178,7 +185,6 @@ function init(_stateManager) {
   stateManager = _stateManager;
   
 	$(window).resize(function(){
-		// setTimeout( () =>cards.refresh(), 100);
 		setTimeout(populateState, 100);
 	});
 

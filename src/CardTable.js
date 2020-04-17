@@ -9,11 +9,12 @@ class CardTable extends Component {
   constructor() {
     super();
     this.state = {
-      s: { can: {}, players: [], myhands: {closed: [], open: []} },
+      // s: { can: {}, players: [], myhands: {closed: [], open: []} },
       selected: [],
       selectionOk: false,
       opening: false
     };
+    this.gameInitialized = false;
   }
 
   componentDidMount() {
@@ -21,13 +22,16 @@ class CardTable extends Component {
       console.log('CardTable.listenToEvent', params);
       this.setState({...this.state, s : this.props.stateManager.getState()})
     });
-
-    game.init(this.props.stateManager);
   }
 
   componentDidUpdate() {
     console.log('componentDidUpdate');
-    game.stateChange({action: 'fullState', state: {...this.state.s, opening: this.state.opening}});    
+    if (this.state.s) {
+      if (!this.gameInitialized) {
+        game.init(this.props.stateManager);      
+      }
+        game.stateChange({action: 'fullState', state: {...this.state.s, opening: this.state.opening}});
+    }
   }
 
   createPlayers() {
@@ -48,7 +52,7 @@ class CardTable extends Component {
     let sections = this.state.s.myhands.closed;
     return (
       <div>
-        {[...Array(20).keys()].map(i => 
+        {this.state.s.myhands.closed.map((section, i) => 
         <Hand key={i} id={"section" + i} 
           classes="hand-section section" 
           visible={i < sections.length}
@@ -186,22 +190,31 @@ class CardTable extends Component {
 
   render() {
 
+    if (!this.state.s) return "loading";
+
     return (
       <div className={"CardTable " + (this.state.opening ? "selecting" : "") + (this.state.s.myhands.inTurn ? " in-turn" : "")}>
         <div id="otherplayers">
             {this.createPlayers()}
         </div>
         <div id="gamearea">
-          <div id="deckandpile">
-            <div id="deck"></div>
-            <div id="pile"></div>
-          </div>
-          {this.state.s.myhands.open.map((h, i) => <Hand key={"m" + i} id={"myopen" + i} classes="open-hand" visible={true}></Hand>)}
+          <div id="roundinfo">Kierros {this.state.s.round.roundNumber}/8 {this.state.s.round.roundName}</div>
           <div id="instructions">
-            {this.createInstructions()}
+                {this.createInstructions()}
           </div>
-          <div id="controls">
-            {this.createControls()}
+          <div id="deckrow">
+            <div id="deckandpile">
+              <div id="deck"></div>
+              <div id="pile"></div>
+            </div>
+            <div id="deckrowcolumn2">
+              <div id="myopenhands">
+                {this.state.s.myhands.open.map((h, i) => <Hand key={"m" + i} id={"myopen" + i} classes="open-hand" visible={true}></Hand>)}
+              </div>
+              <div id="controls">
+                {this.createControls()}
+              </div>
+            </div>
           </div>
           <div id="my-closed-hand-sections" className={"turn-indicator " + (this.state.s.myhands && this.state.s.myhands.inTurn ? "in-turn" : "")}>
             <div id="section-template" className="section" style={{display: 'none'}}></div>

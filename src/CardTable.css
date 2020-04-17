@@ -135,6 +135,15 @@
 	width: 100%;
 }
 
+#roundinfo {
+	float: left;
+	clear: both;
+	width: 100%;
+	height: auto;
+	color: white;
+	font-size: 1.2em;
+}
+
 #controls {
 	float: right;
 }
@@ -163,9 +172,20 @@
 	border-radius: 10px;
 }
 
+#deckrowcolumn2 {
+	float: left;
+	min-width: 500px;
+
+}
+
 #instructions {
+	width: 100%;
 	color: white;
 	float: left;
+}
+
+#myopenhands {
+	clear: left;
 }
 
 #my-closed-hand-sections {
