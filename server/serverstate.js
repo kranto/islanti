@@ -3,6 +3,17 @@ const fs = require('fs');
 const EventEmitter = require('events');
 const StorageDir = '/Users/kranto/tmp';
 
+const ROUNDS = [
+  { roundNumber: 1, roundName: "kolmoset ja suora", expectedSets: 1, expectedStraights: 1,	isFreestyle: false },
+  { roundNumber: 2, roundName: "kahdet kolmoset", expectedSets: 2, expectedStraights: 0,	isFreestyle: false },
+  { roundNumber: 3, roundName: "kaksi suoraa", expectedSets: 0, expectedStraights: 2,	isFreestyle: false },
+  { roundNumber: 4, roundName: "kahdet kolmoset ja suora", expectedSets: 2, expectedStraights: 1,	isFreestyle: false },
+  { roundNumber: 5, roundName: "kolmoset ja kaksi suoraa", expectedSets: 1, expectedStraights: 2,	isFreestyle: false },
+  { roundNumber: 6, roundName: "kolmet kolmoset", expectedSets: 3, expectedStraights: 0,	isFreestyle: false },
+  { roundNumber: 7, roundName: "kolme suoraa", expectedSets: 0, expectedStraights: 3,	isFreestyle: false },
+  { roundNumber: 8, roundName: "freestyle", expectedSets: 1, expectedStraights: 1,	isFreestyle: true },
+];
+
 anonymise = (cards) => cards.map(card => ({...card, s:undefined, r:undefined}));
 
 class Card {
@@ -112,13 +123,7 @@ class ServerState {
     this.playerCount = this.playerNames.length;
 
     this.state = {
-      round: {
-        roundNumber: 1,
-        roundName: "kolmoset ja suora",
-        expectedSets: 1,
-        expectedStraights: 1,	
-        isFreestyle: false
-      },
+      round: ROUNDS[7],
       index: 0,
       turnIndex: 0,
       playerInTurn: this.playerDealing,
@@ -503,19 +508,29 @@ class ServerState {
     if (straights.length !== round.expectedStraights && !round.isFreestyle) {
       return {valid: false, msg: "Pitäisi olla " + round.expectedStraights + " suoraa, mutta onkin " + straights.length};
     }
+
     var setsNumbers = [];
     for (let i = 0; i < sets.length; i++) {
       if (setsNumbers.indexOf(sets[i].number) >= 0) {
         return {valid: false, msg: "Kaikki kolmossarjat täytyy olla eri numeroa"};
       }
     }
-    var straightsSuites = [];
+    var straightSuits = [];
     for (let i = 0; i < straights.length; i++) {
-      if (straightsSuites.indexOf(straights[i].s) >= 0) {
+      if (straightSuits.indexOf(straights[i].s) >= 0) {
         return {valid: false, msg: "Suorat täytyy olla eri maista"};
       }
     }
   
+    if (round.isFreestyle) {
+      let playerCardsCount = this.state.players[player].closed.flat().length;
+      let selectedCardsCount = selected.map(validity => validity.data.cards).flat().length;
+      console.log(playerCardsCount, selectedCardsCount)
+      if (selectedCardsCount < playerCardsCount - 1) {
+        return {valid: false, msg: "Freestylessä saa käteen jäädä korkeintaan yksi kortti"};
+      }
+    }
+
     return {valid: true};
   }
     

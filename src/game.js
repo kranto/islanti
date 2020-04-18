@@ -25,7 +25,6 @@ let myOpenHandSections = [];
 let discardPile;
 
 function createNewSection(index) {
-  console.log('createNewSection', index);
   var el = $("#section" + index);
 	var section = new cards.Hand({
 		faceUp: true,
@@ -53,12 +52,10 @@ function createNewSection(index) {
 
 function createNewOpenHand(playerId, handArray, selector) {
   let element = $(selector);
-  console.log("createNewOpenHand", selector, element);
   let openhand = new cards.Hand({faceUp:true, spacing: 25, minWidth: 100, element: element});
   let index = handArray.length;
   handArray.push(openhand);
 
-  console.log(playerId, index);
   element.droppable({
 		accept: (cardElement) => {
       let card = cardElement.data('card');
