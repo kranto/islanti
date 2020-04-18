@@ -32,6 +32,7 @@ class Connector  {
   constructor(serverstate, index, socket) {
     this.serverstate = serverstate;
     this.index = index;
+    this.imGuest = this.index === null;
     this.socket = socket;
 
     this.socket.on('action', args => {
@@ -61,11 +62,11 @@ class Connector  {
       case 'fullState':
         console.log('connector.stateChange.fullState', this.index, change.state.index);
         let state = JSON.parse(JSON.stringify(change.state));
-        state.players = [...state.players.slice(this.index, state.players.length), ...state.players.slice(0,this.index)];
+        if (!this.imGuest) state.players = [...state.players.slice(this.index, state.players.length), ...state.players.slice(0,this.index)];
         state.playerInTurn = this.rollIndex(state.playerInTurn, state);
         state.buying = this.rollIndex(state.buying, state);
         state.winner = this.rollIndex(state.winner, state);
-        state.myhands = state.players.splice(0, 1)[0];  // --- create myhands, remove from players ---
+        state.myhands = this.imGuest ? null : state.players.splice(0, 1)[0];  // --- create myhands, remove from players ---
         state.myTurn = state.playerInTurn < 0;
         state.players = state.players.map(p => ({...p, validity: undefined, 
           closed: p.closed ? (state.phase < 5 ? anonymise(p.closed.flat()) : p.closed.flat()) : []}));
@@ -86,6 +87,7 @@ class Connector  {
   }
 
   rollIndex(player, state) {
+    if (this.imGuest) return player;
     return player === null ? null : (((player + state.players.length - this.index) % state.players.length) - 1);
   }
 
@@ -115,18 +117,24 @@ class ServerState {
   playerNames = ["HessuHopoliini", "Pelle Peloton", "Hupu", "Roope-Setä"];
   playerDealing = this.playerNames.length - 1;
 
-  init() {
+
+  init(roundNumber, dealerIndex) {
     this.cards = this.createCards();
     this.shuffle(this.cards);
     this.cards.forEach((card, index) => card.i = index);
     this.shuffle(this.cards);
-    this.playerCount = this.playerNames.length;
+
+    roundNumber = roundNumber ? roundNumber : 1;
+    dealerIndex = dealerIndex ? dealerIndex : 0;
+
+    this.playerData = JSON.parse(fs.readFileSync(StorageDir + '/players.json'));
+    this.playerCount = this.playerData.length;
 
     this.state = {
-      round: ROUNDS[7],
+      round: ROUNDS[roundNumber - 1],
       index: 0,
       turnIndex: 0,
-      playerInTurn: this.playerDealing,
+      playerInTurn: dealerIndex,
       phase: this.DEAL,
       dealt: false,
       buying: null,
@@ -134,7 +142,7 @@ class ServerState {
       pile: [],
       players: [...Array(this.playerCount).keys()].map((i) => ({
         id: i,
-        name: this.playerNames[i],
+        name: this.playerData[i].name,
         closed: [[]],
         validity: [{}],
         open: [],
@@ -154,20 +162,22 @@ class ServerState {
     this.io.on('connection', socket => {
       console.log('someone connected', new Date());
       socket.on('authenticate', (args, callback) => {
-        let id = parseInt(args.id);
-        console.log(id + ' authenticated', args, callback);
-        let connector = new Connector(this, id, socket);
+        let code = args.code;
+        let matching = this.playerData.filter(pd => pd.code === code);
+        let index = (matching.length !== 1) ? null : this.playerData.indexOf(matching[0]); 
+        let name = index !== null ? this.playerData[index].name : "guest";
+        console.log(name + ' authenticated with code ' + code,  args, callback);
+        let connector = new Connector(this, index, socket);
         this.connectors.push(connector);
-        if (callback) callback(true);
+        if (callback) callback({authenticated: true, myName: name});
         this.updateConnected();
         socket.on('disconnect', () => {
-          console.log('disconnected', connector.index);
+          console.log(name + ' disconnected', connector.index);
           this.connectors = this.connectors.filter(c => c !== connector);
           connector.removeListeners();
         });
       });
     });
-
   }
 
   updateConnected() {

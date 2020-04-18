@@ -95,6 +95,8 @@ function updateContainer(container, servercards, reverse) {
 
 function populateState() {
 
+  let imGuest = state.myhands === null || state.myhands.open === undefined;
+
   myClosedHandSections.forEach(section => section.element = null);
   myClosedHandSections = [];
   $(".hand-section").each(index => myClosedHandSections.push(createNewSection(index)));
@@ -127,26 +129,28 @@ function populateState() {
     otherPlayers.forEach(p => {p.closed.faceUp = false;});
   }
 
-	state.myhands.closed.forEach((section, i) => {
-    let hand = myClosedHandSections[i];
-    updateContainer(hand, section);
-  });
-
-  let i = 0;
-  while (myOpenHandSections.length < state.myhands.open.length) {
-    createNewOpenHand(state.myhands.id, myOpenHandSections, "#myopen" + i);
-    i++;
+  if (!imGuest) {
+    state.myhands.closed.forEach((section, i) => {
+      let hand = myClosedHandSections[i];
+      updateContainer(hand, section);
+    });
+  
+    let i = 0;
+    while (myOpenHandSections.length < state.myhands.open.length) {
+      createNewOpenHand(state.myhands.id, myOpenHandSections, "#myopen" + i);
+      i++;
+    }
+  
+    state.myhands.open.forEach((open, i) => {
+      let hand = myOpenHandSections[i];
+      updateContainer(hand, open.cards);
+      hand.accepts = open.accepts;
+    });
+    
   }
-
-  state.myhands.open.forEach((open, i) => {
-    let hand = myOpenHandSections[i];
-    updateContainer(hand, open.cards);
-    hand.accepts = open.accepts;
-  });
 
   $("#pile").droppable({disabled: !state.can.discard});
   $(".open-hand").droppable({disabled: !state.can.complete});
-
 }
 
 function sendAction(action, params) {

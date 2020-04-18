@@ -13,8 +13,10 @@ app.get('/', function(req, res){
   res.sendFile(__dirname + '/islanti/index.html');
 });
 
+var myArgs = process.argv.slice(2);
+
 var s = new server.ServerState(io, "dev");
-s.init();
+s.init(parseInt(myArgs[0]), parseInt(myArgs[1]));
 
 http.listen(4000, function(){
   console.log('listening on *:4000');

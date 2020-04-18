@@ -49,6 +49,7 @@ class CardTable extends Component {
   }
 
   createMySections() {
+    if (!this.state.s.myhands) return "";
     let sections = this.state.s.myhands.closed;
     return (
       <div>
@@ -132,7 +133,7 @@ class CardTable extends Component {
       if (state.myTurn) {
         return <div>Nosta kortti pakasta tai avopakasta klikkaamalla</div>
       } else {
-        return <div><span>{state.players[state.playerInTurn].name}</span> nostaa. {state.can.buy ? "Voit yrittää ostaa kortin klikkaamalla avopakkaa.": ""} </div>
+        return <div><span>{state.players[state.playerInTurn].name}</span> nostaa{state.can.buy ? ". Voit yrittää ostaa kortin klikkaamalla avopakkaa.": ""} </div>
       }
     } else if (state.phase === 3.1) {
       if (state.buying < 0) {
@@ -191,6 +192,8 @@ class CardTable extends Component {
   render() {
 
     if (!this.state.s) return "loading";
+    let imGuest = this.state.s.myhands === null || this.state.s.myhands.open === undefined;
+    console.log(this.state.s.myhands);
 
     return (
       <div className={"CardTable " + (this.state.opening ? "selecting" : "") + (this.state.s.myhands.inTurn ? " in-turn" : "")}>
@@ -207,6 +210,7 @@ class CardTable extends Component {
               <div id="deck"></div>
               <div id="pile"></div>
             </div>
+            {imGuest ? "" : (
             <div id="deckrowcolumn2">
               <div id="myopenhands">
                 {this.state.s.myhands.open.map((h, i) => <Hand key={"m" + i} id={"myopen" + i} classes="open-hand" visible={true}></Hand>)}
@@ -214,13 +218,14 @@ class CardTable extends Component {
               <div id="controls">
                 {this.createControls()}
               </div>
-            </div>
+            </div>)}
           </div>
+          {imGuest ? "" : (
           <div id="my-closed-hand-sections" className={"turn-indicator " + (this.state.s.myhands && this.state.s.myhands.inTurn ? "in-turn" : "")}>
             <div id="section-template" className="section" style={{display: 'none'}}></div>
             {this.createMySections()}
             <div id="newsection" className="new-section" style={{visibility: (this.state.s.phase >= 2 && this.state.s.phase <= 4) ? "visible" : "hidden"}}><div>+</div></div>
-          </div>
+          </div>)}
         </div>
       </div>
     );

@@ -17,9 +17,9 @@ class App extends Component {
     console.log('App did mount');
 
     let hash = window.location.hash;
-    let id = hash && hash.length > 2 ? hash[2] : "0";
+    let code = hash && hash.length > 2 ? decodeURIComponent(hash.substring(2)) : "guest";
 
-    this.stateManager.initSocket("dev", {id: id, secret: "nothing"}, (x) => console.log('App.callback', x) );
+    this.stateManager.initSocket("dev", {code: code, secret: "nothing"}, (x) => {console.log('App.callback', x); document.title = "Islanti / " + x.myName;} );
   }
 
   render() {

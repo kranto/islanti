@@ -46,7 +46,7 @@ class StateManager {
   }
 
   authenticate(credentials, callback) {
-    this.socket.emit('authenticate', credentials, isOk => callback({authenticationStatus: isOk}));
+    this.socket.emit('authenticate', credentials, status => callback(status));
   }
 
   requestFullState() {
