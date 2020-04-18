@@ -11,18 +11,24 @@ class App extends Component {
     this.cardTable = React.createRef();
 
     this.stateManager = new StateManager();
+
+    this.state = { name: "tunnistaudu", authenticated: false};
   }
 
   componentDidMount() {
     console.log('App did mount');
 
-    let hash = window.location.hash;
-    let code = hash && hash.length > 2 ? decodeURIComponent(hash.substring(2)) : "guest";
-
-    this.stateManager.initSocket("dev", {code: code, secret: "nothing"}, (x) => {console.log('App.callback', x); document.title = "Islanti / " + x.myName;} );
+    let search = window.location.search;
+    let code = search ? decodeURIComponent(search.substring(1)) : "guest";
+    console.log(code);
+    this.stateManager.initSocket("dev", {code: code, secret: "nothing"}, (x) => {
+      this.setState({name: x.myName, authenticated: true});
+      console.log('App.callback', x);
+    });
   }
 
   render() {
+    document.title = "Islanti / " + this.state.name;
       return (
       <div className="App">
         <div>

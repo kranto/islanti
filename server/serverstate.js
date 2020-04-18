@@ -165,7 +165,7 @@ class ServerState {
         let code = args.code;
         let matching = this.playerData.filter(pd => pd.code === code);
         let index = (matching.length !== 1) ? null : this.playerData.indexOf(matching[0]); 
-        let name = index !== null ? this.playerData[index].name : "guest";
+        let name = index !== null ? this.playerData[index].name : "katsoja";
         console.log(name + ' authenticated with code ' + code,  args, callback);
         let connector = new Connector(this, index, socket);
         this.connectors.push(connector);
