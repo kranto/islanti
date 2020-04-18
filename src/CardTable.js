@@ -196,7 +196,7 @@ class CardTable extends Component {
     console.log(this.state.s.myhands);
 
     return (
-      <div className={"CardTable " + (this.state.opening ? "selecting" : "") + (this.state.s.myhands.inTurn ? " in-turn" : "")}>
+      <div className={"CardTable " + (this.state.opening ? "selecting" : "") + (this.state.s.myhands && this.state.s.myhands.inTurn ? " in-turn" : "")}>
         <div id="otherplayers">
             {this.createPlayers()}
         </div>

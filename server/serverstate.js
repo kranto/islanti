@@ -74,7 +74,7 @@ class Connector  {
           deal: state.phase === this.serverstate.DEAL && state.myTurn,
           show: state.phase === this.serverstate.SHOW_CARD && state.myTurn,
           pick: (state.phase === this.serverstate.PICK_CARD || state.phase === this.serverstate.PICK_CARD_BOUGHT) && state.myTurn,
-          buy: state.phase === this.serverstate.PICK_CARD && (state.playerInTurn >= 1 || !state.myTurn && state.turnIndex === 1) && state.myhands.bought < 3,
+          buy: !this.imGuest && state.phase === this.serverstate.PICK_CARD && (state.playerInTurn >= 1 || !state.myTurn && state.turnIndex === 1) && state.myhands.bought < 3,
           sell: state.phase === this.serverstate.PICK_CARD_BUYING && state.myTurn,
           open: state.phase === this.serverstate.TURN_ACTIVE && state.myTurn && !state.myhands.opened,
           complete: state.phase === this.serverstate.TURN_ACTIVE && state.myTurn && state.myhands.opened,
@@ -521,15 +521,18 @@ class ServerState {
 
     var setsNumbers = [];
     for (let i = 0; i < sets.length; i++) {
-      if (setsNumbers.indexOf(sets[i].number) >= 0) {
+      if (setsNumbers.indexOf(sets[i].rank) >= 0) {
         return {valid: false, msg: "Kaikki kolmossarjat täytyy olla eri numeroa"};
       }
+      setsNumbers.push(sets[i].rank);
     }
     var straightSuits = [];
     for (let i = 0; i < straights.length; i++) {
-      if (straightSuits.indexOf(straights[i].s) >= 0) {
+      console.log('straightsuits', straightSuits, straights[i])
+      if (straightSuits.indexOf(straights[i].suit) >= 0) {
         return {valid: false, msg: "Suorat täytyy olla eri maista"};
       }
+      straightSuits.push(straights[i].suit);
     }
   
     if (round.isFreestyle) {
