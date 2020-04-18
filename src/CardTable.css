@@ -184,6 +184,11 @@
 	float: left;
 }
 
+.winner {
+	font-size: 30px;
+	font-style: bold;
+}
+
 #myopenhands {
 	clear: left;
 }

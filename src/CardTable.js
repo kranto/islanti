@@ -156,9 +156,9 @@ class CardTable extends Component {
       }
     } else if (state.phase === 5) {
       if (state.winner < 0) {
-        return <div>Sinä voitit!!</div>
+        return <div className="winner">Sinä voitit!!</div>
       } else {
-        return <div><span>{state.players[state.winner].name}</span> voitti</div>
+        return <div className="winner"><span>{state.players[state.winner].name}</span> voitti</div>
       }
     }
     return "";

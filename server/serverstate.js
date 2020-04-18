@@ -1,6 +1,7 @@
 const fs = require('fs');
 
 const EventEmitter = require('events');
+const StorageDir = '/Users/kranto/tmp';
 
 anonymise = (cards) => cards.map(card => ({...card, s:undefined, r:undefined}));
 
@@ -53,7 +54,7 @@ class Connector  {
         state.playerInTurn = this.rollIndex(state.playerInTurn, state);
         state.buying = this.rollIndex(state.buying, state);
         state.winner = this.rollIndex(state.winner, state);
-        state.myhands = state.players.splice(0, 1)[0];
+        state.myhands = state.players.splice(0, 1)[0];  // --- create myhands, remove from players ---
         state.myTurn = state.playerInTurn < 0;
         state.players = state.players.map(p => ({...p, validity: undefined, 
           closed: p.closed ? (state.phase < 5 ? anonymise(p.closed.flat()) : p.closed.flat()) : []}));
@@ -100,7 +101,7 @@ class ServerState {
     this.eventEmitter = new EventEmitter();
   }
 
-  playerNames = ["HessuHopoliini", "Pelle Peloton"]; //, "Hupu", "Roope-Setä"];
+  playerNames = ["HessuHopoliini", "Pelle Peloton", "Hupu", "Roope-Setä"];
   playerDealing = this.playerNames.length - 1;
 
   init() {
@@ -138,8 +139,8 @@ class ServerState {
       }))
     };
 
-    if (fs.existsSync('/tmp/islantistate.json')) {
-      let rawdata = fs.readFileSync('/tmp/islantistate.json');
+    if (fs.existsSync(StorageDir + '/islantistate.json')) {
+      let rawdata = fs.readFileSync(StorageDir + '/islantistate.json');
       this.state = JSON.parse(rawdata);
     }
 
@@ -205,14 +206,14 @@ class ServerState {
   }
   
   notifyConnectors() {
-    fs.rename('/tmp/islantistate.json.4', '/tmp/islantistate.json.5', () => {
-      fs.rename('/tmp/islantistate.json.3', '/tmp/islantistate.json.4', () => {
-        fs.rename('/tmp/islantistate.json.2', '/tmp/islantistate.json.3', () => {
-          fs.rename('/tmp/islantistate.json.1', '/tmp/islantistate.json.2', () => {
-            fs.rename('/tmp/islantistate.json', '/tmp/islantistate.json.1', () => {
+    fs.rename(StorageDir + '/islantistate.json.4', StorageDir + '/islantistate.json.5', () => {
+      fs.rename(StorageDir + '/islantistate.json.3', StorageDir + '/islantistate.json.4', () => {
+        fs.rename(StorageDir + '/islantistate.json.2', StorageDir + '/islantistate.json.3', () => {
+          fs.rename(StorageDir + '/islantistate.json.1', StorageDir + '/islantistate.json.2', () => {
+            fs.rename(StorageDir + '/islantistate.json', StorageDir + '/islantistate.json.1', () => {
 
               let data = JSON.stringify(this.state);
-              fs.writeFileSync('/tmp/islantistate.json', data);
+              fs.writeFileSync(StorageDir + '/islantistate.json', data);
               this.eventEmitter.emit('stateChange', {action: 'fullState', state: this.getFullState()});
           
             });
@@ -650,356 +651,3 @@ module.exports = {
   ServerState: ServerState,
   Card: Card
 };
-
-  // state = {
-  //   round: { index: 1, name: 'Kolmoset ja suora' },
-  //   roundStartedBy: 2,
-  //   players: [
-  //     { name: "Pasi" },
-  //     { name: "Inka" },
-  //     { name: "Hellevi" },
-  //     { name: "Artturi" },
-  //   ],
-  //   playerHands: [
-  //     { closedHand: [[0, 1, 0, 0, 1, 1, 1, 1, 0]], openHands: [{ type: 'set', cards: [10, 10, 10, 12, 12] }, {}] },
-  //     { closedHand: [[0, 1, 0, 0, 1, 1, 1, 1, 0, 1, 1]], openHands: [{ type: 'straight', cards: [] }, {}] },
-  //     { closedHand: [[0, 1, 0, 0, 1, 1, 1, 1, 0, 1, 1]], openHands: [{ type: 'straight', cards: [] }, {}] },
-  //   ],
-  //   myHands: { closedHand: [[82, 99, 14, 9], [104, 67]], openHands: [{ type: 'straight', cards: [] }, {}] },
-
-  //   deck: { firstCard: 0, count: 44 },
-  //   pile: { firstCard: 103, count: 25 },
-
-  //   playerActive: 2,
-  //   state: 'pick',
-  // }
-
-  // deal(deck, firstPlayer, firstCard, count, playerStartingRound) {}
-  // showsFirstCard(card, firstInDeck, deckCount) {}
-  // movesCard(player, from, to, newClosedHand) {}
-  // picksFromDeck(player, card, firstCard, count) {}
-  // picksFromPile(player, card, firstCard, count) {}
-  // opens(player, fromArray, openHands) {}
-  // abandonsCard(player, from, card, newPlayerInTurn) {}
-  // willToBuy(seller, buyers) {} // [{player: 1, time: 123}]
-  // sells(seller, buyer, cardInPile, firstCardIPile, pileCount, cardInDeck, firstCardInDeck, deckCount)
-  // newDeck(firstCardInDeck, deckCount, firstCardInPile, pileCount)
-
-// moveCard(from, to, closedhand)
-// showFirstCard()
-// pickFromDeck()
-// pickFromPile()
-// open(openHands);
-// abandonCard(from, card)
-// willBuy()
-// sell()
-// dontSell()
-
-/*
-var OPEN_CARD = "OPEN_CARD";
-var PICK_CARD = "PICK_CARD";
-var TURN_ACTIVE = "TURN_ACTIVE";
-var OPENING = "OPENING";
-
-var dealt = false;
-var myTurn = false;
-var opened = false;
-var state = "";
-
-
-// gameStates/events:
-// OTHERS TURN START, OTHER PICKS FROM DECK, OTHER PICKS FROM DISCARD PILE,
-// OTHERS_TURN_IDLE,
-// OTHER OPENS, OTHER COMPLETES, OTHER DISCARDS A CARD, OTHER_FINISH_TURN, OTHER WINS THE GAME,
-// BUYABLE_APPEARS [I CAN/CANNOT BUY], NO-ONE BOUGHT, SOMEONE ELSE WINS, I WIN, OTHER_WONT_SELL
-// MY_TURN_STARTS, NOONE BUYS, I DECIDE IF I SELL, I SELL, I DONT SELL,
-// I OPEN, I COMPLETE, I PUT CARD AWAY, I WON THE GAME
-// I reorder, Other reorder
-// Out of cards
-
-//Create a new deck of cards
-
-
-let deck;
-let otherHands = [];
-let openHands = [];
-let discardPile;
-
-
-function createNewOpenHand() {
-  var el = $("#open-hand-template").clone().removeAttr("id").addClass('hand-section').show();
-  el.insertBefore("#newopen");
-  var hand = new cards.Hand({
-    faceUp:true,
-    element: el,
-    minWidth: 80,
-    isDraggable: true
-  });
-  el.droppable({
-    accept: ".playingcard",
-    greedy: true,
-    drop: function(event, ui) {
-      var card = ui.draggable.data('card');
-      hand.addCard(card, true);
-      removeEmptyOpenHands();
-      cards.refresh();
-    }
-  });
-  el.click(openHandClicked);
-  el.popover({
-    container: '.CardTable',
-    placement: 'top',
-    trigger: 'manual',
-    content: () => hand.validity.msg
-    });
-  return hand;
-}
-
-function removeEmptyOpenHands() {
-  for (var i = 0; i < openHands.length; i++) {
-    var openHand = openHands[i];
-    if (openHand.length == 0) {
-      openHands.splice(i, 1);
-      openHand.element.remove();
-      openHand.element.popover('dispose');
-      return;
-    }
-  }
-}
-
-function deal(iStart) {
-  deck.deal(13, [openHands[0]].concat(otherHands), 50, function() {
-    dealt = true;
-    setState(iStart, OPEN_CARD);
-  });
-}
-
-function sleep(fromMs, toMs) {
-  if (!toMs) toMs = fromMs;
-  return new Promise(resolve => setTimeout(resolve, Math.random()*(toMs - fromMs) + fromMs));
-  }
-
-async function  simulateOthers() {
-  $("simulateothers").prop("disabled", true);
-  for (var i in otherHands) {
-    await simulateOnePlayer(otherHands[i]);
-  }
-  setState(true, PICK_CARD);
-}
-
-async function simulateOnePlayer(hand) {
-  await sleep(500, 2000);
-  var card = (Math.random() > 0.7 && discardPile.length > 0) ? discardPile.topCard() : deck.topCard();
-  hand.addCard(card);
-  cards.refresh();
-  setState(false, TURN_ACTIVE);
-  await sleep(1000, 2000);
-  discardPile.addCard(hand[Math.floor(Math.random()*hand.length)]);
-  cards.refresh();
-  setState(false, PICK_CARD);
-}
-
-function setState(_myTurn, _state) {
-  myTurn = _myTurn;
-  state = _state;
-
-  $('#startover').prop( "disabled", !dealt);
-  // $('.deal-button').prop( "disabled", dealt);
-  // $('#othershowcard').prop( "disabled", myTurn || state !== OPEN_CARD);
-  // $('#simulateothers').prop( "disabled", !dealt || myTurn || (state !== "" && state !== PICK_CARD));
-  // $('#myturn').prop( "disabled", !dealt || myTurn);
-  $("#pile").droppable({disabled: !myTurn || state !== TURN_ACTIVE })
-
-  $("#openButton").css('display', dealt && myTurn && !opened && state === TURN_ACTIVE ? "block": "none");
-  $("#confirmOpenButton").css('display', dealt && myTurn && !opened && state === OPENING ? "block": "none");
-  $("#cancelOpenButton").css('display', dealt && myTurn && !opened && state === OPENING ? "block": "none");
-
-  $("#opencard_others").css('display', function() {return state === OPEN_CARD && !myTurn? 'block' : 'none'});
-  $("#opencard_myturn").css('display', function() {return state === OPEN_CARD && myTurn? 'block' : 'none'});
-  $("#pickcard").css('display', function() {return myTurn && state === PICK_CARD ? 'block' : 'none'});
-  $("#selectseries").css('display', dealt && myTurn && !opened && state === OPENING ? "block": "none");
-  $("#selectseries span").text(round.roundName);
-
-  $(".playingcard").draggable("disable");
-  if (state !== OPENING) {
-    openHands.forEach(function(hand) {hand.forEach(function(c) {$(c.el).draggable("enable")})});
-  }
-
-  $(".CardTable").toggleClass('selecting', state === OPENING);
-}
-
-
-function openHandClicked() {
-  if ($(this).hasClass("selected")) {
-    $(this).toggleClass("selected", false);
-    $(this).popover('hide');
-  } else {
-    $(this).toggleClass("selected", true);
-    $(this).toggleClass("error", !$(this).data("container").validity.valid);
-    $(this).popover('show');
-  }
-  updateConfirmButton();
-}
-
-function updateConfirmButton() {
-  var selected = [];
-  $(".open-hand.selected").each(function() {
-    selected.push($(this).data('container'));
-  });
-
-  var myAllCards = openHands.reduce(function(acc, hand) {return acc + hand.length}, 0);
-
-  validity = validateSelected(selected, myAllCards);
-  $("#confirmOpenButton").prop("disabled", !validity.valid);
-  showValidityMessage();
-}
-
-var validity;
-function showValidityMessage() {
-  $("#errormsg").text(validity.valid ? "" : validity.msg);
-}
-
-// ===========
-
-function validateSelected(selected, cardCount) {
-  var threes = [];
-  var flushes = [];
-  for (var i = 0; i < selected.length; i++) {
-    var hand = selected[i];
-
-    if (!hand.validity.valid) {
-      return {valid: false, msg: "Joku valituista sarjoista ei ole sallittu."};
-    }
-    if (hand.validity.type === 'flush') {
-      flushes.push(hand.validity.data);
-    }
-    if (hand.validity.type === 'three') {
-      threes.push(hand.validity.data);
-    }
-  }
-  if (threes.length !== round.expectedThrees && !round.isFreestyle) {
-    return {valid: false, msg: "Pitäisi olla " + round.expectedThrees + " kolmoset, mutta onkin " + threes.length};
-  }
-  if (flushes.length !== round.expectedFlushes && !round.isFreestyle) {
-    return {valid: false, msg: "Pitäisi olla " + round.expectedFlushes + " suoraa, mutta onkin " + flushes.length};
-  }
-  var threesNumbers = [];
-  for (var i = 0; i < threes.length; i++) {
-    if (threesNumbers.indexOf(threes[i].number) >= 0) {
-      return {valid: false, msg: "Kaikki kolmossarjat täytyy olla eri numeroa"};
-    }
-  }
-  var flushesSuites = [];
-  for (var i = 0; i < flushes.length; i++) {
-    if (flushesSuites.indexOf(flushes[i].s) >= 0) {
-      return {valid: false, msg: "Suorat täytyy olla eri maista"};
-    }
-  }
-
-  return {valid: true};
-}
-
-function validateHands() {
-  openHands.forEach((hand) => {
-    hand.validity = validateHand(hand, round.expectedFlushes > 0, round.expectedThrees > 0);
-  });
-}
-
-function validateHand(hand, testForFlush, testForThrees) {
-  var flush = testForFlush ? testFlush(hand) : false;
-  var three = testForThrees ? testThree(hand) : false;
-
-  if (flush && flush.valid) return {type: 'flush', valid: true, msg: 'Suora', data: flush};
-  if (three && three.valid) return {type: 'three', valid: true, msg: 'Kolmoset', data: three};
-  return {valid: false, type: false, msg: (flush ? (flush.msg + ". "): "") + (three ? (three.msg + ".") : "")};
-}
-
-function testFlush(hand) {
-  if (hand.length < 4) {
-    return {valid: false, msg: "Suorassa täytyy olla vähintään neljä korttia"};
-  }
-  if (hand.length > 13) {
-    return {valid: false, msg: "Suorassa ei saa olla yli 13 korttia"};
-  }
-
-  var others = hand.filter(c => c.rank > 0);
-  var jokers = hand.filter(c => c.rank === 0);
-  var aces = hand.filter(c => c.rank === 1);
-
-  if (others.filter(c => c.suit !== others[0].suit).length > 0) {
-    return {valid: false, msg: "Suorassa saa olla vain yhtä maata"};
-  }
-  if (jokers.length >= others.length) {
-    return {valid: false, msg: "Suorassa vähintään puolet korteista pitää olla muita kuin jokereita"}
-  }
-
-  var highAce = false;
-  if (aces.length > 1) {
-    return {valid: false, msg: "Suorassa voi olla vain yksi ässä"};
-  } else if (aces.length === 1) {
-    if (others[0] === aces[0]) {
-      highAce = others[1].rank > 8;
-    } else if (others[others.length-1] === aces[0]) {
-      highAce = others[others.length-2].rank > 8;
-    } else {
-      return {valid: false, msg: "Ässän täytyy olla suoran päässä"};
-    }
-  }
-
-  var ranks = hand.map(c => highAce && c.rank === 1 ? 14 : c.rank);
-  var otherRanks = ranks.filter(r => r > 0);
-
-  var increasing = otherRanks[0] < otherRanks[1];
-  if (!increasing) {
-    hand.reverse();
-    others.reverse();
-    jokers.reverse();
-    ranks.reverse();
-    otherRanks.reverse();
-  }
-
-  var rankStart = otherRanks[0] - ranks.indexOf(otherRanks[0]);
-
-  if (rankStart < 1 || rankStart + ranks.length - 1 > 14) {
-    return {valid: false, msg: "Suora ei voi mennä kulman ympäri"};
-  }
-
-  for (var i = 0; i < ranks.length; i++) {
-    if (ranks[i] !== 0  && ranks[i] !== rankStart + i) {
-      return {valid: false, msg: "Suorassa täytyy olla kortit järjestyksessä"}
-    }
-  }
-
-  return {
-    type: 'flush',
-    valid: true,
-    suit: others[0].suit,
-    cards: hand,
-    highAce: highAce
-  };
-}
-
-function testThree(hand) {
-  if (hand.length < 3) {
-    return {valid: false, msg: "Kolmosissa täytyy olla vähintään kolme korttia"};
-  }
-  if (hand.length > 8) {
-    return {valid: false, msg: "Kolmosissa ei saa olla yli 8 korttia"};
-  }
-  var jokers = hand.filter(c => c.rank === 0);
-  var others = hand.filter(c => c.rank > 0);
-  if (jokers.length >= others.length) {
-    return {valid: false, msg: "Kolmosissa vähintään puolet korteista pitää olla muita kuin jokereita"}
-  }
-  if (others.filter(c => c.rank !== others[0].rank).length > 0) {
-    return {valid: false, msg: "Kolmosissa saa olla vain yhtä numeroa"};
-  }
-
-  return {
-    type: 'threes',
-    valid: true,
-    rank: others[0].rank,
-    cards: hand,
-  };
-}
-*/
