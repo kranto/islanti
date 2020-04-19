@@ -121,14 +121,6 @@ function populateState() {
     });
   });
 
-  if (state.phase === 5) { // when finished, reveal cards after timeout
-    setTimeout(() => {
-      otherPlayers.forEach(p => {p.closed.faceUp = true; p.closed.render(); });
-    }, 3000);
-  } else {
-    otherPlayers.forEach(p => {p.closed.faceUp = false;});
-  }
-
   if (!imGuest) {
     state.myhands.closed.forEach((section, i) => {
       let hand = myClosedHandSections[i];

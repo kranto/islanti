@@ -68,8 +68,7 @@ class Connector  {
         state.winner = this.rollIndex(state.winner, state);
         state.myhands = this.imGuest ? null : state.players.splice(0, 1)[0];  // --- create myhands, remove from players ---
         state.myTurn = state.playerInTurn < 0;
-        state.players = state.players.map(p => ({...p, validity: undefined, 
-          closed: p.closed ? (state.phase < 5 ? anonymise(p.closed.flat()) : p.closed.flat()) : []}));
+        state.players = state.players.map(p => ({...p, validity: undefined, closed: p.closed ? anonymise(p.closed.flat()) : []}));
         state.can = {
           deal: state.phase === this.serverstate.DEAL && state.myTurn,
           show: state.phase === this.serverstate.SHOW_CARD && state.myTurn,
