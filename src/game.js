@@ -104,7 +104,7 @@ function populateState() {
 
   state.players.forEach((p, i) => {
     while (otherPlayers.length - 1 < i) {
-      var closedhand = new cards.Hand({faceUp:false, pullUp: true, element: $("#player" + i + " .closed-hand")});
+      var closedhand = new cards.Hand({faceUp:false, minWidth: 100, spacing: 25, pullUp: true, element: $("#player" + i + " .closed-hand")});
       otherPlayers.push({closed: closedhand, open: []});
     }
     let otherPlayer = otherPlayers[i];
@@ -231,7 +231,8 @@ function init(_stateManager) {
 	$(".CardTable").droppable({
 		accept: ".playingcard",
 		drop: function(event, ui) {
-			var card = ui.draggable.data('card');
+      var card = ui.draggable.data('card');
+      card.dragging = false;
 			card.container.render();
 		}
 	});
