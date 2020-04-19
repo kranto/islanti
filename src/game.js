@@ -52,7 +52,7 @@ function createNewSection(index) {
 
 function createNewOpenHand(playerId, handArray, selector) {
   let element = $(selector);
-  let openhand = new cards.Hand({faceUp:true, spacing: 25, minWidth: 100, element: element});
+  let openhand = new cards.Hand({faceUp:true, spacing: 20, minWidth: 100, element: element});
   let index = handArray.length;
   handArray.push(openhand);
 
@@ -162,7 +162,8 @@ function newOrder(movedCard, hand, index) {
 }
 
 function stateChange(params) {
-	console.log(params);
+  console.log(params);
+  // console.log(params.state.players, otherPlayers);
 	switch (params.action) {
 		case 'init': case 'fullState':
       state = params.state;
