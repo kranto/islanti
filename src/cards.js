@@ -8,8 +8,6 @@ var cards = (function() {
 		cardSize : {width:69, height:94, spacing:40}
 	};
 
-	var zIndexCounter = 1;	
-
 	function mouseEvent(ev) {
 		var card = $(this).data('card');
 		if (card && card.container) {
@@ -33,21 +31,19 @@ var cards = (function() {
 				'<img src="" alt="card face down" class="facedown-img"/>'
 			);
 
-
 			$(this.el).css("opacity", 0);
 			setTimeout(() => $(this.el).css("opacity", 1), 1000);
 
 			this.reveal(suit, rank, back);
 			this.faceUp = false;
-			this.moveToFront();
-
 
 			$(this.el).click(mouseEvent);
 
 			$(this.el).draggable({
 				stack: ".playingcard",
 				containment: ".CardTable",
-				placement: "top"
+				start: () => {this.dragging = true; $(this.el).css('z-index', 1000);},
+				stop: () => {this.dragging = false} 
 			});	
 		},
 
@@ -76,10 +72,6 @@ var cards = (function() {
 			$(this.el).toggleClass("faceup", false);
 		},
 		
-		moveToFront : function() {
-			$(this.el).css('z-index', zIndexCounter++);
-		},
-
 		rect : function() {
 			return elementRect(this.el);
 		}
@@ -147,7 +139,7 @@ var cards = (function() {
 		},
 
 		moveCardToTarget: function(card) {
-			if (card.currTop !== card.targetTop || Math.abs(card.currLeft - card.targetLeft) > 5) {
+			if (card.currTop !== card.targetTop || Math.abs(card.currLeft - card.targetLeft) > 2) {
 				if (this.pullUp && card.currTop === card.targetTop) {
 					card.pullUp(15 *  Math.sign(card.currLeft - card.targetLeft));
 				}
@@ -167,10 +159,12 @@ var cards = (function() {
 			this.calcPosition(options);
 			for (var i=0;i<this.length;i++) {
 				var card = this[i];
-				card.moveToFront();
-				card.currTop = parseInt($(card.el).css('top'));
-				card.currLeft = parseInt($(card.el).css('left'));
-				this.moveCardToTarget(card);
+				if (!card.dragging) {
+					$(card.el).css('z-index', i);
+					card.currTop = parseInt($(card.el).css('top'));
+					card.currLeft = parseInt($(card.el).css('left'));
+					this.moveCardToTarget(card);
+				}
 			}
 			var me = this;
 			var flip = function() {
