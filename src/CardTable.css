@@ -90,9 +90,11 @@ div {
 	margin: 2px;
 	border-radius: 10px;
 	padding: 3px 0px;
-	/* height: 110px; */
 	display: flex;
 	flex-flow: row nowrap;
+	box-shadow: -5px -5px 10px darkgreen;
+	border: 1px solid darkgreen;
+
 }
 
 .other-player .player-name {
@@ -125,13 +127,11 @@ div {
 }
 
 .closed-hand {
-	/* width: 220px; */
 	min-width: 100px;
 }
 
 .open-hand {
 	border: 1px solid transparent;
-	/* min-width: 100px; */
 }
 
 .turn-indicator {
@@ -140,7 +140,7 @@ div {
 }
 
 .turn-indicator.in-turn {
-	background-color: rgba(40,160,50,1);
+	background-color: rgb(46, 177, 57);
     transition: background-color 0.7s linear 0.7s;
 }
 	
