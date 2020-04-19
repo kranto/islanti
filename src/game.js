@@ -59,7 +59,6 @@ function createNewOpenHand(playerId, handArray, selector) {
   element.droppable({
 		accept: (cardElement) => {
       let card = cardElement.data('card');
-      console.log(openhand);
       return openhand.accepts.filter(acc => acc.r === card.rank && (!acc.s || acc.s === card.suit)).length > 0;    
     },
 		greedy: true,
@@ -67,7 +66,6 @@ function createNewOpenHand(playerId, handArray, selector) {
       var card = ui.draggable.data('card');
       let firstHalf = centerX(ui.draggable) < centerX(element);
       let dropIndex = openhand.getNewIndex(card);
-      console.log(dropIndex);
       sendAction('complete', {card: card.id, player: playerId, hand: index, firstHalf: firstHalf, dropIndex: dropIndex});
 		}
 	});
@@ -157,7 +155,6 @@ function newSection(firstCardInNewSection) {
 
 function newOrder(movedCard, hand, index) {
   let handIndex = myClosedHandSections.indexOf(hand);
-  console.log(hand, handIndex, myClosedHandSections);
   let newOrder = myClosedHandSections.map(hand => hand.map(card => card.id).filter(id => id !== movedCard.id));
   newOrder[handIndex].splice(index,0,movedCard.id);
   newOrder = newOrder.filter(section => section.length > 0);

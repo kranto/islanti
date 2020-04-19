@@ -19,13 +19,11 @@ class CardTable extends Component {
 
   componentDidMount() {
     this.props.stateManager.subscribeTo('stateChange', (params) => {
-      console.log('CardTable.listenToEvent', params);
       this.setState({...this.state, s : this.props.stateManager.getState()})
     });
   }
 
   componentDidUpdate() {
-    console.log('componentDidUpdate');
     if (this.state.s) {
       if (!this.gameInitialized) {
         game.init(this.props.stateManager);      
@@ -74,7 +72,6 @@ class CardTable extends Component {
         straights: acc.straights + (state.myhands.validity[i].type === 'straight' ? 1 : 0),
         cards: acc.cards + state.myhands.closed[i].length
       }), {sets: 0, straights: 0, cards: 0});
-    console.log(selection);
     let selectionOk = 
       (!state.round.isFreestyle 
         && selection.sets === state.round.expectedSets
@@ -84,7 +81,6 @@ class CardTable extends Component {
 
     if (selectionOk) {
       this.props.stateManager.validateSelection(sel.map((x, i) => x ? i : -1).filter(i => i >= 0), result => {
-        console.log(result);
         callback (result.valid, result.msg);
       });
     } else {
@@ -97,7 +93,6 @@ class CardTable extends Component {
     if (!state.myhands.validity[index].valid) return;
     let sel = [...this.state.selected];
     sel[index] = !sel[index];
-    console.log(index, state.myhands.validity, this.state.selected);
 
     this.validateSelection(sel, (ok, msg) => this.setState({selected: sel, selectionOk: ok, msg: msg}));
   }
@@ -193,7 +188,6 @@ class CardTable extends Component {
 
     if (!this.state.s) return "loading";
     let imGuest = this.state.s.myhands === null || this.state.s.myhands.open === undefined;
-    console.log(this.state.s.myhands);
 
     return (
       <div className={"CardTable " + (this.state.opening ? "selecting" : "") + (this.state.s.myhands && this.state.s.myhands.inTurn ? " in-turn" : "")}>
