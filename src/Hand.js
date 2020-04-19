@@ -21,8 +21,7 @@ class Hand extends Component {
 
   render() {
     return (
-      <div id={this.props.id} className={this.getClasses()} style={this.props.style} onClick={this.onClick}
-      style={{display: this.props.visible ? 'block' : 'none'}}>
+      <div id={this.props.id} className={this.getClasses()} style={this.props.style} onClick={this.onClick}>
       </div>
     );
   }

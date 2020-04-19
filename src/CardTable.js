@@ -37,11 +37,12 @@ class CardTable extends Component {
     return state.players.map((p, index) => {
       return (
       <div id={"player" + index} key={"o" + index} 
-        className={"other-player turn-indicator" + (p.inTurn ? " in-turn" : "")}  
-        style={{display: (p.closed ? 'initial' : 'none')}}>
+        className={"other-player turn-indicator" + (p.inTurn ? " in-turn" : "")}>
         <div className="player-name">{p.name}</div>
-        <Hand classes="player-hand closed-hand" visible={true}/>
-        {p.open.map((h, i) => <Hand key={"p" + index + "o" + i} id={"p" + index + "o" + i} classes="open-hand" visible={true}></Hand>)}
+        <div className="player-hands">
+          <Hand classes="player-hand closed-hand"/>
+          {p.open.map((h, i) => <Hand key={"p" + index + "o" + i} id={"p" + index + "o" + i} classes="player-hand open-hand"></Hand>)}
+        </div>
       </div>
     );});
   }
@@ -54,7 +55,6 @@ class CardTable extends Component {
         {this.state.s.myhands.closed.map((section, i) => 
         <Hand key={i} id={"section" + i} 
           classes="hand-section section" 
-          visible={i < sections.length}
           error={this.state.opening && i < sections.length && !this.state.s.myhands.validity[i].valid}
           selected = {this.state.selected && this.state.selected.length > i ? this.state.selected[i] : false}
           onClick={() => this.onSectionClicked(i)}>
@@ -194,7 +194,7 @@ class CardTable extends Component {
         <div id="otherplayers">
             {this.createPlayers()}
         </div>
-        <div id="gamearea">
+        <div id="gamearea" className={"turn-indicator " + (this.state.s.myhands && this.state.s.myhands.inTurn ? "in-turn" : "")}>
           <div id="roundinfo">Kierros {this.state.s.round.roundNumber}/8 {this.state.s.round.roundName}</div>
           <div id="instructions">
                 {this.createInstructions()}
@@ -206,9 +206,7 @@ class CardTable extends Component {
             </div>
             {imGuest ? "" : (
             <div id="deckrowcolumn2">
-              <div id="myopenhands">
-                {this.state.s.myhands.open.map((h, i) => <Hand key={"m" + i} id={"myopen" + i} classes="open-hand" visible={true}></Hand>)}
-              </div>
+              {this.state.s.myhands.open.map((h, i) => <Hand key={"m" + i} id={"myopen" + i} classes="player-hand open-hand"></Hand>)}
               <div id="controls">
                 {this.createControls()}
               </div>

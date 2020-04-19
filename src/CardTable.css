@@ -1,4 +1,12 @@
 
+div {
+	/* outline: 1px solid white;  */
+}
+
+#root {
+	background-color: #101010;
+}
+
 .playingcard {
 	position: absolute;
 	transform: rotate(0) scale(1);
@@ -59,6 +67,11 @@
 	box-shadow:#111 1px 1px 2px;
 	user-select: none;
 	transition: border-color 1s;
+
+	display: flex;
+	flex-direction: column;
+	flex-wrap: nowrap;
+	flex-flow: column nowrap;
 }
 
 .CardTable.in-turn {
@@ -67,24 +80,58 @@
 
 #otherplayers {
 	width: 100%;
+	display: flex;
+	flex-flow: column nowrap;
 }
+
 .other-player {
 	width: 100%;
 	float: left;
 	margin: 2px;
 	border-radius: 10px;
 	padding: 3px 0px;
-	height: 110px;
+	/* height: 110px; */
+	display: flex;
+	flex-flow: row nowrap;
+}
+
+.other-player .player-name {
+	color: white;
+	writing-mode: vertical-rl;
+	transform: rotate(180deg);
+	font-size: 1.2em;
+    overflow: hidden;
+	width: 1.4em;
+	padding: 10px 0;
+	align-self: stretch;
+	flex-shrink: 0;
+}
+
+.other-player.in-turn .player-name {
+	font-weight: bold;
+}
+
+.player-hands {
+	display: flex;
+	flex-flow: row wrap;
+}
+
+.player-hand {
+	float:left;
+	border-radius: 10px;
+	margin: 0px 5px;
+	height: 105px;
+	align-self: center;
+}
+
+.closed-hand {
+	/* width: 220px; */
+	min-width: 100px;
 }
 
 .open-hand {
 	border: 1px solid transparent;
-	min-width: 100px;
-	height: 105px;
-	margin: 0px 10px;
-	float:left;
-	border-radius: 10px;
-	margin: 0px 5px;
+	/* min-width: 100px; */
 }
 
 .turn-indicator {
@@ -97,37 +144,6 @@
     transition: background-color 0.7s linear 0.7s;
 }
 	
-
-.other-player div {
-	display: inline-block;
-	clear: none;
-	float: left;
-}
-
-.other-player .player-name {
-	color: white;
-	writing-mode: vertical-rl;
-	transform: rotate(180deg);
-	font-size: 1.2em;
-    overflow: hidden;
-	width: 1.4em;
-	height: 110px;
-	padding: 10px 0;
-}
-
-.other-player.in-turn .player-name {
-	font-weight: bold;
-}
-
-.player-hand {
-	float: left;
-	margin: 5px;
-	height: 100px;
-	width: 220px;
-	max-width: 100%;
-	border-radius: 10px;
-	clear: left;
-}
 
 #gamearea {
 	float: left;
@@ -148,6 +164,9 @@
 	float: right;
 }
 
+#deckrow {
+	float: left;
+}
 #deckandpile {
 	float: left;
 	width: 257px;
@@ -174,8 +193,7 @@
 
 #deckrowcolumn2 {
 	float: left;
-	min-width: 500px;
-
+	/* min-width: 500px; */
 }
 
 #instructions {
@@ -190,7 +208,7 @@
 }
 
 #myopenhands {
-	clear: left;
+	/* clear: left; */
 }
 
 #my-closed-hand-sections {
