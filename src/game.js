@@ -110,6 +110,8 @@ function populateState() {
     let otherPlayer = otherPlayers[i];
     updateContainer(otherPlayer.closed, p.closed);
 
+    otherPlayer.open.forEach(hand => hand.element = null);
+    otherPlayer.open = [];
     p.open.forEach((open, i2) => {
       while (otherPlayer.open.length - 1 < i2) {
         createNewOpenHand(p.id, otherPlayer.open, "#p" + i + "o" + i2);
@@ -125,6 +127,8 @@ function populateState() {
       updateContainer(hand, section);
     });
   
+    myOpenHandSections.forEach(section => section.element = null);
+    myOpenHandSections = [];
     let i = 0;
     while (myOpenHandSections.length < state.myhands.open.length) {
       createNewOpenHand(state.myhands.id, myOpenHandSections, "#myopen" + i);
