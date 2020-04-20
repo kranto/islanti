@@ -113,10 +113,6 @@ class ServerState {
     this.eventEmitter = new EventEmitter();
   }
 
-  playerNames = ["HessuHopoliini", "Pelle Peloton", "Hupu", "Roope-Setä"];
-  playerDealing = this.playerNames.length - 1;
-
-
   init(roundNumber, dealerIndex) {
     this.cards = this.createCards();
     this.shuffle(this.cards);
@@ -146,7 +142,7 @@ class ServerState {
         validity: [{}],
         open: [],
         opened: false,
-        inTurn: this.playerDealing === i, 
+        inTurn: dealerIndex === i, 
         bought: 0
       }))
     };
