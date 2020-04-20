@@ -32,7 +32,7 @@ var cards = (function() {
 			);
 
 			$(this.el).css("opacity", 0);
-			setTimeout(() => $(this.el).css("opacity", 1), 1000);
+			setTimeout(() => $(this.el).css("opacity", ""), 1000);
 
 			this.reveal(suit, rank, back);
 			this.faceUp = false;
