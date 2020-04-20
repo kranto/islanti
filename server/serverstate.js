@@ -1,5 +1,15 @@
 const fs = require('fs');
 
+const storage = require('./storage');
+
+const readState = async () => {
+  return await storage.roundstate().findOne({}, {sort:{$natural:-1}});
+};
+
+const writeState = async (state) => {
+  await storage.roundstate().insert(state);
+};
+
 const EventEmitter = require('events');
 const StorageDir = '/Users/kranto/tmp';
 
@@ -113,7 +123,7 @@ class ServerState {
     this.eventEmitter = new EventEmitter();
   }
 
-  init(roundNumber, dealerIndex) {
+  async init(roundNumber, dealerIndex) {
     this.cards = this.createCards();
     this.shuffle(this.cards);
     this.cards.forEach((card, index) => card.i = index);
@@ -125,7 +135,7 @@ class ServerState {
     this.playerData = JSON.parse(fs.readFileSync(StorageDir + '/players.json'));
     this.playerCount = this.playerData.length;
 
-    this.state = {
+    let newState = {
       round: ROUNDS[roundNumber - 1],
       index: 0,
       turnIndex: 0,
@@ -147,10 +157,8 @@ class ServerState {
       }))
     };
 
-    if (fs.existsSync(StorageDir + '/islantistate.json')) {
-      let rawdata = fs.readFileSync(StorageDir + '/islantistate.json');
-      this.state = JSON.parse(rawdata);
-    }
+    let savedState = await readState();
+    this.state = savedState || newState;
 
     console.log(this.state);
 
@@ -215,23 +223,9 @@ class ServerState {
       }
   }
   
-  notifyConnectors() {
-    fs.rename(StorageDir + '/islantistate.json.4', StorageDir + '/islantistate.json.5', () => {
-      fs.rename(StorageDir + '/islantistate.json.3', StorageDir + '/islantistate.json.4', () => {
-        fs.rename(StorageDir + '/islantistate.json.2', StorageDir + '/islantistate.json.3', () => {
-          fs.rename(StorageDir + '/islantistate.json.1', StorageDir + '/islantistate.json.2', () => {
-            fs.rename(StorageDir + '/islantistate.json', StorageDir + '/islantistate.json.1', () => {
-
-              let data = JSON.stringify(this.state);
-              fs.writeFileSync(StorageDir + '/islantistate.json', data);
-              this.eventEmitter.emit('stateChange', {action: 'fullState', state: this.getFullState()});
-          
-            });
-          });
-        });
-      });
-    });
-
+  async notifyConnectors(saveState) {
+    if (saveState) await writeState({...this.state, index: undefined, _id: undefined});
+    this.eventEmitter.emit('stateChange', {action: 'fullState', state: this.getFullState()});
   }
   
   createCards() {
@@ -276,7 +270,7 @@ class ServerState {
     this.nextPlayerInTurn();
     this.state.phase = this.SHOW_CARD;
     this.state.index++;
-    this.notifyConnectors();
+    this.notifyConnectors(true);
     return true;
   }
 
@@ -297,7 +291,7 @@ class ServerState {
     this.state.players[player].validity = newSections.map(section => 
       this.testSection(section, this.state.round.expectedStraights > 0, this.state.round.expectedSets > 0));
     this.state.index++;
-    this.notifyConnectors();
+    this.notifyConnectors(false);
     return true;
   }
 
@@ -307,7 +301,7 @@ class ServerState {
     this.state.pile.unshift(this.state.deck.shift());
     this.state.phase = this.PICK_CARD;
     this.state.index++;
-    this.notifyConnectors();
+    this.notifyConnectors(true);
   }
 
   pickCard(player, fromDeck) {
@@ -321,7 +315,7 @@ class ServerState {
 
     this.state.phase = this.TURN_ACTIVE;
     this.state.index++;
-    this.notifyConnectors();
+    this.notifyConnectors(true);
   }
 
   requestToBuy(player) {
@@ -331,7 +325,7 @@ class ServerState {
     this.state.phase = this.PICK_CARD_BUYING;
     this.state.buying = player;
     this.state.index++;
-    this.notifyConnectors();
+    this.notifyConnectors(true);
   }
 
   sell(player) {
@@ -346,7 +340,7 @@ class ServerState {
     this.state.buying = null;
     this.state.phase = this.PICK_CARD_BOUGHT;
     this.state.index++;
-    this.notifyConnectors();
+    this.notifyConnectors(true);
   }
 
   dontsell(player) {
@@ -358,7 +352,7 @@ class ServerState {
     this.state.buying = null;
     this.state.phase = this.TURN_ACTIVE;
     this.state.index++;
-    this.notifyConnectors();
+    this.notifyConnectors(true);
   }
 
   discarded(player, id) {
@@ -379,7 +373,7 @@ class ServerState {
       this.state.phase = this.PICK_CARD;
     };
 
-    this.notifyConnectors();
+    this.notifyConnectors(true);
   }
 
   open(player, selectedIndices) {
@@ -398,7 +392,7 @@ class ServerState {
     p.opened = true;
     this.state.index++;
     this.checkIfFinished(player);
-    this.notifyConnectors();
+    this.notifyConnectors(true);
   }
 
   complete(player, handPlayer, handIndex, cardId, dropIndex) {
@@ -444,7 +438,7 @@ class ServerState {
       this.testSection(section, this.state.round.expectedStraights > 0, this.state.round.expectedSets > 0));
     this.state.index++;
     this.checkIfFinished(player);
-    this.notifyConnectors();
+    this.notifyConnectors(true);
     return true;
   }
 
