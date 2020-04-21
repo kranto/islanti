@@ -158,7 +158,7 @@ class ServerState {
     };
 
     let savedState = await readState();
-    this.state = savedState || newState;
+    this.state = (savedState && savedState.round.roundNumber === roundNumber) ? savedState : newState;
 
     console.log(this.state);
 
