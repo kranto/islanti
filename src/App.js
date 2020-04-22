@@ -31,8 +31,8 @@ class App extends Component {
       <div className="App">
         <div>
         </div>
-        <GameRoom></GameRoom>
-        {/* <CardTable stateManager={this.stateManager}></CardTable> */}
+        {/* <GameRoom></GameRoom> */}
+        <CardTable stateManager={this.stateManager}></CardTable>
       </div>
     );
   }
