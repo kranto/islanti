@@ -8,8 +8,6 @@ class StateManager {
 
   initSocket(gameId, credentials, callback) {
     console.log('initSocket', this.socket);
-    // if (this.socket) return;
-    // console.log('initSocket contd');
 
     if (this.socket) {
       this.socket.close();

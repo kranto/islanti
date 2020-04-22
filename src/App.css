@@ -1,5 +1,10 @@
+html, body, #root {
+  height: 100%;
+}
+
 .App {
-  text-align: center;
+  height: 100%;
+  background-color: darkolivegreen !important;
 }
 
 .App-header {
@@ -16,3 +21,32 @@
 .App-link {
   color: #61dafb;
 }
+
+.GameRoom {
+  height: 100%;
+  width: 100%;
+  background-color: green;
+  color: white;
+  text-align: center;
+  display: flex;
+  flex-flow: column nowrap;
+  justify-content: center;
+  align-items: center;
+}
+
+#inputGameCode, #inputNick {
+  width: 4em;
+  margin: auto;
+  font-size: 1.5em;
+  text-align: center;
+}
+
+#inputNick {
+  width: 8em;
+}
+
+.text-muted.text-gray {
+  color: lightgray !important;
+  margin-bottom: 20px;
+}
+

@@ -1,6 +1,7 @@
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import React, { Component } from "react";
+import GameRoom from './GameRoom.js';
 import CardTable from './CardTable.js';
 import StateManager from './StateManager.js';
 
@@ -8,10 +9,7 @@ class App extends Component {
 
   constructor() {
     super();
-    this.cardTable = React.createRef();
-
     this.stateManager = new StateManager();
-
     this.state = { name: "tunnistaudu", authenticated: false};
   }
 
@@ -33,7 +31,8 @@ class App extends Component {
       <div className="App">
         <div>
         </div>
-        <CardTable ref={this.cardTable} stateManager={this.stateManager}></CardTable>
+        <GameRoom></GameRoom>
+        {/* <CardTable stateManager={this.stateManager}></CardTable> */}
       </div>
     );
   }

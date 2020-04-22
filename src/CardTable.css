@@ -1,12 +1,4 @@
 
-div {
-	/* outline: 1px solid white;  */
-}
-
-#root {
-	background-color: #101010;
-}
-
 .playingcard {
 	position: absolute;
 	transform: rotate(0) scale(1);
