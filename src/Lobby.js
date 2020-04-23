@@ -12,9 +12,10 @@ class Lobby extends Component {
     let localState = readFromLocalStorage() || {};
 
     this.state = {
-      gameId: localState.gameId,
+      gameId: null,
       participationId: localState.participationId,
-      phase: localState.participationId ? 3 : localState.gameId ? 2 : 1,
+      phase: localState.participationId ? 3 : 1,
+      joinedGame: false,
       code: "",
       errorMsg: "",
       newGame: false,
@@ -25,8 +26,8 @@ class Lobby extends Component {
   }
 
   componentDidUpdate() {
-    if (this.state.phase === 3 && this.props.lobbyReady && !this.state.joinedGame ) {
-      this.tryToJoinGame();
+    if (this.state.phase === 3 && this.props.lobbyReady && !this.state.joinedGame) {
+      this.validateParticipation();
     } else if (this.state.joinedGame) {
       this.props.goToGame(this.gameId, this.participationId);
     }
@@ -74,11 +75,26 @@ class Lobby extends Component {
   tryToJoinGame = () => {
     this.props.stateManager.joinGame(this.state.gameId, this.state.nick, (result) => {
       if (result.ok) {
-        this.setState({loading: false, participationId: result.participationId, phase: 3, joinedGame: true});
+        this.setState({loading: false, participationId: result.participationId, gameId: result.gameId, nick: result.nick, phase: 3, joinedGame: true});
       } else {
-        this.setState({loading: false, errorMsg: result.msg, participationId: undefined, gameId: undefined, phase: 1, joinedGame: false});
+        this.setState({loading: false, errorMsg: result.msg, code: "", participationId: undefined, gameId: undefined, phase: 1, joinedGame: false});
       }
       this.writeLocalStorage();
+    });
+  }
+
+  validateParticipation = () => {
+    if (this.validating) return;
+    this.validating = true;
+    this.setState({loading: true});
+    this.props.stateManager.validateParticipation(this.state.participationId, (result) => {
+      if (result.ok) {
+        this.setState({loading: false, participationId: result.participationId, gameId: result.gameId, nick: result.nick, phase: 3, joinedGame: true});
+      } else {
+        this.setState({loading: false, code: "", participationId: undefined, gameId: undefined, phase: 1, joinedGame: false});
+      }
+      this.writeLocalStorage();
+      this.validating = false;
     });
   }
 
@@ -132,11 +148,6 @@ class Lobby extends Component {
                 <span className="sr-only">Ladataan...</span>
               </div>
             </div>
-          </div>
-        }
-        {this.state.phase !== 3 ? "" :
-          <div>
-              <h1>Siirrytään peliin...</h1>
           </div>
         }
       </div>

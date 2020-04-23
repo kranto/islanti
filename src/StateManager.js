@@ -48,6 +48,13 @@ class StateManager {
     });
   }
 
+  validateParticipation(participationId, callback) {
+    this.lobby.emit('validateParticipation', {participationId: participationId}, (result) => {
+      console.log('validateParticipation result', result);
+      callback(result);
+    });
+  }
+
   initGame(gameId, credentials, callback) {
     console.log('initGame', this.game);
 

@@ -30,8 +30,8 @@ class Lobby {
         this.joinGame(args, callback);
       });
 
-      socket.on('goToGame', (args, callback) => {
-        this.goToGame(args, callback);
+      socket.on('validateParticipation', (args, callback) => {
+        this.validateParticipation(args, callback);
       });
     });
   }
@@ -58,13 +58,20 @@ class Lobby {
     if (args.nick.length > 5) {
       result = {ok: true, participationId: '1987654321', nick: args.nick, gameId: args.gameId};
     } else {
-      result = {ok: false, msg: "Peliin ei pääse"};
+      result = {ok: false, msg: "Peli on suljettu"};
     }
     setTimeout(() => callback(result), 2000);
   }
 
-  goToGame(args, callback) {
-    console.log('goToGame', args, callback);
+  validateParticipation(args, callback) {
+    console.log('validateParticipation', args, callback);
+    let result = {};
+    if (args.participationId.length > 5) {
+      result = {ok: true, participationId: '1987654321', nick: "Mikko Mallikas", gameId: '7766554433'};
+    } else {
+      result = {ok: false, msg: "Osallistuminen ei ole voimassa"};
+    }
+    setTimeout(() => callback(result), 0);
   }
 
 }
