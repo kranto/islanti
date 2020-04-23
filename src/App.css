@@ -4,7 +4,7 @@ html, body, #root {
 
 .App {
   height: 100%;
-  background-color: darkolivegreen !important;
+  background-color: gray !important;
 }
 
 .App-header {

@@ -46,7 +46,6 @@
 
 .CardTable {
 	position: relative;
-	max-width: 100%;
 	padding: 5px;
 	background-color:green;
 	overflow: hidden;
@@ -61,9 +60,10 @@
 	transition: border-color 1s;
 
 	display: flex;
-	flex-direction: column;
-	flex-wrap: nowrap;
 	flex-flow: column nowrap;
+
+	width: 100%;
+	min-height: 100%;
 }
 
 .CardTable.in-turn {
@@ -145,12 +145,11 @@
 }
 
 #roundinfo {
-	float: left;
-	clear: both;
 	width: 100%;
 	height: auto;
 	color: white;
 	font-size: 1.2em;
+	text-align: center;
 }
 
 #controls {
@@ -192,7 +191,7 @@
 #instructions {
 	width: 100%;
 	color: white;
-	float: left;
+	text-align: center;
 }
 
 .winner {

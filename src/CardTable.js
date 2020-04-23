@@ -154,7 +154,7 @@ class CardTable extends Component {
       if (state.winner < 0) {
         return <div className="winner">Sinä voitit!!</div>
       } else {
-        return <div className="winner"><span>{state.players[state.winner].name}</span> voitti</div>
+        return <div className="winner"><span>{state.players[state.winner].name}</span> voitti tämän kierroksen</div>
       }
     }
     return "";
@@ -195,7 +195,7 @@ class CardTable extends Component {
             {this.createPlayers()}
         </div>
         <div id="gamearea" className={"turn-indicator " + (this.state.s.myhands && this.state.s.myhands.inTurn ? "in-turn" : "")}>
-          <div id="roundinfo">Kierros {this.state.s.round.roundNumber}/8 {this.state.s.round.roundName}</div>
+          <div id="roundinfo">Kierros {this.state.s.round.roundNumber}/8 &ndash; {this.state.s.round.roundName}</div>
           <div id="instructions">
                 {this.createInstructions()}
           </div>
