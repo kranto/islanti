@@ -22,7 +22,7 @@ html, body, #root {
   color: #61dafb;
 }
 
-.GameRoom {
+.Lobby {
   height: 100%;
   width: 100%;
   background-color: green;

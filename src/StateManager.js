@@ -6,7 +6,7 @@ class StateManager {
     this.endpoint = window.location.hostname === 'localhost' ? "http://localhost:4000" : "";
   }
 
-  initLobby(lobbyName, callback) {
+  async initLobby(lobbyName, callback) {
     console.log('initLobby', lobbyName);
 
     if (this.lobby) {
@@ -14,7 +14,7 @@ class StateManager {
       this.lobby = null;
     }
 
-    this.lobby = socketIOClient(this.endpoint + "/lobby");
+    this.lobby = await socketIOClient(this.endpoint + "/lobby");
 
     this.lobby.on('connect', () => {
       console.log('connected to lobby');
@@ -48,50 +48,51 @@ class StateManager {
     });
   }
 
-  initGameSocket(gameId, credentials, callback) {
-    console.log('initSocket', this.socket);
+  initGame(gameId, credentials, callback) {
+    console.log('initGame', this.game);
 
-    if (this.socket) {
-      this.socket.close();
-      this.socket = null;
-    }
+    this.game = socketIOClient(this.endpoint + "/game/" + gameId);
 
-    this.socket = socketIOClient(this.endpoint + "/game/" + gameId);
-
-    this.socket.on('stateChange', args => {
+    this.game.on('stateChange', args => {
       this.stateChange(args);
     });
 
-    this.socket.on('connect', () => {
+    this.game.on('connect', () => {
       console.log('connected');
       this.authenticate(credentials, callback);
     });
 
-    this.socket.on('reconnect', () => {
+    this.game.on('reconnect', () => {
       console.log('reconnected');
     });
 
-    this.socket.on('reconnect_attempt', (i) => {
+    this.game.on('reconnect_attempt', (i) => {
       console.log('attempting to reconnect', i);
     });
 
-    this.socket.on('disconnect', () => {
+    this.game.on('disconnect', () => {
       console.log('disconnected');
     });
 
-    this.socket.on('authenticated', () => {
+    this.game.on('authenticated', () => {
       this.requestFullState();
       callback({connected: true, authenticated: true, msg: "Yhteys ok"});
     });
   }
 
+  closeGame() {
+    if (this.game) {
+      this.game.close();
+      this.game = null;
+    }
+  }
 
   authenticate(credentials, callback) {
-    this.socket.emit('authenticate', credentials, status => callback(status));
+    this.game.emit('authenticate', credentials, status => callback(status));
   }
 
   requestFullState() {
-    this.socket.emit('state');
+    this.game.emit('state');
   }
 
   getState() {
@@ -111,19 +112,21 @@ class StateManager {
 
   validateSelection(indices, callback) {
     console.log('validateSelection', indices);
-    this.socket.emit('validateSelection', {selectedIndices: indices}, callback);
+    this.game.emit('validateSelection', {selectedIndices: indices}, callback);
   }
   
   sendAction(action, params) {
     params = params || {};
     console.log('sendAction', action, params);
-    this.socket.emit('action', {...params, action: action});
+    this.game.emit('action', {...params, action: action});
   }
 
   subscribeTo(eventType, callback) {
-    document.addEventListener(eventType, (event) => {
-      callback(event.detail);
-    });  
+    document.addEventListener(eventType, callback);
+  }
+
+  unsubscribe(eventType, callback) {
+    document.removeEventListener(eventType, callback);
   }
 }
 

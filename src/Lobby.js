@@ -1,36 +1,55 @@
-import 'bootstrap/dist/css/bootstrap.min.css';
 import React, { Component } from "react";
-import CardTable from './CardTable.js';
 
-class GameRoom extends Component {
+let readFromLocalStorage = () => {
+  let item = window.localStorage.getItem('IslantiState') || "{}";
+  return JSON.parse(item);
+}
+
+class Lobby extends Component {
 
   constructor() {
     super();
+    let localState = readFromLocalStorage() || {};
+
     this.state = {
-      phase: 1,
-      codeEntered: false,
+      gameId: localState.gameId,
+      participationId: localState.participationId,
+      phase: localState.participationId ? 3 : localState.gameId ? 2 : 1,
       code: "",
-      gameId: null,
+      errorMsg: "",
       newGame: false,
       loading: false,
       nickEntered: false,
-      nick: ""
+      nick: localState.nick || ""
     };
   }
 
-  componentDidMount() {
+  componentDidUpdate() {
+    if (this.state.phase === 3 && this.props.lobbyReady && !this.state.joinedGame ) {
+      this.tryToJoinGame();
+    } else if (this.state.joinedGame) {
+      this.props.goToGame(this.gameId, this.participationId);
+    }
+  }
+
+  writeLocalStorage() {
+    let item =  {nick: this.state.nick, gameId: this.state.gameId, participationId: this.state.participationId};
+    window.localStorage.setItem('IslantiState', JSON.stringify(item) );
   }
 
   onCodeChanged = (event) => {
-    this.setState({ code: event.target.value });
+    this.setState({ code: event.target.value, errorMsg: "" });
   }
 
   onCodeReady = () => {
     this.setState({ loading: true });
     this.props.stateManager.findGame(this.state.code, (result) => {
-      this.setState({loading: false, codeEntered: true, phase: 2, gameId: result.gameId, gameCreatedBy: result.createdBy, gameCreatedAt: result.createdAt});
-    })
-    // setTimeout(() => this.setState({ loading: false, codeEntered: true, phase: 2 }), 2000);
+      if (result.ok) {
+        this.setState({loading: false, phase: 2, gameId: result.gameId, gameCreatedBy: result.createdBy, gameCreatedAt: result.createdAt});
+      } else {
+        this.setState({loading: false, code: "", phase: 1, errorMsg: result.msg});
+      }
+    });
   }
 
   onNewGameClicked = () => {
@@ -42,18 +61,31 @@ class GameRoom extends Component {
   }
 
   onNickReady = () => {
-    this.setState({ nickEntered: true, loading: true });
+    this.setState({ loading: true });
+    this.writeLocalStorage();
     console.log(this.state.newGame ? "Aloitetaan uusi peli" : "Liitytään peliin " + this.state.code, this.state.nick);
+    if (this.state.newGame) {
+
+    } else {
+      this.tryToJoinGame();
+    }
+  }
+
+  tryToJoinGame = () => {
     this.props.stateManager.joinGame(this.state.gameId, this.state.nick, (result) => {
-      this.setState({loading: false});
-      this.props.goToGame(result);
-    })
+      if (result.ok) {
+        this.setState({loading: false, participationId: result.participationId, phase: 3, joinedGame: true});
+      } else {
+        this.setState({loading: false, errorMsg: result.msg, participationId: undefined, gameId: undefined, phase: 1, joinedGame: false});
+      }
+      this.writeLocalStorage();
+    });
   }
 
   render() {
     return (
-      <div className="GameRoom">
-        {this.state.phase > 1 ? "" :
+      <div className="Lobby">
+        {this.state.phase !== 1 ? "" :
           <div style={{ height: "100%", display: "flex", flexFlow: "column nowrap", justifyContent: "space-around", alignItems: "center" }}>
             <div></div>
             <div id="enterCodeView">
@@ -72,6 +104,7 @@ class GameRoom extends Component {
                   </div>
                 </div>
               </div>
+              <div>{this.state.errorMsg}<span>&nbsp;</span></div>
             </div>
             <div id="newGame" style={{ visibility: this.state.code.length === 0 ? "visible" : "hidden" }}>
               <button type="button" className="btn btn-dark" onClick={this.onNewGameClicked} disabled={this.state.code.length > 0}>
@@ -80,7 +113,7 @@ class GameRoom extends Component {
             </div>
           </div>
         }
-        {this.state.phase < 2 ? "" :
+        {this.state.phase !== 2 ? "" :
           <div>
             {this.state.newGame ?
               <h1>Uusi peli</h1>
@@ -101,9 +134,14 @@ class GameRoom extends Component {
             </div>
           </div>
         }
+        {this.state.phase !== 3 ? "" :
+          <div>
+              <h1>Siirrytään peliin...</h1>
+          </div>
+        }
       </div>
     );
   }
 }
 
-export default GameRoom;
+export default Lobby;

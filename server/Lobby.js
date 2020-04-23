@@ -43,17 +43,28 @@ class Lobby {
 
   findGame(args, callback) {
     console.log('findGame', args, callback);
-    setTimeout(() => callback({gameId: '1234567899123', createdBy: 'Antti-Orvokki', createdAt: new Date()}), 2000);
+    let result = {};
+    if (args.code === '9999') {
+      result = {ok: true, gameId: '1234567899123', createdBy: 'Antti-Orvokki', createdAt: new Date()};
+    } else {
+      result = {ok: false, msg: "Koodi ei kelpaa"}
+    }
+    setTimeout(() => callback(result), 2000);
   }
 
   joinGame(args, callback) {
     console.log('joinGame', args, callback);
-    setTimeout(() => callback({result: true, participationId: '1987654321', nick: args.nick, gameId: args.gameId}), 2000);
+    let result = {};
+    if (args.nick.length > 5) {
+      result = {ok: true, participationId: '1987654321', nick: args.nick, gameId: args.gameId};
+    } else {
+      result = {ok: false, msg: "Peliin ei pääse"};
+    }
+    setTimeout(() => callback(result), 2000);
   }
 
   goToGame(args, callback) {
     console.log('goToGame', args, callback);
-
   }
 
 }

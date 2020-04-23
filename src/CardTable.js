@@ -17,10 +17,16 @@ class CardTable extends Component {
     this.gameInitialized = false;
   }
 
+  onStateChange = () => {
+    this.setState({...this.state, s : this.props.stateManager.getState()});
+  }
+
   componentDidMount() {
-    this.props.stateManager.subscribeTo('stateChange', (params) => {
-      this.setState({...this.state, s : this.props.stateManager.getState()})
-    });
+    this.props.stateManager.subscribeTo('stateChange', this.onStateChange);
+  }
+
+  componentWillUnmount() {
+    this.props.stateManager.unsubscribe('stateChange', this.onStateChange);
   }
 
   componentDidUpdate() {
@@ -28,7 +34,7 @@ class CardTable extends Component {
       if (!this.gameInitialized) {
         game.init(this.props.stateManager);      
       }
-        game.stateChange({action: 'fullState', state: {...this.state.s, opening: this.state.opening}});
+      game.stateChange({action: 'fullState', state: {...this.state.s, opening: this.state.opening}});
     }
   }
 
