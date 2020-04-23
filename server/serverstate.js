@@ -116,7 +116,6 @@ class ServerState {
     this.gameId = gameId;
     this.io = io.of('/game/' + gameId);
 
-    this.cards = this.createCards();
     this.connectors = [];
     this.state = false;
 
@@ -665,6 +664,5 @@ class ServerState {
 }
 
 module.exports = {
-  ServerState: ServerState,
-  Card: Card
+  ServerState: ServerState
 };

@@ -10,6 +10,7 @@ class GameRoom extends Component {
       phase: 1,
       codeEntered: false,
       code: "",
+      gameId: null,
       newGame: false,
       loading: false,
       nickEntered: false,
@@ -26,7 +27,10 @@ class GameRoom extends Component {
 
   onCodeReady = () => {
     this.setState({ loading: true });
-    setTimeout(() => this.setState({ loading: false, codeEntered: true, phase: 2 }), 2000);
+    this.props.stateManager.findGame(this.state.code, (result) => {
+      this.setState({loading: false, codeEntered: true, phase: 2, gameId: result.gameId, gameCreatedBy: result.createdBy, gameCreatedAt: result.createdAt});
+    })
+    // setTimeout(() => this.setState({ loading: false, codeEntered: true, phase: 2 }), 2000);
   }
 
   onNewGameClicked = () => {
@@ -38,8 +42,12 @@ class GameRoom extends Component {
   }
 
   onNickReady = () => {
-    this.setState({ nickEntered: true });
+    this.setState({ nickEntered: true, loading: true });
     console.log(this.state.newGame ? "Aloitetaan uusi peli" : "Liitytään peliin " + this.state.code, this.state.nick);
+    this.props.stateManager.joinGame(this.state.gameId, this.state.nick, (result) => {
+      this.setState({loading: false});
+      this.props.goToGame(result);
+    })
   }
 
   render() {
@@ -79,7 +87,7 @@ class GameRoom extends Component {
               :
               <div>
                 <h1>Liity peliin <small>{this.state.code}</small></h1>
-                <small className="text-muted text-gray">Pelin aloitti Asko Oksa</small>
+                <small className="text-muted text-gray">Pelin aloitti {this.state.gameCreatedBy}</small>
               </div>
             }
             <div className="form-group">

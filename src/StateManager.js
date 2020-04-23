@@ -6,7 +6,49 @@ class StateManager {
     this.endpoint = window.location.hostname === 'localhost' ? "http://localhost:4000" : "";
   }
 
-  initSocket(gameId, credentials, callback) {
+  initLobby(lobbyName, callback) {
+    console.log('initLobby', lobbyName);
+
+    if (this.lobby) {
+      this.lobby.close();
+      this.lobby = null;
+    }
+
+    this.lobby = socketIOClient(this.endpoint + "/lobby");
+
+    this.lobby.on('connect', () => {
+      console.log('connected to lobby');
+      callback({connected: true, msg: "Yhteys ok"});
+    });
+
+    this.lobby.on('reconnect', () => {
+      console.log('reconnected to lobby');
+    });
+
+    this.lobby.on('reconnect_attempt', (i) => {
+      console.log('attempting to reconnect to lobby', i);
+    });
+
+    this.lobby.on('disconnect', () => {
+      console.log('disconnected from lobby');
+    });
+  }
+
+  findGame(code, callback) {
+    this.lobby.emit('findGame', {code: code}, (result) => {
+      console.log('findGame result', result);
+      callback(result);
+    });
+  }
+
+  joinGame(gameId, nick, callback) {
+    this.lobby.emit('joinGame', {gameId: gameId, nick: nick}, (result) => {
+      console.log('joinGame result', result);
+      callback(result);
+    });
+  }
+
+  initGameSocket(gameId, credentials, callback) {
     console.log('initSocket', this.socket);
 
     if (this.socket) {
@@ -42,6 +84,7 @@ class StateManager {
       callback({connected: true, authenticated: true, msg: "Yhteys ok"});
     });
   }
+
 
   authenticate(credentials, callback) {
     this.socket.emit('authenticate', credentials, status => callback(status));
