@@ -1,0 +1,55 @@
+.GameRoom {
+    height: 100%;
+    position: relative;
+
+    display: flex;
+    flex-flow: column nowrap;
+    justify-content: center;
+}
+
+.ScoreBoard {
+	position: absolute;
+	z-index: 2;
+	top: 5%;
+	left: 5%;
+
+    height: 90%;
+    width: 90%;
+
+    background-color: rgb(228, 231, 219);
+    border: 4px dashed darkgray;
+    border-radius: 10px;
+
+    opacity: 0.95;
+
+    display: flex;
+    flex-flow: column nowrap;
+    justify-content: center;
+    align-items: center;
+
+    transition: opacity 300ms linear;
+}
+
+.ScoreBoard.closed {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.ScoreBoardTable {
+}
+
+.ScoreBoardTable tr:first-child th {
+    width: 15%;
+}
+
+.ScoreBoardTable tr:first-child th:first-child {
+    width: 30%;
+}
+
+.ScoreBoardTable td,th {
+    text-align: center;
+}
+
+.ScoreBoardTable td:first-child,th:first-child {
+    text-align: left;
+}

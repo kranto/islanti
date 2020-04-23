@@ -2,7 +2,7 @@ import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import React, { Component } from "react";
 import Lobby from './Lobby.js';
-import CardTable from './CardTable.js';
+import GameRoom from './GameRoom.js';
 import StateManager from './StateManager.js';
 
 class App extends Component {
@@ -45,7 +45,7 @@ class App extends Component {
         <div>
         </div>
         {this.state.inLobby ? <Lobby stateManager={this.stateManager} goToGame={this.goToGame} lobbyReady={this.state.lobbyReady}></Lobby> : ""}
-        {this.state.inGame ? <CardTable stateManager={this.stateManager}></CardTable> : ""}
+        {this.state.inGame ? <GameRoom stateManager={this.stateManager}></GameRoom> : ""}
       </div>
     );
   }

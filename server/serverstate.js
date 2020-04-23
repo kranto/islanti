@@ -88,7 +88,8 @@ class Connector  {
           open: state.phase === this.serverstate.TURN_ACTIVE && state.myTurn && !state.myhands.opened,
           complete: state.phase === this.serverstate.TURN_ACTIVE && state.myTurn && state.myhands.opened,
           discard: state.phase === this.serverstate.TURN_ACTIVE && state.myTurn,
-        }
+        };
+        state.rounds = ROUNDS;
         change = {...change, state: state};
         break;
     }
@@ -104,6 +105,7 @@ class Connector  {
 
 class ServerState {
 
+  BEGIN = 0;
   DEAL = 1;
   SHOW_CARD = 2;
   PICK_CARD = 3;

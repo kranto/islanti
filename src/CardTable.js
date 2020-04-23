@@ -30,7 +30,7 @@ class CardTable extends Component {
   }
 
   componentDidUpdate() {
-    if (this.state.s) {
+    if (this.state.s && this.state.s.phase > 0 && this.props.canStart) {
       if (!this.gameInitialized) {
         game.init(this.props.stateManager);      
       }
@@ -192,7 +192,12 @@ class CardTable extends Component {
 
   render() {
 
-    if (!this.state.s) return "loading";
+    if (!this.props.canStart) return (
+      <div className="CardTable"></div>
+    );
+
+    // if (!this.state.s) return "Latautuu...";
+
     let imGuest = this.state.s.myhands === null || this.state.s.myhands.open === undefined;
 
     return (
