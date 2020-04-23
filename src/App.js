@@ -37,9 +37,9 @@ class App extends Component {
     this.setState({ inLobby: true, inGame: false });
     this.stateManager.closeGame();
   }
-
+  
   render() {
-    document.title = "Islanti / " + this.state.myName;
+    document.title = "Islanti";
     return (
       <div className="App">
         <div>

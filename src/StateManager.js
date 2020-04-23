@@ -41,6 +41,13 @@ class StateManager {
     });
   }
 
+  createGame(nick, callback) {
+    this.lobby.emit('createGame', {nick: nick}, (result) => {
+      console.log('createGame result', result);
+      callback(result);
+    });
+  }
+
   joinGame(gameId, nick, callback) {
     this.lobby.emit('joinGame', {gameId: gameId, nick: nick}, (result) => {
       console.log('joinGame result', result);
@@ -48,9 +55,9 @@ class StateManager {
     });
   }
 
-  validateParticipation(participationId, callback) {
-    this.lobby.emit('validateParticipation', {participationId: participationId}, (result) => {
-      console.log('validateParticipation result', result);
+  resumeParticipation(participationId, callback) {
+    this.lobby.emit('resumeParticipation', {participationId: participationId}, (result) => {
+      console.log('resumeParticipation result', result);
       callback(result);
     });
   }

@@ -30,14 +30,21 @@ class Lobby {
         this.joinGame(args, callback);
       });
 
-      socket.on('validateParticipation', (args, callback) => {
-        this.validateParticipation(args, callback);
+      socket.on('resumeParticipation', (args, callback) => {
+        this.resumeParticipation(args, callback);
       });
     });
   }
 
   createGame(args, callback) {
     console.log('createGame', args, callback);
+    let result = {};
+    if (args.nick.length > 5) {
+      result = {ok: true, gameId: '1234567899123', participationId: '8283828283', createdBy: 'Antti-Orvokki', createdAt: new Date()};
+    } else {
+      result = {ok: false, msg: "Pelin luonti ei onnistunut"}
+    }
+    setTimeout(() => callback(result), 2000);
 
   }
 
@@ -63,8 +70,8 @@ class Lobby {
     setTimeout(() => callback(result), 2000);
   }
 
-  validateParticipation(args, callback) {
-    console.log('validateParticipation', args, callback);
+  resumeParticipation(args, callback) {
+    console.log('resumeParticipation', args, callback);
     let result = {};
     if (args.participationId.length > 5) {
       result = {ok: true, participationId: '1987654321', nick: "Mikko Mallikas", gameId: '7766554433'};

@@ -27,7 +27,7 @@ class Lobby extends Component {
 
   componentDidUpdate() {
     if (this.state.phase === 3 && this.props.lobbyReady && !this.state.joinedGame) {
-      this.validateParticipation();
+      this.resumeParticipation();
     } else if (this.state.joinedGame) {
       this.props.goToGame(this.gameId, this.participationId);
     }
@@ -66,13 +66,24 @@ class Lobby extends Component {
     this.writeLocalStorage();
     console.log(this.state.newGame ? "Aloitetaan uusi peli" : "Liitytään peliin " + this.state.code, this.state.nick);
     if (this.state.newGame) {
-
+      this.createGame();
     } else {
-      this.tryToJoinGame();
+      this.joinGame();
     }
   }
 
-  tryToJoinGame = () => {
+  createGame = () => {
+    this.props.stateManager.createGame(this.state.nick, (result) => {
+      if (result.ok) {
+        this.setState({loading: false, participationId: result.participationId, gameId: result.gameId, nick: result.nick, phase: 3, joinedGame: true});
+      } else {
+        this.setState({loading: false, errorMsg: result.msg, code: "", participationId: undefined, gameId: undefined, phase: 1, joinedGame: false});
+      }
+      this.writeLocalStorage();
+    });
+  }
+
+  joinGame = () => {
     this.props.stateManager.joinGame(this.state.gameId, this.state.nick, (result) => {
       if (result.ok) {
         this.setState({loading: false, participationId: result.participationId, gameId: result.gameId, nick: result.nick, phase: 3, joinedGame: true});
@@ -83,11 +94,11 @@ class Lobby extends Component {
     });
   }
 
-  validateParticipation = () => {
+  resumeParticipation = () => {
     if (this.validating) return;
     this.validating = true;
     this.setState({loading: true});
-    this.props.stateManager.validateParticipation(this.state.participationId, (result) => {
+    this.props.stateManager.resumeParticipation(this.state.participationId, (result) => {
       if (result.ok) {
         this.setState({loading: false, participationId: result.participationId, gameId: result.gameId, nick: result.nick, phase: 3, joinedGame: true});
       } else {
