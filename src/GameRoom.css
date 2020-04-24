@@ -3,24 +3,22 @@
     position: relative;
 
     display: flex;
-    flex-flow: column nowrap;
+    /* flex-flow: column nowrap; */
     justify-content: center;
+    align-items: center;
 }
 
 .ScoreBoard {
 	position: absolute;
 	z-index: 2;
-	top: 5%;
-	left: 5%;
-
-    height: 90%;
-    width: 90%;
-
-    background-color: rgb(228, 231, 219);
-    border: 4px dashed darkgray;
-    border-radius: 10px;
 
     opacity: 0.95;
+
+    position: absolute;
+	top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
 
     display: flex;
     flex-flow: column nowrap;
@@ -35,7 +33,22 @@
     pointer-events: none;
 }
 
+.ScoreSheet {
+    display: flex;
+    flex-flow: column nowrap;
+    justify-content: center;
+    align-items: center;
+    max-height: 98%;
+    max-width: 98%;
+
+    background-color: rgb(228, 231, 219);
+    border: 4px dashed darkgray;
+    border-radius: 10px;
+}
+
 .ScoreBoardTable {
+    overflow: scroll;
+
 }
 
 .ScoreBoardTable tr:first-child th {
