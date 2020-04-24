@@ -9,15 +9,14 @@ class GameRoom extends Component {
   constructor() {
     super();
     this.state = {
-      game: {rounds: [], players: [], scores: []},
       canStart: false,
     };
   }
 
   onStateChange = () => {
-    console.log("GameRoom.onStateChange", this.props.stateManager.getState())
     let roundState = this.props.stateManager.getState();
-    this.setState({game: {rounds: roundState.rounds, players: roundState.players.map(p => p.name), scores: []}});
+    console.log("GameRoom.onStateChange", roundState)
+    this.setState({game: roundState.game});
   }
 
   componentDidMount() {

@@ -11,13 +11,16 @@ class ScoreBoard extends Component {
   }
 
   renderTableData = () => {
+    let game = this.props.data;
+    console.log(game);
+    if (!game) return "";
     return (
       <tbody>
-        <tr><th>Kierros</th>{this.props.data.players.map(p => (<th>{p}</th>))}</tr>
-        {this.props.data.rounds.map((r, i) => (<tr><td className=".roundName">{r.roundName}</td>
-        {this.props.data.players.map(p => (<td>0</td>))}
+        <tr><th>Kierros</th>{game.players.map((p, i) => (<th key={i}>{p.name}</th>))}</tr>
+        {game.score.rounds.map((rs, j) => (<tr key={j}><td key={j} className=".roundName">{game.rounds[j].roundName}</td>
+          {rs.map((s, i) => (<td key={j + ":" + i}>{s === null ? (game.players[i].isDealer && j === game.round ? "*" : "-") : s}</td>))}
         </tr>))}
-        <tr><th>Yhteensä</th>{this.props.data.players.map(p => (<td>0</td>))}</tr>
+    <tr><th>Yhteensä</th>{game.score.total.map((ts, i) => (<td key={i}>{ts}</td>))}</tr>
       </tbody>
     );
   };
@@ -32,9 +35,9 @@ class ScoreBoard extends Component {
     return (
       <div className={"ScoreBoard " + (this.state.closed ? "closed" : "")}>
         <div className="ScoreBoardTable">
-        <table className="table table-striped">
+          <table className="table table-striped">
             {this.renderTableData()}
-        </table>
+          </table>
         </div>
         <button onClick={this.close}>Peliin</button>
       </div>

@@ -89,7 +89,6 @@ class Connector  {
           complete: state.phase === this.serverstate.TURN_ACTIVE && state.myTurn && state.myhands.opened,
           discard: state.phase === this.serverstate.TURN_ACTIVE && state.myTurn,
         };
-        state.rounds = ROUNDS;
         change = {...change, state: state};
         break;
     }
@@ -133,11 +132,20 @@ class ServerState {
     roundNumber = roundNumber ? roundNumber : 1;
     dealerIndex = dealerIndex ? dealerIndex : 0;
 
+    let roundIndex = roundNumber - 1;
+
     this.playerData = JSON.parse(fs.readFileSync(StorageDir + '/players.json'));
     this.playerCount = this.playerData.length;
 
     let newState = {
-      round: ROUNDS[roundNumber - 1],
+      game: {
+        rounds: ROUNDS,
+        round: roundIndex,
+        players: this.playerData.map((p, i) => ({name: p.name, isLeader: Math.random() < 0.4, isDealer: i == dealerIndex})),
+        score: {rounds: ROUNDS.map((r, i) => this.playerData.map(p => i > roundIndex - 1 ? null : Math.floor(Math.random()*30)*5)),
+                total: this.playerData.map(p => Math.floor(Math.random()*30)*5)}
+      },
+      round: ROUNDS[roundIndex],
       index: 0,
       turnIndex: 0,
       playerInTurn: dealerIndex,
