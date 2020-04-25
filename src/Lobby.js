@@ -1,16 +1,20 @@
 import React, { Component } from "react";
 
 let readFromLocalStorage = () => {
-  let item = window.localStorage.getItem('IslantiState') || "{}";
-  return JSON.parse(item);
+  let stringItem = window.localStorage.getItem('IslantiState') || "{}";
+  return JSON.parse(stringItem);
+}
+
+let writeToLocalStorage = (object) => {
+  window.localStorage.setItem('IslantiState', JSON.stringify(object));
 }
 
 class Lobby extends Component {
 
   constructor() {
     super();
-    let localState = readFromLocalStorage() || {};
 
+    let localState = readFromLocalStorage() || {};
     this.state = {
       gameId: null,
       participationId: localState.participationId,
@@ -23,19 +27,29 @@ class Lobby extends Component {
       nickEntered: false,
       nick: localState.nick || ""
     };
+
+    console.log('entered lobby')
+  }
+
+  static resetState() {
+    let state = readFromLocalStorage();
+    state = {...state, gameId: undefined, participationId: undefined};
+    writeToLocalStorage(state);
   }
 
   componentDidUpdate() {
+    if (!this.state) return;
     if (this.state.phase === 3 && this.props.lobbyReady && !this.state.joinedGame) {
       this.resumeParticipation();
+      this.setState({phase: 1});
     } else if (this.state.joinedGame) {
       this.props.goToGame(this.gameId, this.participationId);
     }
   }
 
-  writeLocalStorage() {
-    let item =  {nick: this.state.nick, gameId: this.state.gameId, participationId: this.state.participationId};
-    window.localStorage.setItem('IslantiState', JSON.stringify(item) );
+  saveState() {
+    let savedState = {nick: this.state.nick, gameId: this.state.gameId, participationId: this.state.participationId};
+    writeToLocalStorage(savedState);
   }
 
   onCodeChanged = (event) => {
@@ -63,7 +77,7 @@ class Lobby extends Component {
 
   onNickReady = () => {
     this.setState({ loading: true });
-    this.writeLocalStorage();
+    this.saveState();
     console.log(this.state.newGame ? "Aloitetaan uusi peli" : "Liitytään peliin " + this.state.code, this.state.nick);
     if (this.state.newGame) {
       this.createGame();
@@ -79,7 +93,7 @@ class Lobby extends Component {
       } else {
         this.setState({loading: false, errorMsg: result.msg, code: "", participationId: undefined, gameId: undefined, phase: 1, joinedGame: false});
       }
-      this.writeLocalStorage();
+      this.saveState();
     });
   }
 
@@ -90,7 +104,7 @@ class Lobby extends Component {
       } else {
         this.setState({loading: false, errorMsg: result.msg, code: "", participationId: undefined, gameId: undefined, phase: 1, joinedGame: false});
       }
-      this.writeLocalStorage();
+      this.saveState();
     });
   }
 
@@ -104,12 +118,13 @@ class Lobby extends Component {
       } else {
         this.setState({loading: false, code: "", participationId: undefined, gameId: undefined, phase: 1, joinedGame: false});
       }
-      this.writeLocalStorage();
+      this.saveState();
       this.validating = false;
     });
   }
 
   render() {
+    if (!this.state) return "";
     return (
       <div className="Lobby">
         {this.state.phase !== 1 ? "" :

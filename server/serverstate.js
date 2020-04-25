@@ -139,11 +139,13 @@ class ServerState {
 
     let newState = {
       game: {
+        code: "9999",
         rounds: ROUNDS,
         round: roundIndex,
         players: this.playerData.map((p, i) => ({name: p.name, isLeader: Math.random() < 0.4, isDealer: i == dealerIndex})),
         score: {rounds: ROUNDS.map((r, i) => this.playerData.map(p => i > roundIndex - 1 ? null : Math.floor(Math.random()*30)*5)),
-                total: this.playerData.map(p => Math.floor(Math.random()*30)*5)}
+                total: this.playerData.map(p => Math.floor(Math.random()*30)*5)},
+        imOwner: true
       },
       round: ROUNDS[roundIndex],
       index: 0,

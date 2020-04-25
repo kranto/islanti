@@ -1,6 +1,7 @@
 
 import React, { Component } from "react";
 import './GameRoom.css';
+import GameStart from './GameStart.js';
 import ScoreBoard from './ScoreBoard.js';
 import CardTable from './CardTable.js';
 
@@ -34,6 +35,9 @@ class GameRoom extends Component {
     this.setState({canStart: true});
   }
 
+  onStartGame = () => {
+    this.setState({canStart: true});
+  }
 
   render() {
 
@@ -42,7 +46,8 @@ class GameRoom extends Component {
 
     return (
         <div className="GameRoom">
-          <ScoreBoard data={this.state.game} onScoreBoardClosed={this.onScoreBoardClosed}></ScoreBoard>
+          <GameStart data={this.state.game} onStartGame={this.onStartGame} onExitGame={this.props.exitGame}></GameStart>
+          {/* <ScoreBoard data={this.state.game} onScoreBoardClosed={this.onScoreBoardClosed}></ScoreBoard> */}
           <CardTable goToGame={this.props.goToGame} canStart={this.state.canStart} stateManager={this.props.stateManager}></CardTable>
         </div>        
     );
