@@ -11,7 +11,7 @@ class ScoreBoard extends Component {
   }
 
   renderTableData = () => {
-    let game = this.props.data;
+    let game = this.props.game;
     console.log(game);
     if (!game) return (<tbody></tbody>);
     return (

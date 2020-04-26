@@ -63,7 +63,7 @@ class StateManager {
   }
 
   initGame(gameToken, credentials, callback) {
-    console.log('initGame', this.game);
+    console.log('initGame', gameToken, credentials);
 
     this.game = socketIOClient(this.endpoint + "/game/" + gameToken);
 

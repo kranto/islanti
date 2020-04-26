@@ -6,23 +6,22 @@ const gamestates = {};
 
 const updateGame = async (game) => {
   console.log('updateGame', game);
-  await storage.game().update({_id: game._id}, game);
+  await storage.game().replaceOne({_id: game._id}, game);
 };
 
 const findGameByToken = async (token) => {
   return await storage.game().findOne({active: true, token: token});
 };
 
-const readRoundState = async (gameToken) => {
-  return await storage.roundstate().findOne({game: gameToken}, {sort:{$natural:-1}});
+const findRoundState = async (gameToken) => {
+  return await storage.roundstate().findOne({'game.token': gameToken}, {sort:{$natural:-1}});
 };
 
 const writeRoundState = async (state) => {
-  await storage.roundstate().insert(state);
+  await storage.roundstate().insertOne(state);
 };
 
 const EventEmitter = require('events');
-const StorageDir = '/Users/kranto/tmp';
 
 const ROUNDS = [
   { roundNumber: 1, roundName: "kolmoset ja suora", expectedSets: 1, expectedStraights: 1,	isFreestyle: false },
@@ -35,7 +34,7 @@ const ROUNDS = [
   { roundNumber: 8, roundName: "freestyle", expectedSets: 1, expectedStraights: 1,	isFreestyle: true },
 ];
 
-anonymise = (cards) => cards.map(card => ({...card, s:undefined, r:undefined}));
+anonymise = (cards) => cards ? cards.map(card => ({...card, s:undefined, r:undefined})) : null;
 
 class Card {
   constructor(back, suit, rank) {
@@ -61,9 +60,9 @@ class Connector  {
       this.serverstate.onAction(this.index, args);
     });
 
-    this.socket.on('gameAction', args => {
+    this.socket.on('gameAction', async args => {
       console.log('connector.onGameAction', this.index, args);
-      this.serverstate.onGameAction(this.index, args);
+      await this.serverstate.onGameAction(this.index, args);
     });
 
     this.socket.on('validateSelection', (args, callback) => {
@@ -88,25 +87,27 @@ class Connector  {
       case 'fullState':
         console.log('connector.stateChange.fullState', this.index, change.state.index);
         let state = JSON.parse(JSON.stringify(change.state));
-        if (!this.imGuest) state.players = [...state.players.slice(this.index, state.players.length), ...state.players.slice(0,this.index)];
-        state.playerInTurn = this.rollIndex(state.playerInTurn, state);
-        state.buying = this.rollIndex(state.buying, state);
-        state.winner = this.rollIndex(state.winner, state);
-        state.myhands = this.imGuest ? null : state.players.splice(0, 1)[0];  // --- create myhands, remove from players ---
-        state.myTurn = state.playerInTurn < 0;
-        state.players = state.players.map(p => ({...p, validity: undefined, closed: p.closed ? anonymise(p.closed.flat()) : []}));
-        state.can = {
-          deal: state.phase === this.serverstate.DEAL && state.myTurn,
-          show: state.phase === this.serverstate.SHOW_CARD && state.myTurn,
-          pick: (state.phase === this.serverstate.PICK_CARD || state.phase === this.serverstate.PICK_CARD_BOUGHT) && state.myTurn,
-          buy: !this.imGuest && state.phase === this.serverstate.PICK_CARD && (state.playerInTurn >= 1 || !state.myTurn && state.turnIndex === 1) && state.myhands.bought < 3,
-          sell: state.phase === this.serverstate.PICK_CARD_BUYING && state.myTurn,
-          open: state.phase === this.serverstate.TURN_ACTIVE && state.myTurn && !state.myhands.opened,
-          complete: state.phase === this.serverstate.TURN_ACTIVE && state.myTurn && state.myhands.opened,
-          discard: state.phase === this.serverstate.TURN_ACTIVE && state.myTurn,
-        };
 
         state.game.imOwner = true;
+        if (state.phase > this.serverstate.BEGIN) {
+          if (!this.imGuest) state.players = [...state.players.slice(this.index, state.players.length), ...state.players.slice(0,this.index)];
+          state.playerInTurn = this.rollIndex(state.playerInTurn, state);
+          state.buying = this.rollIndex(state.buying, state);
+          state.winner = this.rollIndex(state.winner, state);
+          state.myhands = this.imGuest ? null : state.players.splice(0, 1)[0];  // --- create myhands, remove from players ---
+          state.myTurn = state.playerInTurn < 0;
+          state.players = state.players.map(p => ({...p, validity: undefined, closed: p.closed ? anonymise(p.closed.flat()) : []}));
+          state.can = {
+            deal: state.phase === this.serverstate.DEAL && state.myTurn,
+            show: state.phase === this.serverstate.SHOW_CARD && state.myTurn,
+            pick: (state.phase === this.serverstate.PICK_CARD || state.phase === this.serverstate.PICK_CARD_BOUGHT) && state.myTurn,
+            buy: !this.imGuest && state.phase === this.serverstate.PICK_CARD && (state.playerInTurn >= 1 || !state.myTurn && state.turnIndex === 1) && state.myhands.bought < 3,
+            sell: state.phase === this.serverstate.PICK_CARD_BUYING && state.myTurn,
+            open: state.phase === this.serverstate.TURN_ACTIVE && state.myTurn && !state.myhands.opened,
+            complete: state.phase === this.serverstate.TURN_ACTIVE && state.myTurn && state.myhands.opened,
+            discard: state.phase === this.serverstate.TURN_ACTIVE && state.myTurn,
+          };  
+        }
 
         change = {...change, state: state};
         break;
@@ -143,54 +144,25 @@ class ServerState {
   }
 
   async init() {
-    this.cards = this.createCards();
-    this.shuffle(this.cards);
-    this.cards.forEach((card, index) => card.i = index);
-    this.shuffle(this.cards);
-
-    // roundNumber = roundNumber ? roundNumber : 1;
-    // dealerIndex = dealerIndex ? dealerIndex : 0;
-
-    this.game = await findGameByToken(this.gameToken);
-    console.log(this.gameToken, this.game);
-
-    let roundNumber = 1;
-    let dealerIndex = 0;
-
-    let roundIndex = roundNumber - 1;
-  
+    console.log(this.gameToken + ' initializing');
+    // read game from db
     let initialRoundState = {
-      game: this.game,
-      round: ROUNDS[roundIndex],
       index: 0,
-      turnIndex: 0,
-      playerInTurn: dealerIndex,
-      phase: this.BEGIN,
-      dealt: false,
-      buying: null,
-      deck: [...this.cards],
-      pile: [],
-      players: this.game.players.map((p, i) => ({
-        id: i,
-        name: p.nick,
-        closed: [[]],
-        validity: [{}],
-        open: [],
-        opened: false,
-        inTurn: dealerIndex === i, 
-        bought: 0
-      }))
+      phase: this.BEGIN
     };
 
-    let savedState = await readRoundState();
-    this.round = (savedState && savedState.round.roundNumber === roundNumber) ? savedState : initialRoundState;
+    let savedState = await findRoundState(this.gameToken);
+    this.round = savedState ? savedState : initialRoundState;
 
+    await this.onGameUpdated();
+    console.log('game ' + this.game.token + ' initialized');
     console.log(this.round);
 
     this.io.on('connection', socket => {
       console.log('someone connected to ' + this.gameToken, new Date());
       socket.on('authenticate', (args, callback) => {
         console.log('authenticate', args);
+        console.log(this.game);
         let matching = this.game.players.map((p, i) => ({...p, index: i})).filter(p => p.token === args.participation);
         let player = matching.length === 1 ? matching[0] : null;
         console.log(player.nick + ' authenticated',  args, callback);
@@ -247,29 +219,75 @@ class ServerState {
       }
   }
   
-  onGameAction(index, args) {
+  async onGameUpdated() {
+    this.game = await findGameByToken(this.gameToken);
+    this.round.game = this.game;
+    this.notifyConnectors(false);
+  }
+
+  async onGameAction(index, args) {
     console.log('onAction', index, args);
     switch (args.action) {
       case 'startGame':
-        this.startGame(index);
+        await this.startGame(index);
         break;
       }
   }
 
-  startGame(player) {
+  async startGame(player) {
+    console.log('startGame', player, this.game.token, this.round.phase);
     if (/*player !== this.round.game.owner || */this.round.phase !== this.BEGIN) return false;
 
-    
-    this.round.phase = this.DEAL;
-    this.round.index++;
-    this.notifyConnectors(true);
+    this.game = {...this.game, locked: true};
+    await updateGame(this.game);
+
+    this.round.game = this.game;
+
+    this.startRound(player, 1, Math.floor(Math.random()*this.game.players.length));
   }
 
   async notifyConnectors(saveState) {
+    console.log(this.round);
     if (saveState) await writeRoundState({...this.round, index: undefined, _id: undefined});
     this.eventEmitter.emit('stateChange', {action: 'fullState', state: this.getFullState()});
   }
-  
+
+  startRound(player, roundNumber, dealerIndex) {
+    console.log('startRound', this.game.token, player, roundNumber, dealerIndex);
+    this.cards = this.createCards();
+    this.shuffle(this.cards);
+    this.cards.forEach((card, index) => card.i = index);
+    this.shuffle(this.cards);
+
+    let roundIndex = roundNumber - 1;
+
+    this.round = {
+      ...this.round,
+      round: ROUNDS[roundIndex],
+      turnIndex: 0,
+      playerInTurn: dealerIndex,
+      phase: this.DEAL,
+      dealt: false,
+      buying: null,
+      deck: [...this.cards],
+      pile: [],
+      players: this.game.players.map((p, i) => ({
+        id: i,
+        name: p.nick,
+        closed: [[]],
+        validity: [{}],
+        open: [],
+        opened: false,
+        inTurn: dealerIndex === i, 
+        bought: 0
+      }))
+    };
+
+    this.round.index++;
+
+    this.notifyConnectors(true);
+  }
+
   createCards() {
     return [0, 1].map(back =>
       ['h', 's', 'd', 'c'].map(suit =>
@@ -292,23 +310,18 @@ class ServerState {
   }
 
   getFullState() {
+    console.log(this.round);
     return {...this.round, 
-      deck: anonymise(this.round.deck), 
-      pile: [...this.round.pile.slice(0,2), ...anonymise(this.round.pile.slice(2))]
+      deck: anonymise(this.round.deck ? this.round.deck : []), 
+      pile: this.round.pile ? [...this.round.pile.slice(0,2), ...anonymise(this.round.pile.slice(2)) ] : null
     };
   }
 
   deal(player) {
     console.log('deal', player);
-    if (player !== this.round.playerInTurn || this.state.phase !== this.DEAL || this.state.dealt) return false;
+    if (player !== this.round.playerInTurn || this.round.phase !== this.DEAL || this.round.dealt) return false;
     this.round.dealt = true;
     [...Array(13).keys()].forEach(() => this.round.players.forEach(p => p.closed[0].push(this.round.deck.shift())));
-    // this.round.players.forEach(p => p.open.push({cards: [], accepts: [{r:0, l:-1}, {r:0, l:4}, {r:1, l:-1}, {r:2, l:-1}, {r:3, l:2}, {r:4, l:2}, {r:5, l:4}, {r:6, l:4}, {r:7, l:4}, {r:8, l:4}]}));
-    // this.round.players.forEach(p => p.open.push({cards: [], accepts: []}));
-    // this.round.players.forEach(p => p.open.push({cards: [], accepts: []}));
-    // [...Array(4).keys()].forEach(() => this.round.players.forEach(p => p.open[0].cards.push(this.round.deck.shift())));
-    // [...Array(4).keys()].forEach(() => this.round.players.forEach(p => p.open[1].cards.push(this.round.deck.shift())));
-    // [...Array(4).keys()].forEach(() => this.round.players.forEach(p => p.open[2].cards.push(this.round.deck.shift())));
     this.nextPlayerInTurn();
     this.round.phase = this.SHOW_CARD;
     this.round.index++;
@@ -710,8 +723,10 @@ module.exports = {
   ServerState: ServerState,
   getGame: async (io, token) => {
     if (gamestates[token]) {
+      console.log('game found');
       return gamestates[token];
     } else {
+      console.log('game not found');
       let ss = new ServerState(io, token);
       await ss.init();
       gamestates[token] = ss;

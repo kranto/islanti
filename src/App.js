@@ -26,7 +26,7 @@ class App extends Component {
 
   goToGame = (gameToken, participation) => {
     console.log('goToGame', gameToken, participation);
-    this.stateManager.initGame(gameToken, { code: "2", participation: participation }, (result) => {
+    this.stateManager.initGame(gameToken, {participation: participation }, (result) => {
       this.setState({ inLobby: false, inGame: true, myName: result.myName, authenticated: true });
       console.log('App.callback', result);
     });

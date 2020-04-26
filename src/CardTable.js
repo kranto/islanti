@@ -192,9 +192,13 @@ class CardTable extends Component {
 
   render() {
 
-    if (!this.props.canStart) return (
+    console.log(this.state.s);
+
+    if (!this.props.canStart || !this.state.s) return (
       <div className="CardTable"></div>
     );
+
+    console.log(this.state.s);
 
     // if (!this.state.s) return "Latautuu...";
 

@@ -14,11 +14,22 @@ class Lobby extends Component {
   constructor() {
     super();
 
+    let participationFromUri = "";
+    let query = window.location.search.substring(1);
+    if (query.length > 0) {
+      query.split("&").map(q => {
+        let [key, value] = q.split("=");
+        if (key === "pid") participationFromUri = value;
+      });
+    }
+
     let localState = readFromLocalStorage() || {};
+    let participation = participationFromUri ? participationFromUri : localState.participation;
+
     this.state = {
       game: null,
-      participation: localState.participation,
-      phase: localState.participation ? 3 : 1,
+      participation: participation,
+      phase: participation ? 3 : 1,
       joinedGame: false,
       code: "",
       errorMsg: "",

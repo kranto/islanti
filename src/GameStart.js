@@ -10,8 +10,12 @@ class GameStart extends Component {
     };
   }
 
+  static getDerivedStateFromProps(props, state) {
+    return {started: props.game && props.game.locked}
+  }
+
   renderTableData = () => {
-    let game = this.props.data;
+    let game = this.props.game;
     if (!game) return (<tbody></tbody>);
     return (
       <tbody>
@@ -36,7 +40,7 @@ class GameStart extends Component {
   }
 
   render() {
-    let game = this.props.data;
+    let game = this.props.game;
     if (!game) return "";
     return (
       <div className={"GameStart " + (this.state.started ? "closed" : "")}>

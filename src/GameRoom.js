@@ -47,9 +47,9 @@ class GameRoom extends Component {
 
     return (
         <div className="GameRoom">
-          <GameStart data={this.state.game} onStartGame={this.onStartGame} onExitGame={this.props.exitGame}></GameStart>
-          {/* <ScoreBoard data={this.state.game} onScoreBoardClosed={this.onScoreBoardClosed}></ScoreBoard> */}
-          <CardTable goToGame={this.props.goToGame} canStart={this.state.canStart} stateManager={this.props.stateManager}></CardTable>
+          <GameStart game={this.state.game} onStartGame={this.onStartGame} onExitGame={this.props.exitGame}></GameStart>
+          {/* <ScoreBoard game={this.state.game} onScoreBoardClosed={this.onScoreBoardClosed}></ScoreBoard> */}
+          <CardTable goToGame={this.props.goToGame} canStart={this.state.game && this.state.game.locked} stateManager={this.props.stateManager}></CardTable>
         </div>        
     );
   }

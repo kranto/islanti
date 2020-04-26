@@ -66,7 +66,7 @@ class Lobby {
   async createGame(args, callback) {
     console.log('createGame', args, callback);
     let result = {};
-    if (args.nick.length > 5) {
+    if (true) {
       let game = {
         active: true,
         token: uuid(),
@@ -106,6 +106,7 @@ class Lobby {
       let newParticipation = {token: uuid(), nick: args.nick};
       game.players.push(newParticipation);
       await updateGame(game);
+      await (await ss.getGame(this.io, game.token)).onGameUpdated();
       result = {ok: true, participation: newParticipation, game: game.token};
     } else {
       result = {ok: false, msg: "Peli on suljettu"};
