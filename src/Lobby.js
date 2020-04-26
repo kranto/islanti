@@ -126,7 +126,7 @@ class Lobby extends Component {
     this.setState({loading: true});
     this.props.stateManager.resumeParticipation(this.state.participation, (result) => {
       if (result.ok) {
-        this.setState({loading: false, participation: result.participation.token, game: result.game, nick: result.participation.token, phase: 3, joinedGame: true});
+        this.setState({loading: false, participation: result.participation.token, game: result.game, nick: result.participation.nick, phase: 3, joinedGame: true});
       } else {
         this.setState({loading: false, code: "", participation: undefined, game: undefined, phase: 1, joinedGame: false});
       }
