@@ -16,9 +16,9 @@ app.get('/', function (req, res) {
 });
 
 const myArgs = process.argv.slice(2);
-const roundNumber = parseInt(myArgs[0]);
-const dealerIndex = parseInt(myArgs[1]);
-const s = new server.ServerState(io, "dev");
+// const roundNumber = parseInt(myArgs[0]);
+// const dealerIndex = parseInt(myArgs[1]);
+// const s = new server.ServerState(io, "dev");
 
 const lobby = new lobbys.Lobby(io);
 
@@ -27,7 +27,7 @@ const lobby = new lobbys.Lobby(io);
     await storage.init();
     console.log("initialized");
     http.listen(4000, () => console.log('listening on *:4000'));
-    await s.init(roundNumber, dealerIndex);
+    // await s.init(roundNumber, dealerIndex);
     await lobby.init();
   } catch (e) {
     console.log(e);

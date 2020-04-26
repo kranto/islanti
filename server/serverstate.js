@@ -2,8 +2,19 @@ const fs = require('fs');
 
 const storage = require('./storage');
 
-const readState = async () => {
-  return await storage.roundstate().findOne({}, {sort:{$natural:-1}});
+const gamestates = {};
+
+const updateGame = async (game) => {
+  console.log('updateGame', game);
+  await storage.game().update({_id: game._id}, game);
+};
+
+const findGameByToken = async (token) => {
+  return await storage.game().findOne({active: true, token: token});
+};
+
+const readState = async (gameToken) => {
+  return await storage.roundstate().findOne({game: gameToken}, {sort:{$natural:-1}});
 };
 
 const writeState = async (state) => {
@@ -50,6 +61,11 @@ class Connector  {
       this.serverstate.onAction(this.index, args);
     });
 
+    this.socket.on('gameAction', args => {
+      console.log('connector.onGameAction', this.index, args);
+      this.serverstate.onGameAction(this.index, args);
+    });
+
     this.socket.on('validateSelection', (args, callback) => {
       console.log('connector.validateSelection', this.index, args, callback);
       this.serverstate.validateSelection(this.index, args, callback);
@@ -89,6 +105,9 @@ class Connector  {
           complete: state.phase === this.serverstate.TURN_ACTIVE && state.myTurn && state.myhands.opened,
           discard: state.phase === this.serverstate.TURN_ACTIVE && state.myTurn,
         };
+
+        state.game.imOwner = true;
+
         change = {...change, state: state};
         break;
     }
@@ -113,9 +132,9 @@ class ServerState {
   TURN_ACTIVE = 4;
   FINISHED = 5;
 
-  constructor(io, gameId) {
-    this.gameId = gameId;
-    this.io = io.of('/game/' + gameId);
+  constructor(io, gameToken) {
+    this.gameToken = gameToken;
+    this.io = io.of('/game/' + gameToken);
 
     this.connectors = [];
     this.state = false;
@@ -123,35 +142,39 @@ class ServerState {
     this.eventEmitter = new EventEmitter();
   }
 
-  async init(roundNumber, dealerIndex) {
+  async init() {
     this.cards = this.createCards();
     this.shuffle(this.cards);
     this.cards.forEach((card, index) => card.i = index);
     this.shuffle(this.cards);
 
-    roundNumber = roundNumber ? roundNumber : 1;
-    dealerIndex = dealerIndex ? dealerIndex : 0;
+    // roundNumber = roundNumber ? roundNumber : 1;
+    // dealerIndex = dealerIndex ? dealerIndex : 0;
+
+    let game = await findGameByToken(this.gameToken);
+
+    console.log(this.gameToken, game);
+    let roundNumber = 1;
+    let dealerIndex = 0;
 
     let roundIndex = roundNumber - 1;
 
-    this.playerData = JSON.parse(fs.readFileSync(StorageDir + '/players.json'));
-    this.playerCount = this.playerData.length;
-
     let newState = {
-      game: {
-        code: "9999",
-        rounds: ROUNDS,
-        round: roundIndex,
-        players: this.playerData.map((p, i) => ({name: p.name, isLeader: Math.random() < 0.4, isDealer: i == dealerIndex})),
-        score: {rounds: ROUNDS.map((r, i) => this.playerData.map(p => i > roundIndex - 1 ? null : Math.floor(Math.random()*30)*5)),
-                total: this.playerData.map(p => Math.floor(Math.random()*30)*5)},
-        imOwner: true
-      },
+      game: game,
+      // game: {
+      //   code: "9999",
+      //   rounds: ROUNDS,
+      //   round: roundIndex,
+      //   players: this.playerData.map((p, i) => ({name: p.name, isLeader: Math.random() < 0.4, isDealer: i == dealerIndex})),
+      //   score: {rounds: ROUNDS.map((r, i) => this.playerData.map(p => i > roundIndex - 1 ? null : Math.floor(Math.random()*30)*5)),
+      //           total: this.playerData.map(p => Math.floor(Math.random()*30)*5)},
+      //   owner: 123
+      // },
       round: ROUNDS[roundIndex],
       index: 0,
       turnIndex: 0,
       playerInTurn: dealerIndex,
-      phase: this.DEAL,
+      phase: this.BEGIN,
       dealt: false,
       buying: null,
       deck: [...this.cards],
@@ -174,13 +197,13 @@ class ServerState {
     console.log(this.state);
 
     this.io.on('connection', socket => {
-      console.log('someone connected', new Date());
+      console.log('someone connected to ' + this.gameToken, new Date());
       socket.on('authenticate', (args, callback) => {
         let code = args.code;
         let matching = this.playerData.filter(pd => pd.code === code);
         let index = (matching.length !== 1) ? null : this.playerData.indexOf(matching[0]); 
         let name = index !== null ? this.playerData[index].name : "katsoja";
-        console.log(name + ' authenticated with code ' + code,  args, callback);
+        console.log(name + ' authenticated',  args, callback);
         let connector = new Connector(this, index, socket);
         this.connectors.push(connector);
         if (callback) callback({authenticated: true, myName: name});
@@ -234,6 +257,22 @@ class ServerState {
       }
   }
   
+  onGameAction(index, args) {
+    console.log('onAction', index, args);
+    switch (args.action) {
+      case 'startGame':
+        this.startGame(index);
+        break;
+      }
+  }
+
+  startGame(player) {
+    if (/*player !== this.state.game.owner || */this.state.phase !== this.BEGIN) return false;
+    this.state.phase = this.DEAL;
+    this.state.index++;
+    this.notifyConnectors(true);
+  }
+
   async notifyConnectors(saveState) {
     if (saveState) await writeState({...this.state, index: undefined, _id: undefined});
     this.eventEmitter.emit('stateChange', {action: 'fullState', state: this.getFullState()});
@@ -676,5 +715,15 @@ class ServerState {
 }
 
 module.exports = {
-  ServerState: ServerState
+  ServerState: ServerState,
+  getGame: (io, token) => {
+    if (gamestates[token]) {
+      return gamestates[token];
+    } else {
+      let ss = new ServerState(io, token);
+      ss.init();
+      gamestates[token] = ss;
+      return ss;
+    }
+  }
 };

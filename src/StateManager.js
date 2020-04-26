@@ -48,24 +48,24 @@ class StateManager {
     });
   }
 
-  joinGame(gameId, nick, callback) {
-    this.lobby.emit('joinGame', {gameId: gameId, nick: nick}, (result) => {
+  joinGame(game, nick, callback) {
+    this.lobby.emit('joinGame', {game: game, nick: nick}, (result) => {
       console.log('joinGame result', result);
       callback(result);
     });
   }
 
-  resumeParticipation(participationId, callback) {
-    this.lobby.emit('resumeParticipation', {participationId: participationId}, (result) => {
+  resumeParticipation(participation, callback) {
+    this.lobby.emit('resumeParticipation', {participation: participation}, (result) => {
       console.log('resumeParticipation result', result);
       callback(result);
     });
   }
 
-  initGame(gameId, credentials, callback) {
+  initGame(gameToken, credentials, callback) {
     console.log('initGame', this.game);
 
-    this.game = socketIOClient(this.endpoint + "/game/" + gameId);
+    this.game = socketIOClient(this.endpoint + "/game/" + gameToken);
 
     this.game.on('stateChange', args => {
       this.stateChange(args);
@@ -133,6 +133,12 @@ class StateManager {
     params = params || {};
     console.log('sendAction', action, params);
     this.game.emit('action', {...params, action: action});
+  }
+
+  sendGameAction(action, params) {
+    params = params || {};
+    console.log('sendGameAction', action, params);
+    this.game.emit('gameAction', {...params, action: action});
   }
 
   subscribeTo(eventType, callback) {

@@ -16,9 +16,9 @@ class Lobby extends Component {
 
     let localState = readFromLocalStorage() || {};
     this.state = {
-      gameId: null,
-      participationId: localState.participationId,
-      phase: localState.participationId ? 3 : 1,
+      game: null,
+      participation: localState.participation,
+      phase: localState.participation ? 3 : 1,
       joinedGame: false,
       code: "",
       errorMsg: "",
@@ -33,7 +33,7 @@ class Lobby extends Component {
 
   static resetState() {
     let state = readFromLocalStorage();
-    state = {...state, gameId: undefined, participationId: undefined};
+    state = {...state, game: undefined, participation: undefined};
     writeToLocalStorage(state);
   }
 
@@ -43,12 +43,13 @@ class Lobby extends Component {
       this.resumeParticipation();
       this.setState({phase: 1});
     } else if (this.state.joinedGame) {
-      this.props.goToGame(this.gameId, this.participationId);
+      console.log(this.state);
+      this.props.goToGame(this.state.game, this.state.participation);
     }
   }
 
   saveState() {
-    let savedState = {nick: this.state.nick, gameId: this.state.gameId, participationId: this.state.participationId};
+    let savedState = {nick: this.state.nick, game: this.state.game, participation: this.state.participation};
     writeToLocalStorage(savedState);
   }
 
@@ -60,7 +61,7 @@ class Lobby extends Component {
     this.setState({ loading: true });
     this.props.stateManager.findGame(this.state.code, (result) => {
       if (result.ok) {
-        this.setState({loading: false, phase: 2, gameId: result.gameId, gameCreatedBy: result.createdBy, gameCreatedAt: result.createdAt});
+        this.setState({loading: false, phase: 2, game: result.game, gameCreatedBy: result.createdBy, gameCreatedAt: result.createdAt});
       } else {
         this.setState({loading: false, code: "", phase: 1, errorMsg: result.msg});
       }
@@ -89,20 +90,20 @@ class Lobby extends Component {
   createGame = () => {
     this.props.stateManager.createGame(this.state.nick, (result) => {
       if (result.ok) {
-        this.setState({loading: false, participationId: result.participationId, gameId: result.gameId, nick: result.nick, phase: 3, joinedGame: true});
+        this.setState({loading: false, participation: result.participation.token, nick: result.participation.nick, game: result.game, phase: 3, joinedGame: true});
       } else {
-        this.setState({loading: false, errorMsg: result.msg, code: "", participationId: undefined, gameId: undefined, phase: 1, joinedGame: false});
+        this.setState({loading: false, errorMsg: result.msg, code: "", participation: undefined, game: undefined, phase: 1, joinedGame: false});
       }
       this.saveState();
     });
   }
 
   joinGame = () => {
-    this.props.stateManager.joinGame(this.state.gameId, this.state.nick, (result) => {
+    this.props.stateManager.joinGame(this.state.game, this.state.nick, (result) => {
       if (result.ok) {
-        this.setState({loading: false, participationId: result.participationId, gameId: result.gameId, nick: result.nick, phase: 3, joinedGame: true});
+        this.setState({loading: false, participation: result.participation.token, nick: result.participation.nick, game: result.game, phase: 3, joinedGame: true});
       } else {
-        this.setState({loading: false, errorMsg: result.msg, code: "", participationId: undefined, gameId: undefined, phase: 1, joinedGame: false});
+        this.setState({loading: false, errorMsg: result.msg, code: "", participation: undefined, game: undefined, phase: 1, joinedGame: false});
       }
       this.saveState();
     });
@@ -112,11 +113,11 @@ class Lobby extends Component {
     if (this.validating) return;
     this.validating = true;
     this.setState({loading: true});
-    this.props.stateManager.resumeParticipation(this.state.participationId, (result) => {
+    this.props.stateManager.resumeParticipation(this.state.participation, (result) => {
       if (result.ok) {
-        this.setState({loading: false, participationId: result.participationId, gameId: result.gameId, nick: result.nick, phase: 3, joinedGame: true});
+        this.setState({loading: false, participation: result.participation.token, game: result.game, nick: result.participation.token, phase: 3, joinedGame: true});
       } else {
-        this.setState({loading: false, code: "", participationId: undefined, gameId: undefined, phase: 1, joinedGame: false});
+        this.setState({loading: false, code: "", participation: undefined, game: undefined, phase: 1, joinedGame: false});
       }
       this.saveState();
       this.validating = false;
@@ -135,7 +136,7 @@ class Lobby extends Component {
               <div className="form-group">
                 <label htmlFor="inputGameCode">Osallistumiskoodi</label>
                 <input autoFocus type="text" className="form-control" id="inputGameCode" maxLength="4" minLength="4" value={this.state.code} onChange={this.onCodeChanged} disabled={this.state.loading} />
-                <small id="gameIdHelp" className="form-text text-muted text-gray">Syötä saamasi nelinumeroinen osallistumiskoodi</small>
+                <small id="gameHelp" className="form-text text-muted text-gray">Syötä saamasi nelinumeroinen osallistumiskoodi</small>
                 <div style={{ visibility: this.state.code.length === 4 ? "visible" : "hidden" }}>
                   <button type="button" className="btn btn-dark" onClick={this.onCodeReady} disabled={this.state.loading}>
                     Osallistu...

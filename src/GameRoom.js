@@ -37,6 +37,7 @@ class GameRoom extends Component {
 
   onStartGame = () => {
     this.setState({canStart: true});
+    this.props.stateManager.sendGameAction('startGame');
   }
 
   render() {

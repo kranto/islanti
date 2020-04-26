@@ -1,21 +1,48 @@
 const storage = require('./storage');
+const ss = require('./serverstate');
+const uuid = require('uuid').v4;
 
-const readState = async () => {
-  return await storage.roundstate().findOne({}, { sort: { $natural: -1 } });
+const updateGame = async (game) => {
+  console.log('updateGame', game);
+  await storage.game().update({_id: game._id}, game);
 };
 
-const writeState = async (state) => {
-  await storage.roundstate().insert(state);
+const findGameByToken = async (token) => {
+  return await storage.game().findOne({active: true, token: token});
 };
+
+const findGameByCode = async (code) => {
+  return await storage.game().findOne({active: true, code: code});
+};
+
+const findGameByPartipation = async (token) => {
+  let activeGames = await storage.game().find({active: true}).toArray();
+  let matchingGames = activeGames.filter(g => g.players.reduce((acc, p) => acc || p.token === token, false));
+  return matchingGames.length === 1 ? matchingGames[0] : null;
+};
+
+const insertGame = async (game) => {
+  let inserted = await storage.game().insertOne(game);
+  console.log(inserted);
+  game._id = inserted.insertedId;
+  return inserted.insertedId;
+};
+
+function pad(num, size) {
+  var s = "000000000" + num;
+  return s.substr(s.length-size);
+}
+
 
 class Lobby {
 
   constructor(io) {
-    this.io = io.of('/lobby');
+    this.io = io;
+    this.lobby = io.of('/lobby');
   }
 
   init() {
-    this.io.on('connection', socket => {
+    this.lobby.on('connection', socket => {
       console.log('someone connected to lobby', new Date());
 
       socket.on('createGame', (args, callback) => {
@@ -36,11 +63,20 @@ class Lobby {
     });
   }
 
-  createGame(args, callback) {
+  async createGame(args, callback) {
     console.log('createGame', args, callback);
     let result = {};
     if (args.nick.length > 5) {
-      result = {ok: true, gameId: '1234567899123', participationId: '8283828283', createdBy: 'Antti-Orvokki', createdAt: new Date()};
+      let game = {
+        active: true,
+        token: uuid(),
+        code: pad(Math.floor(Math.random()*10000), 4),
+        createdAt: new Date(),
+        players: [{token: uuid(), nick: args.nick}]
+      }
+      await insertGame(game);
+      console.log(game);
+      result = {ok: true, participation: game.players[0], game: game.token, code: game.code, createdBy: game.players[0].nick };
     } else {
       result = {ok: false, msg: "Pelin luonti ei onnistunut"}
     }
@@ -48,33 +84,44 @@ class Lobby {
 
   }
 
-  findGame(args, callback) {
+  async findGame(args, callback) {
     console.log('findGame', args, callback);
     let result = {};
-    if (args.code === '9999') {
-      result = {ok: true, gameId: '1234567899123', createdBy: 'Antti-Orvokki', createdAt: new Date()};
+    let game = await findGameByCode(args.code);
+    console.log(game);
+    if (game) {
+      result = {ok: true, game: game.token, createdBy: game.createBy, createdAt: game.createAt};
     } else {
       result = {ok: false, msg: "Koodi ei kelpaa"}
     }
     setTimeout(() => callback(result), 2000);
   }
 
-  joinGame(args, callback) {
+  async joinGame(args, callback) {
     console.log('joinGame', args, callback);
     let result = {};
-    if (args.nick.length > 5) {
-      result = {ok: true, participationId: '1987654321', nick: args.nick, gameId: args.gameId};
+    let game = await findGameByToken(args.game);
+    console.log('found game', game);
+    if (game) {
+      let newParticipation = {token: uuid(), nick: args.nick};
+      game.players.push(newParticipation);
+      await updateGame(game);
+      result = {ok: true, participation: newParticipation, game: game.token};
     } else {
       result = {ok: false, msg: "Peli on suljettu"};
     }
     setTimeout(() => callback(result), 2000);
   }
 
-  resumeParticipation(args, callback) {
+  async resumeParticipation(args, callback) {
     console.log('resumeParticipation', args, callback);
     let result = {};
-    if (args.participationId.length > 5) {
-      result = {ok: true, participationId: '1987654321', nick: "Mikko Mallikas", gameId: '7766554433'};
+    let game = await findGameByPartipation(args.participation);
+    console.log(game);
+    if (game) {
+      let participation = game.players.filter(p => p.token === args.participation)[0];
+      result = {ok: true, participation: participation, game: game.token};
+      ss.getGame(this.io, game.token);
     } else {
       result = {ok: false, msg: "Osallistuminen ei ole voimassa"};
     }

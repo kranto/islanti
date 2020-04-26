@@ -47,7 +47,7 @@ class GameStart extends Component {
             <div>Odotetaan pelaajia.</div>
           </div><div>
             <h3>Pelaajat ({game.players.length})</h3>
-            {game.players.map(p => (<div>{p.name}</div>))}
+            {game.players.map(p => (<div>{p.nick}</div>))}
           </div>
           {game.imOwner ?
             <button className="btn btn-dark start-button" onClick={this.startGame}>Kaikki paikalla, aloitetaan</button>

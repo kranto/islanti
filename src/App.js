@@ -24,9 +24,9 @@ class App extends Component {
     });
   }
 
-  goToGame = (gameId, participationId) => {
-    console.log('goToGame', gameId, participationId);
-    this.stateManager.initGame("dev", { code: "2" }, (result) => {
+  goToGame = (gameToken, participationId) => {
+    console.log('goToGame', gameToken, participationId);
+    this.stateManager.initGame(gameToken, { code: "2", participationId: participationId }, (result) => {
       this.setState({ inLobby: false, inGame: true, myName: result.myName, authenticated: true });
       console.log('App.callback', result);
     });
