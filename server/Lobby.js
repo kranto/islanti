@@ -121,7 +121,7 @@ class Lobby {
     if (game) {
       let participation = game.players.filter(p => p.token === args.participation)[0];
       result = {ok: true, participation: participation, game: game.token};
-      ss.getGame(this.io, game.token);
+      await ss.getGame(this.io, game.token);
     } else {
       result = {ok: false, msg: "Osallistuminen ei ole voimassa"};
     }
