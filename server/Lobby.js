@@ -23,7 +23,6 @@ const findGameByPartipation = async (token) => {
 
 const insertGame = async (game) => {
   let inserted = await storage.game().insertOne(game);
-  console.log(inserted);
   game._id = inserted.insertedId;
   return inserted.insertedId;
 };
@@ -45,8 +44,8 @@ class Lobby {
     this.lobby.on('connection', socket => {
       console.log('someone connected to lobby', new Date());
 
-      socket.on('createGame', (args, callback) => {
-        this.createGame(args, callback);
+      socket.on('createGame', async (args, callback) => {
+        await this.createGame(args, callback);
       });
 
       socket.on('findGame', (args, callback) => {
@@ -78,6 +77,7 @@ class Lobby {
       }
       await insertGame(game);
       console.log(game);
+      await (await ss.getGame(this.io, game.token));
       result = {ok: true, participation: game.players[0], game: game.token, code: game.code, createdBy: game.players[0].nick };
     } else {
       result = {ok: false, msg: "Pelin luonti ei onnistunut"}
