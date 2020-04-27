@@ -114,7 +114,7 @@ function populateState() {
     otherPlayer.open = [];
     p.open.forEach((open, i2) => {
       while (otherPlayer.open.length - 1 < i2) {
-        createNewOpenHand(p.id, otherPlayer.open, "#p" + i + "o" + i2);
+        createNewOpenHand(p.index, otherPlayer.open, "#p" + i + "o" + i2);
       }
       updateContainer(otherPlayer.open[i2], open.cards);
       otherPlayer.open[i2].accepts = open.accepts;
@@ -131,7 +131,7 @@ function populateState() {
     myOpenHandSections = [];
     let i = 0;
     while (myOpenHandSections.length < state.myhands.open.length) {
-      createNewOpenHand(state.myhands.id, myOpenHandSections, "#myopen" + i);
+      createNewOpenHand(state.myhands.index, myOpenHandSections, "#myopen" + i);
       i++;
     }
   

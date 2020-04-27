@@ -62,6 +62,7 @@ class StateManager {
     });
   }
 
+
   initGame(gameToken, credentials, callback) {
     console.log('initGame', gameToken, credentials);
 
@@ -135,6 +136,10 @@ class StateManager {
     this.game.emit('action', {...params, action: action});
   }
 
+  exitGame() {
+    this.game.emit('exitGame');
+  }
+  
   sendGameAction(action, params) {
     params = params || {};
     console.log('sendGameAction', action, params);

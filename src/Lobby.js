@@ -50,11 +50,13 @@ class Lobby extends Component {
 
   componentDidUpdate() {
     if (!this.state) return;
+    console.log('Lobby.componentDidUpdate', this.state);
     if (this.state.phase === 3 && this.props.lobbyReady && !this.state.joinedGame) {
+      console.log('resuming participation', this.state);
       this.resumeParticipation();
       this.setState({phase: 1});
     } else if (this.state.joinedGame) {
-      console.log(this.state);
+      console.log('joined a game, going to game', this.state);
       this.props.goToGame(this.state.game, this.state.participation);
     }
   }

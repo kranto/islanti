@@ -44,6 +44,10 @@ class GameRoom extends Component {
     this.props.stateManager.sendGameAction('nextRound');
   }
 
+  onEndGame = () => {
+    this.props.stateManager.sendGameAction('endGame');
+  }
+
   render() {
 
     console.log("render", this.state.s);
@@ -53,7 +57,7 @@ class GameRoom extends Component {
         <div className="GameRoom">
           <GameStart game={this.state.game} onStartGame={this.onStartGame} onExitGame={this.props.exitGame}></GameStart>
           {/* <ScoreBoard game={this.state.game} onScoreBoardClosed={this.onScoreBoardClosed}></ScoreBoard> */}
-          <CardTable goToGame={this.props.goToGame} onNextRound={this.onNextRound} canStart={this.state.game && this.state.game.locked} stateManager={this.props.stateManager}></CardTable>
+          <CardTable goToGame={this.props.goToGame} onNextRound={this.onNextRound} onEndGame={this.onEndGame} canStart={this.state.game && this.state.game.locked} stateManager={this.props.stateManager}></CardTable>
         </div>        
     );
   }

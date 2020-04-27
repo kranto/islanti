@@ -30,7 +30,7 @@ class CardTable extends Component {
   }
 
   componentDidUpdate() {
-    if (this.state.s && this.state.s.phase > 0 && this.props.canStart) {
+    if (this.state.s && this.state.s.phase > 0 && this.state.s.phase < 6 && this.props.canStart) {
       if (!this.gameInitialized) {
         game.init(this.props.stateManager);      
       }
@@ -118,6 +118,7 @@ class CardTable extends Component {
 
   createInstructions() {
     let state = this.state.s;
+    console.log(state);
     if (state.phase === 1) {
       if (state.myTurn) {
         return <div>Sinun vuorosi jakaa.</div>
@@ -158,7 +159,7 @@ class CardTable extends Component {
       }
     } else if (state.phase === 5) {
       if (state.winner < 0) {
-        return <div className="winner">Sinä voitit!!</div>
+        return <div className="winner">Sinä voitit tämän kierroksen!</div>
       } else {
         return <div className="winner"><span>{state.players[state.winner].name}</span> voitti tämän kierroksen</div>
       }
@@ -186,8 +187,10 @@ class CardTable extends Component {
         <button onClick={() => this.confirmOpening()} disabled={!this.state.selectionOk}>Avaa valitut</button>
         <button onClick={() => this.cancelOpening()}>En avaakaan</button>
       </div>);
-    } else if(state.can.startNextRound) {
+    } else if (state.can.startNextRound) {
       return <button onClick={() => this.props.onNextRound()}>Aloita seuraava kierros</button>
+    } else if (state.can.endGame) {
+      return <button onClick={() => this.props.onEndGame()}>Sulje peli</button>
     }
     return "";
   }
@@ -196,7 +199,7 @@ class CardTable extends Component {
 
     console.log(this.state.s);
 
-    if (!this.props.canStart || !this.state.s) return (
+    if (!this.props.canStart || !this.state.s || this.state.s.phase === 6) return (
       <div className="CardTable"></div>
     );
 

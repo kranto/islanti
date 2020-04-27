@@ -32,9 +32,10 @@ class App extends Component {
     });
   }
 
-  exitGame = () => {
+  exitGame = (participation) => {
     console.log('exitGame');
     this.setState({ inLobby: true, inGame: false });
+    this.stateManager.exitGame();
     Lobby.resetState();
     this.stateManager.closeGame();
   }

@@ -69,6 +69,8 @@ class Lobby {
     if (true) {
       let game = {
         active: true,
+        locked: false,
+        ended: false,
         token: uuid(),
         code: pad(Math.floor(Math.random()*10000), 4),
         createdAt: new Date(),
@@ -119,7 +121,7 @@ class Lobby {
     let result = {};
     let game = await findGameByPartipation(args.participation);
     console.log(game);
-    if (game) {
+    if (game && !game.ended) {
       let participation = game.players.filter(p => p.token === args.participation)[0];
       result = {ok: true, participation: participation, game: game.token};
       await ss.getGame(this.io, game.token);
@@ -129,6 +131,21 @@ class Lobby {
     setTimeout(() => callback(result), 0);
   }
 
+  async exitGame(args, callback) {
+    console.log('exitGame', args, callback);
+    let result = {};
+    let game = await findGameByPartipation(args.participation);
+    console.log('found game', game);
+    if (game && !game.ended) {
+      game.players = game.players.filter(p => p.token !== args.participation)[0];
+      await updateGame(game);
+      await (await ss.getGame(this.io, game.token)).onGameUpdated();
+      result = {ok: true, participation: newParticipation, game: game.token};
+    } else {
+      result = {ok: false, msg: "Peli on suljettu"};
+    }
+    setTimeout(() => callback(result), 2000);
+  }
 }
 
 module.exports = {
