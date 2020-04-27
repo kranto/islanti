@@ -166,8 +166,7 @@ function newOrder(movedCard, hand, index) {
 }
 
 function stateChange(params) {
-  console.log(params);
-  // console.log(params.state.players, otherPlayers);
+  console.log('game.stateChange', params);
 	switch (params.action) {
 		case 'init': case 'fullState':
       state = params.state;

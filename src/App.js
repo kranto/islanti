@@ -16,7 +16,6 @@ class App extends Component {
   componentDidMount() {
     let search = window.location.search;
     let code = search ? decodeURIComponent(search.substring(1)) : "guest";
-    console.log(code);
 
     this.stateManager.initLobby("lobby", (x) => {
       this.setState({ lobbyReady: true });
@@ -32,7 +31,7 @@ class App extends Component {
     });
   }
 
-  exitGame = (participation) => {
+  exitGame = () => {
     console.log('exitGame');
     this.setState({ inLobby: true, inGame: false });
     this.stateManager.exitGame();

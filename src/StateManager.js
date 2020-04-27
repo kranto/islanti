@@ -131,8 +131,8 @@ class StateManager {
   }
   
   sendAction(action, params) {
-    params = params || {};
     console.log('sendAction', action, params);
+    params = params || {};
     this.game.emit('action', {...params, action: action});
   }
 
@@ -141,8 +141,8 @@ class StateManager {
   }
   
   sendGameAction(action, params) {
-    params = params || {};
     console.log('sendGameAction', action, params);
+    params = params || {};
     this.game.emit('gameAction', {...params, action: action});
   }
 

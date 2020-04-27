@@ -63,7 +63,7 @@ class Lobby {
   }
 
   async createGame(args, callback) {
-    console.log('createGame', args, callback);
+    console.log('createGame', args);
     let result = {};
     if (true) {
       let game = {
@@ -87,10 +87,9 @@ class Lobby {
   }
 
   async findGame(args, callback) {
-    console.log('findGame', args, callback);
+    console.log('findGame', args);
     let result = {};
     let game = await findGameByCode(args.code);
-    console.log(game);
     if (game) {
       result = {ok: true, game: game.token, createdBy: game.createBy, createdAt: game.createAt};
     } else {
@@ -100,7 +99,7 @@ class Lobby {
   }
 
   async joinGame(args, callback) {
-    console.log('joinGame', args, callback);
+    console.log('joinGame', args);
     let result = {};
     let game = await findGameByToken(args.game);
     console.log('found game', game);
@@ -117,10 +116,9 @@ class Lobby {
   }
 
   async resumeParticipation(args, callback) {
-    console.log('resumeParticipation', args, callback);
+    console.log('resumeParticipation', args);
     let result = {};
     let game = await findGameByPartipation(args.participation);
-    console.log(game);
     if (game && !game.ended) {
       let participation = game.players.filter(p => p.token === args.participation)[0];
       result = {ok: true, participation: participation, game: game.token};
@@ -132,10 +130,9 @@ class Lobby {
   }
 
   async exitGame(args, callback) {
-    console.log('exitGame', args, callback);
+    console.log('exitGame', args);
     let result = {};
     let game = await findGameByPartipation(args.participation);
-    console.log('found game', game);
     if (game && !game.ended) {
       game.players = game.players.filter(p => p.token !== args.participation)[0];
       await updateGame(game);

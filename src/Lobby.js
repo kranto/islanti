@@ -50,13 +50,10 @@ class Lobby extends Component {
 
   componentDidUpdate() {
     if (!this.state) return;
-    console.log('Lobby.componentDidUpdate', this.state);
     if (this.state.phase === 3 && this.props.lobbyReady && !this.state.joinedGame) {
-      console.log('resuming participation', this.state);
       this.resumeParticipation();
       this.setState({phase: 1});
     } else if (this.state.joinedGame) {
-      console.log('joined a game, going to game', this.state);
       this.props.goToGame(this.state.game, this.state.participation);
     }
   }
@@ -92,7 +89,6 @@ class Lobby extends Component {
   onNickReady = () => {
     this.setState({ loading: true });
     this.saveState();
-    console.log(this.state.newGame ? "Aloitetaan uusi peli" : "Liitytään peliin " + this.state.code, this.state.nick);
     if (this.state.newGame) {
       this.createGame();
     } else {

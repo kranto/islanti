@@ -16,7 +16,6 @@ class GameRoom extends Component {
 
   onStateChange = () => {
     let roundState = this.props.stateManager.getState();
-    console.log("GameRoom.onStateChange", roundState)
     this.setState({game: roundState.game});
   }
 
@@ -49,10 +48,6 @@ class GameRoom extends Component {
   }
 
   render() {
-
-    console.log("render", this.state.s);
-    if (this.state.s === undefined) console.log("Latautuu...");
-
     return (
         <div className="GameRoom">
           <GameStart game={this.state.game} onStartGame={this.onStartGame} onExitGame={this.props.exitGame}></GameStart>

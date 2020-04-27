@@ -3,7 +3,6 @@ const storage = require('./storage');
 const gamestates = {};
 
 const updateGame = async (game) => {
-  console.log('updateGame', game);
   await storage.game().replaceOne({_id: game._id}, game);
 };
 
@@ -94,7 +93,7 @@ class Connector  {
   }
 
   removeListeners() {
-    console.log('removing listener');
+    console.log('removing listener', this.playerGameIndex);
     this.serverstate.eventEmitter.removeListener('stateChange', this.stateChange);
   }
 
@@ -109,9 +108,7 @@ class Connector  {
         if (state.phase > this.serverstate.BEGIN) {
           this.playerRoundIndex = this.serverstate.gameIndexToRoundIndex(this.playerGameIndex);
           if (!this.imGuest) state.players = [...state.players.slice(this.playerRoundIndex, state.players.length), ...state.players.slice(0,this.playerRoundIndex)];
-            console.log('im', this.playerGameIndex, this.playerRoundIndex);
           state.playerInTurn = this.rollIndex(state.playerInTurn, state);
-          console.log('im', state.playerInTurn);
           state.buying = this.rollIndex(state.buying, state);
           state.winner = this.rollIndex(state.winner, state);
           state.myhands = this.imGuest ? null : state.players.splice(0, 1)[0];  // --- create myhands, remove from players ---
@@ -139,9 +136,7 @@ class Connector  {
 
   rollIndex(player, state) {
     if (player === null || player === undefined) return null;
-    console.log('rollIndex1', player, this.playerRoundIndex);
     if (this.imGuest) return player;
-    console.log('rollIndex', player);
     return player === null ? null : (((player + state.players.length - this.playerRoundIndex) % state.players.length) - 1);
   }
 
@@ -182,14 +177,11 @@ class ServerState {
     this.round.index = 0;
 
     await this.onGameUpdated();
-    console.log('game ' + this.game.token + ' initialized');
-    console.log(this.round);
 
     this.io.on('connection', socket => {
       console.log('someone connected to ' + this.gameToken, new Date());
       socket.on('authenticate', (args, callback) => {
         console.log('authenticate', args);
-        console.log(this.game);
         let matching = this.game.players.map((p, i) => ({...p, index: i})).filter(p => p.token === args.participation);
         let player = matching.length === 1 ? matching[0] : null;
         console.log(player.nick + ' authenticated',  args, callback);
@@ -198,7 +190,7 @@ class ServerState {
         if (callback) callback({authenticated: true, myName: player.nick});
         this.updateConnected();
         socket.on('disconnect', () => {
-          console.log(player.nick + ' disconnected', connector.index);
+          console.log(player.nick + ' disconnected', connector.playerGameIndex);
           this.connectors = this.connectors.filter(c => c !== connector);
           connector.removeListeners();
         });
@@ -264,7 +256,7 @@ class ServerState {
   }
 
   async onGameAction(playerGameIndex, args) {
-    console.log('onAction', playerGameIndex, args);
+    console.log('onGameAction', playerGameIndex, args);
     switch (args.action) {
       case 'startGame':
         await this.startGame(playerGameIndex);
@@ -296,7 +288,7 @@ class ServerState {
   }
 
   async nextRound(playerGameIndex) {
-    console.log('startGame', playerGameIndex, this.game.token, this.round.phase);
+    console.log('nextRound', playerGameIndex, this.game.token, this.round.phase);
     if (playerGameIndex !== 0 || this.round.phase !== this.ROUND_ENDED || this.round.roundNumber >= 8) return false;
 
     this.game.roundNumber++;
@@ -358,7 +350,6 @@ class ServerState {
   }
 
   async notifyConnectors(saveState) {
-    console.log(this.round);
     if (saveState) await writeRoundState({...this.round, index: undefined, _id: undefined});
     this.eventEmitter.emit('stateChange', {action: 'fullState', state: this.getFullState()});
   }
@@ -373,7 +364,6 @@ class ServerState {
   }
 
   getFullState() {
-    console.log(this.round);
     return {...this.round, 
       deck: anonymise(this.round.deck ? this.round.deck : []), 
       pile: this.round.pile ? [...this.round.pile.slice(0,2), ...anonymise(this.round.pile.slice(2)) ] : null
@@ -462,7 +452,7 @@ class ServerState {
   }
 
   dontsell(playerRoundIndex) {
-    console.log('sell', playerRoundIndex);
+    console.log('dontsell', playerRoundIndex);
     if (playerRoundIndex !== this.round.playerInTurn || this.round.phase !== this.PICK_CARD_BUYING) return false;
     this.round.players[playerRoundIndex].closed[0].unshift(this.round.pile.shift());
     this.round.players[playerRoundIndex].validity[0] = 
@@ -473,11 +463,11 @@ class ServerState {
     this.notifyConnectors(true);
   }
 
-  discarded(playerRoundIndex, id) {
-    console.log('discarded', playerRoundIndex, id);
+  discarded(playerRoundIndex, cardId) {
+    console.log('discarded', playerRoundIndex, cardId);
     if (playerRoundIndex !== this.round.playerInTurn || this.round.phase !== this.TURN_ACTIVE) return false;
     let p = this.round.players[playerRoundIndex];
-    let matchingCards = p.closed.flat().filter(c => c.i === id);
+    let matchingCards = p.closed.flat().filter(c => c.i === cardId);
     if (matchingCards.length !== 1) return; // not found
     let card = matchingCards[0];
     p.closed = p.closed.map(section => section.filter(c => c !== card)).filter(section => section.length > 0);
@@ -506,7 +496,6 @@ class ServerState {
       let validity = p.validity.splice(ind, 1)[0]
       p.open.unshift({cards: validity.data.cards, accepts: validity.data.accepts});
     });
-    console.log(p.open, p.closed);
     p.opened = true;
     this.round.index++;
     this.checkIfFinished(playerRoundIndex);
@@ -527,21 +516,16 @@ class ServerState {
 
     let hand = this.round.players[handPlayer].open[handIndex];
 
-    console.log(hand, card);
-
     let accepts = hand.accepts.filter(acc => acc.r === card.r && (!acc.s || acc.s === card.s));
     let accept = null;
-    console.log(accepts);
     if (accepts.length === 0) return false;
     if (accepts.length === 2) {
       accept = (Math.abs(accepts[0].ind - dropIndex) < Math.abs(accepts[1].ind - dropIndex)) ? accepts[0] : accepts[1];
     } else {
       accept = accepts[0];
     }
-    console.log(accept);
 
     let joker = hand.cards.splice(accept.ind, accept.replace ? 1 : 0, card);
-    console.log('joker', joker, hand);
 
     if (accept.replace && joker.length === 1) {
       newSections[0].unshift(joker[0]);
@@ -569,7 +553,6 @@ class ServerState {
     if (this.round.players[playerRoundIndex].closed.flat().length === 0) {
       this.round.phase = this.ROUND_ENDED;
       this.round.winner = playerRoundIndex;
-
       return true;
     }
     return false;
@@ -604,8 +587,6 @@ class ServerState {
     let round = this.round.round;
 
     let selected = selectedIndices.map(i => this.round.players[playerRoundIndex].validity[i]);
-
-    console.log(selected);
 
     for (let i = 0; i < selected.length; i++) {
       let validity = selected[i];
@@ -660,9 +641,6 @@ class ServerState {
     var straight = testForStraight ? this.testStraight(section) : false;
     var set = testForSets ? this.testSet(section) : false;
   
-    console.log(set);
-    console.log(straight);
-
     if (straight && straight.valid) return {type: 'straight', valid: true, msg: 'Suora', data: straight};
     if (set && set.valid) return {type: 'set', valid: true, msg: 'Kolmoset', data: set};
 
@@ -787,10 +765,8 @@ module.exports = {
   ServerState: ServerState,
   getGame: async (io, token) => {
     if (gamestates[token]) {
-      console.log('game found');
       return gamestates[token];
     } else {
-      console.log('game not found');
       let ss = new ServerState(io, token);
       await ss.init();
       gamestates[token] = ss;
