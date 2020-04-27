@@ -186,6 +186,8 @@ class CardTable extends Component {
         <button onClick={() => this.confirmOpening()} disabled={!this.state.selectionOk}>Avaa valitut</button>
         <button onClick={() => this.cancelOpening()}>En avaakaan</button>
       </div>);
+    } else if(state.can.startNextRound) {
+      return <button onClick={() => this.props.onNextRound()}>Aloita seuraava kierros</button>
     }
     return "";
   }

@@ -12,7 +12,7 @@ const findGameByToken = async (token) => {
 };
 
 const findGameByCode = async (code) => {
-  return await storage.game().findOne({active: true, code: code});
+  return await storage.game().findOne({active: true, locked: false, code: code});
 };
 
 const findGameByPartipation = async (token) => {

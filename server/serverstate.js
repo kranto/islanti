@@ -1,5 +1,3 @@
-const fs = require('fs');
-
 const storage = require('./storage');
 
 const gamestates = {};
@@ -19,6 +17,19 @@ const findRoundState = async (gameToken) => {
 
 const writeRoundState = async (state) => {
   await storage.roundstate().insertOne(state);
+};
+
+const shuffle = (anyArray) => {
+  for (var k in [1, 2, 3, 4, 5, 6]) {
+    var i = anyArray.length;
+    while (--i >= 0) {
+      var j = Math.floor(Math.random() * anyArray.length);
+      var temp = anyArray[i];
+      anyArray[i] = anyArray[j];
+      anyArray[j] = temp;
+    }
+  }
+  return anyArray;
 };
 
 const EventEmitter = require('events');
@@ -88,7 +99,7 @@ class Connector  {
         console.log('connector.stateChange.fullState', this.index, change.state.index);
         let state = JSON.parse(JSON.stringify(change.state));
 
-        state.game.imOwner = true;
+        state.game.imOwner = this.index === 0;
         if (state.phase > this.serverstate.BEGIN) {
           if (!this.imGuest) state.players = [...state.players.slice(this.index, state.players.length), ...state.players.slice(0,this.index)];
           state.playerInTurn = this.rollIndex(state.playerInTurn, state);
@@ -106,6 +117,7 @@ class Connector  {
             open: state.phase === this.serverstate.TURN_ACTIVE && state.myTurn && !state.myhands.opened,
             complete: state.phase === this.serverstate.TURN_ACTIVE && state.myTurn && state.myhands.opened,
             discard: state.phase === this.serverstate.TURN_ACTIVE && state.myTurn,
+            startNextRound: state.phase === this.serverstate.FINISHED && state.game.imOwner && state.game.roundNumber < 8
           };  
         }
 
@@ -231,19 +243,29 @@ class ServerState {
       case 'startGame':
         await this.startGame(index);
         break;
+      case 'nextRound':
+        await this.nextRound(index);
+        break;
       }
   }
 
   async startGame(player) {
     console.log('startGame', player, this.game.token, this.round.phase);
-    if (/*player !== this.round.game.owner || */this.round.phase !== this.BEGIN) return false;
+    if (player !== 0 || this.round.phase !== this.BEGIN) return false;
 
-    this.game = {...this.game, locked: true};
+    this.game.locked = true;
+    this.game.ended = false;
+    this.game.roundNumber = 1;
+    this.game.dealer = Math.floor(Math.random()*this.game.players.length);
+
+    // shuffle players but first
+    let owner = this.game.players.splice(0,1)[0];
+    shuffle(this.game.players);
+    this.game.players.splice(0,0,owner);
+
     await updateGame(this.game);
 
-    this.round.game = this.game;
-
-    this.startRound(player, 1, Math.floor(Math.random()*this.game.players.length));
+    this.startRound(player);
   }
 
   async notifyConnectors(saveState) {
@@ -252,20 +274,32 @@ class ServerState {
     this.eventEmitter.emit('stateChange', {action: 'fullState', state: this.getFullState()});
   }
 
-  startRound(player, roundNumber, dealerIndex) {
-    console.log('startRound', this.game.token, player, roundNumber, dealerIndex);
-    this.cards = this.createCards();
-    this.shuffle(this.cards);
-    this.cards.forEach((card, index) => card.i = index);
-    this.shuffle(this.cards);
+  async nextRound(player) {
+    console.log('startGame', player, this.game.token, this.round.phase);
+    if (player !== 0 || this.round.phase !== this.FINISHED || this.round.roundNumber >= 8) return false;
 
-    let roundIndex = roundNumber - 1;
+    this.game.roundNumber++;
+    this.game.dealer = (this.game.dealer + 1) % this.game.players.length;
+
+    await updateGame(this.game);
+
+    this.startRound(player);
+  }
+
+  startRound(player) {
+    console.log('startRound', this.game.token, player, this.game.roundNumber, this.game.dealer);
+    this.cards = this.createCards();
+    shuffle(this.cards);
+    this.cards.forEach((card, index) => card.i = index);
+    shuffle(this.cards);
+
+    let roundIndex = this.game.roundNumber - 1;
 
     this.round = {
       ...this.round,
       round: ROUNDS[roundIndex],
       turnIndex: 0,
-      playerInTurn: dealerIndex,
+      playerInTurn: this.game.dealer,
       phase: this.DEAL,
       dealt: false,
       buying: null,
@@ -278,7 +312,7 @@ class ServerState {
         validity: [{}],
         open: [],
         opened: false,
-        inTurn: dealerIndex === i, 
+        inTurn: this.game.dealer === i, 
         bought: 0
       }))
     };
@@ -295,18 +329,6 @@ class ServerState {
           new Card(back, 'r', 0), new Card(back, 'b', 0)
         ])
     ).flat(3)
-  }
-
-  shuffle(anyArray) {
-    for (var k in [1, 2, 3, 4, 5, 6]) {
-      var i = anyArray.length;
-      while (--i >= 0) {
-        var j = Math.floor(Math.random() * anyArray.length);
-        var temp = anyArray[i];
-        anyArray[i] = anyArray[j];
-        anyArray[j] = temp;
-      }
-    }
   }
 
   getFullState() {
@@ -517,7 +539,7 @@ class ServerState {
   checkDeck() {
     if (this.round.deck.length === 0) {
       let newDeck = this.round.pile.splice(0,this.round.pile.length - 1);
-      this.shuffle(newDeck);
+      shuffle(newDeck);
       this.round.deck = newDeck;
     }
   }
