@@ -27,7 +27,7 @@ services:
     volumes:
       - client-app:/app/build    
   server-app:
-    image: kranto/islanti-client:latest
+    image: kranto/islanti-server:latest
     restart: unless-stopped
     depends_on:
      - mongo
