@@ -4,6 +4,8 @@ services:
   nginx:
     image: nginx:1.15-alpine
     restart: unless-stopped
+    depends_on:
+      - server-app 
     volumes:
       - ./data/nginx:/etc/nginx/conf.d
       - ./data/certbot/conf:/etc/letsencrypt
@@ -13,28 +15,28 @@ services:
       - "${NGINX_PORT_SSL}:443"
     command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
   mongo:
-    image: mongo:latest
-    restart: unless-stopped
+    image: andresvidal/rpi3-mongodb3
+    # image: webhippie/mongodb
+    # command: mongod --dbpath /data/db --repair
+    # image: mongo:latest
     # environment:
       # MONGO_INITDB_ROOT_USERNAME: root
       # MONGO_INITDB_ROOT_PASSWORD: rootpassword
+    restart: unless-stopped
     volumes:
       - ./data/mongo:/data/db
     ports:
       - "27017:27017"
-  react-app:
-    build: ..
-    volumes:
-      - client-app:/app/build
+    command: ["mongod", "--journal"]
   server-app:
     build: ../server
     restart: unless-stopped
+    depends_on:
+     - mongo
     ports:
       - "4000:4000"
     environment:
       - MONGO_ADDRESS=mongodb://mongo:27017/
     volumes:
-      - client-app:/usr/src/app/islanti
+      - /home/pirate/islanti-client:/usr/src/app/islanti
 
-volumes:
-  client-app:
