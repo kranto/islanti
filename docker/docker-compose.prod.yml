@@ -16,20 +16,18 @@ services:
     command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
   mongo:
     image: andresvidal/rpi3-mongodb3
-    # image: webhippie/mongodb
-    # command: mongod --dbpath /data/db --repair
-    # image: mongo:latest
-    # environment:
-      # MONGO_INITDB_ROOT_USERNAME: root
-      # MONGO_INITDB_ROOT_PASSWORD: rootpassword
     restart: unless-stopped
     volumes:
       - ./data/mongo:/data/db
     ports:
       - "27017:27017"
     command: ["mongod", "--journal"]
+  client-app:
+    image: kranto/islanti-client:latest
+    volumes:
+      - client-app:/app/build    
   server-app:
-    build: ../server
+    image: kranto/islanti-client:latest
     restart: unless-stopped
     depends_on:
      - mongo
@@ -38,5 +36,7 @@ services:
     environment:
       - MONGO_ADDRESS=mongodb://mongo:27017/
     volumes:
-      - /home/pirate/islanti-client:/usr/src/app/islanti
+      - client-app:/usr/src/app/client
 
+volumes:
+  client-app:

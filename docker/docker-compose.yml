@@ -1,17 +1,6 @@
 version: '3'
 
 services:
-  nginx:
-    image: nginx:1.15-alpine
-    restart: unless-stopped
-    volumes:
-      - ./data/nginx:/etc/nginx/conf.d
-      - ./data/certbot/conf:/etc/letsencrypt
-      - ./data/certbot/www:/var/www/certbot
-    ports:
-      - "${NGINX_PORT}:80"
-      - "${NGINX_PORT_SSL}:443"
-    command: "/bin/sh -c 'while :; do sleep 6h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
   mongo:
     image: mongo:latest
     restart: unless-stopped
@@ -22,11 +11,13 @@ services:
       - ./data/mongo:/data/db
     ports:
       - "27017:27017"
-  react-app:
+  client-app:
+    image: kranto/islanti-client:latest
     build: ..
     volumes:
-      - client-app:/app/build
+      - client-app:/app/build    
   server-app:
+    image: kranto/islanti-server:latest
     build: ../server
     restart: unless-stopped
     ports:
@@ -34,7 +25,7 @@ services:
     environment:
       - MONGO_ADDRESS=mongodb://mongo:27017/
     volumes:
-      - client-app:/usr/src/app/islanti
+      - client-app:/usr/src/app/client
 
 volumes:
   client-app:

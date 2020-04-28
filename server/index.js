@@ -8,10 +8,11 @@ var lobbys = require('./Lobby');
 const storage = require('./storage');
 
 
-app.use(express.static('islanti'));
+app.use(express.static('client'));
 
 app.get('/', function (req, res) {
-  res.sendFile(__dirname + '/islanti/index.html');
+  console.log('request', __dirname);
+  res.sendFile(__dirname + '/client/index.html');
 });
 
 const lobby = new lobbys.Lobby(io);
