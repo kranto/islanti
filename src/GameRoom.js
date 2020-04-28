@@ -50,7 +50,7 @@ class GameRoom extends Component {
   render() {
     return (
         <div className="GameRoom">
-          <GameStart game={this.state.game} onStartGame={this.onStartGame} onExitGame={this.props.exitGame}></GameStart>
+          <GameStart game={this.state.game} onStartGame={this.onStartGame} onAbandonGame={this.props.abandonGame} onExitGame={this.props.exitGame}></GameStart>
           {/* <ScoreBoard game={this.state.game} onScoreBoardClosed={this.onScoreBoardClosed}></ScoreBoard> */}
           <CardTable goToGame={this.props.goToGame} onNextRound={this.onNextRound} onEndGame={this.onEndGame} canStart={this.state.game && this.state.game.locked} stateManager={this.props.stateManager}></CardTable>
         </div>        

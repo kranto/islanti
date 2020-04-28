@@ -39,6 +39,12 @@ class GameStart extends Component {
     }
   }
 
+  abandonGame = () => {
+    if (window.confirm("Haluatko varmasti hylätä tämän pelin?")) {
+      this.props.onAbandonGame();
+    }
+  }
+
   render() {
     let game = this.props.game;
     if (!game) return "";
@@ -54,9 +60,12 @@ class GameStart extends Component {
             {game.players.map(p => (<div>{p.nick}</div>))}
           </div>
           {game.imOwner ?
-            <button className="btn btn-dark start-button" onClick={this.startGame}>Kaikki paikalla, aloitetaan</button>
+            <div style={{display: 'flex', flexFlow: "row nowrap", justifyContent: "space-around", minWidth: "80%" }}>
+              <button className="btn btn-secondary" onClick={this.abandonGame}>Hylkää peli</button>
+              <button className="btn btn-dark" onClick={this.startGame}>Kaikki paikalla, aloitetaan</button>
+            </div>
             :
-            <button className="btn btn-dark start-button" onClick={this.exitGame}>Älä osallistukaan</button>
+            <button className="btn btn-dark" onClick={this.exitGame}>Älä osallistukaan</button>
           }
         </div>
       </div>
