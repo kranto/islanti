@@ -140,6 +140,10 @@ class StateManager {
     this.game.emit('exitGame');
   }
   
+  abandonGame() {
+    this.game.emit('abandonGame');
+  }
+  
   sendGameAction(action, params) {
     console.log('sendGameAction', action, params);
     params = params || {};

@@ -71,6 +71,11 @@ class Connector  {
       await this.serverstate.exitGame(this.playerGameIndex, args);
     });
 
+    this.socket.on('abandonGame', async args => {
+      console.log('connector.abandonGame', this.playerGameIndex, args);
+      await this.serverstate.abandonGame(this.playerGameIndex, args);
+    });
+
     this.socket.on('gameAction', async args => {
       console.log('connector.onGameAction', this.playerGameIndex, args);
       await this.serverstate.onGameAction(this.playerGameIndex, args);
@@ -245,6 +250,14 @@ class ServerState {
   async exitGame(playerGameIndex) {
     if (playerGameIndex === 0 || this.round.phase !== this.BEGIN) return false;
     this.game.players.splice(playerGameIndex, 1);
+    await updateGame(this.game);
+    this.notifyConnectors(false);
+  }
+
+  async abandonGame(playerGameIndex) {
+    if (playerGameIndex !== 0 || this.round.phase !== this.BEGIN) return false;
+    this.game.locked = true;
+    this.game.ended = true;
     await updateGame(this.game);
     this.notifyConnectors(false);
   }
