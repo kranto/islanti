@@ -22,12 +22,8 @@ services:
     ports:
       - "27017:27017"
     command: ["mongod", "--journal"]
-  client-app:
-    image: kranto/islanti-client:latest
-    volumes:
-      - client-app:/var/www    
   server-app:
-    image: kranto/islanti-server:latest
+    build: ../server
     restart: unless-stopped
     depends_on:
      - mongo
@@ -39,4 +35,4 @@ services:
       - client-app:/usr/src/app/client
 
 volumes:
-  client-app:
+  client-app:${CLIENT_APP_DIR}
