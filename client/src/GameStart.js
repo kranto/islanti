@@ -53,8 +53,11 @@ class GameStart extends Component {
         <div className="GameSheet">
           <div>
             <h3>Uusi peli alkamassa</h3>
-            <div>Pelin osallistumiskoodi {game.code}</div>
-            <div>Odotetaan pelaajia.</div>
+            <div>
+              Pelin kutsukoodi <b>{game.code}</b>
+              {game.imOwner ? <span>. Kerro kutsukoodi pelaajille.</span> : ""}
+            </div>
+            <div>Odotetaan pelaajien liittymistä.</div>
           </div><div>
             <h3>Pelaajat ({game.players.length})</h3>
             {game.players.map(p => (<div>{p.nick}</div>))}

@@ -143,9 +143,9 @@ class Lobby extends Component {
             <div id="enterCodeView">
               <h1>Liity peliin</h1>
               <div className="form-group">
-                <label htmlFor="inputGameCode">Osallistumiskoodi</label>
+                <label htmlFor="inputGameCode">Kutsukoodi</label>
                 <input autoFocus type="text" className="form-control" id="inputGameCode" maxLength="4" minLength="4" value={this.state.code} onChange={this.onCodeChanged} disabled={this.state.loading} />
-                <small id="gameHelp" className="form-text text-muted text-gray">Syötä saamasi nelinumeroinen osallistumiskoodi</small>
+                <small id="gameHelp" className="form-text text-muted text-gray">Syötä pelinjohtajalta saamasi nelinumeroinen kutsukoodi</small>
                 <div style={{ visibility: this.state.code.length === 4 ? "visible" : "hidden" }}>
                   <button type="button" className="btn btn-dark" onClick={this.onCodeReady} disabled={this.state.loading}>
                     Osallistu...

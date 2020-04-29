@@ -72,6 +72,7 @@ class Lobby {
         ended: false,
         token: uuid(),
         code: pad(Math.floor(Math.random()*10000), 4),
+        createdBy: args.nick,
         createdAt: new Date(),
         players: [{token: uuid(), nick: args.nick}]
       }
@@ -91,7 +92,7 @@ class Lobby {
     let result = {};
     let game = await findGameByCode(args.code);
     if (game) {
-      result = {ok: true, game: game.token, createdBy: game.createBy, createdAt: game.createAt};
+      result = {ok: true, game: game.token, createdBy: game.createdBy, createdAt: game.createdAt};
     } else {
       result = {ok: false, msg: "Koodi ei kelpaa"}
     }
