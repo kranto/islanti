@@ -13,9 +13,11 @@ services:
       - "27017:27017"
   client-app:
     image: kranto/islanti-client:latest
-    build: ..
+    build: 
+      context: ../client/build
+      dockerfile: ../Dockerfile
     volumes:
-      - client-app:/app/build    
+      - client-app:/var/www    
   server-app:
     image: kranto/islanti-server:latest
     build: ../server

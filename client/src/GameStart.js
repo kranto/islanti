@@ -61,7 +61,7 @@ class GameStart extends Component {
           </div>
           {game.imOwner ?
             <div style={{display: 'flex', flexFlow: "row nowrap", justifyContent: "space-around", minWidth: "80%" }}>
-              <button className="btn btn-secondary" onClick={this.abandonGame}>Hylkää peli</button>
+              <button className="btn btn-secondary" onClick={this.abandonGame}>Hylkää peli!</button>
               <button className="btn btn-dark" onClick={this.startGame}>Kaikki paikalla, aloitetaan</button>
             </div>
             :

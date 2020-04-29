@@ -25,7 +25,7 @@ services:
   client-app:
     image: kranto/islanti-client:latest
     volumes:
-      - client-app:/app/build    
+      - client-app:/var/www    
   server-app:
     image: kranto/islanti-server:latest
     restart: unless-stopped
