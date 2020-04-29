@@ -48,11 +48,14 @@ class Lobby extends Component {
     writeToLocalStorage(state);
   }
 
+  componentDidMount() {
+    window.history.replaceState({}, "", window.location.href.split('?')[0]);
+  }
+
   componentDidUpdate() {
     if (!this.state) return;
     if (this.state.phase === 3 && this.props.lobbyReady && !this.state.joinedGame) {
       this.resumeParticipation();
-      this.setState({phase: 1});
     } else if (this.state.joinedGame) {
       this.props.goToGame(this.state.game, this.state.participation);
     }
@@ -134,7 +137,7 @@ class Lobby extends Component {
   }
 
   render() {
-    if (!this.state) return "";
+    if (!this.state || !this.props.lobbyReady || this.state.phase === 3) return <div className="Lobby"></div>;
     return (
       <div className="Lobby">
         {this.state.phase !== 1 ? "" :
