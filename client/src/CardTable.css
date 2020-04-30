@@ -298,7 +298,12 @@
 	z-index: 10000000;
 }
 
+.hand-score {
+	display: none;
+}
+
 .round-ended .closed-hand .hand-score, .round-ended #section0 .hand-score {
+	display: initial;
     background-color: darkred;
     color: white;
     border-radius: 5px;
