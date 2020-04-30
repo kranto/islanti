@@ -46,7 +46,7 @@ class CardTable extends Component {
         className={"other-player turn-indicator" + (p.inTurn ? " in-turn" : "")}>
         <div className="player-name">{p.name}</div>
         <div className="player-hands">
-          <Hand classes="player-hand closed-hand"/>
+          <Hand classes="player-hand closed-hand" score={p.score}/>
           {p.open.map((h, i) => <Hand key={"p" + index + "o" + i} id={"p" + index + "o" + i} classes="player-hand open-hand"></Hand>)}
         </div>
       </div>
@@ -63,7 +63,8 @@ class CardTable extends Component {
           classes="hand-section section" 
           error={this.state.opening && i < sections.length && !this.state.s.myhands.validity[i].valid}
           selected = {this.state.selected && this.state.selected.length > i ? this.state.selected[i] : false}
-          onClick={() => this.onSectionClicked(i)}>
+          onClick={() => this.onSectionClicked(i)}
+          score={this.state.s.myhands.score}>
         </Hand>)}
       </div>
     );
@@ -210,7 +211,10 @@ class CardTable extends Component {
     let imGuest = this.state.s.myhands === null || this.state.s.myhands.open === undefined;
 
     return (
-      <div className={"CardTable " + (this.state.opening ? "selecting" : "") + (this.state.s.myhands && this.state.s.myhands.inTurn ? " in-turn" : "")}>
+      <div className={"CardTable " 
+      + (this.state.opening ? "selecting" : "") 
+      + (this.state.s.myhands && this.state.s.myhands.inTurn ? " in-turn" : "")
+      + (this.state.s.phase >= 5 ? " round-ended" : "")}>
         <div id="otherplayers">
             {this.createPlayers()}
         </div>

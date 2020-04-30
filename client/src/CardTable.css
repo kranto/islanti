@@ -289,6 +289,30 @@
 	transform: scale(0.9);
 }
 
+.Hand {
+	position: relative;
+}
+
+.round-ended .closed-hand.Hand, .round-ended .hand-section {
+	position: relative;
+	z-index: 10000000;
+}
+
+.round-ended .closed-hand .hand-score, .round-ended #section0 .hand-score {
+    background-color: darkred;
+    color: white;
+    border-radius: 5px;
+    height: 25px;
+    width: 35px;
+    top: 50%;
+    left: 50%;
+    text-align: center;
+    font-size: 1.1em;
+    font-weight: bold;
+    position: absolute;
+    transform: translateX(-50%) translateY(-50%);
+}
+
 .popover {
 	z-index: 1000000;
 	pointer-events: none;

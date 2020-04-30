@@ -53,6 +53,10 @@ class Card {
     this.r = rank;
   }
 
+  static value(r) {
+    return r === 0 ? 25 : r === 1 ? 15 : r <= 7 ? 5 : 10;
+  }
+
   toPlayer(faceUp) {
     return faceUp ? {i: this.i, b: this.b, s:this.s, r:this.r} : {i: this.i, b: this.b};
   }
@@ -566,11 +570,17 @@ class ServerState {
     if (this.round.players[playerRoundIndex].closed.flat().length === 0) {
       this.round.phase = this.ROUND_ENDED;
       this.round.winner = playerRoundIndex;
+      this.calculateScores();
       return true;
     }
     return false;
   }
 
+  calculateScores() {
+    this.round.players.forEach(p => {
+      p.score = p.closed.flat().reduce((sum, card) => Card.value(card.r) + sum, 0);
+    });
+  }
 
   checkDeck() {
     if (this.round.deck.length === 0) {
