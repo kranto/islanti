@@ -142,7 +142,8 @@ class Lobby extends Component {
       <div className="Lobby">
         {this.state.phase !== 1 ? "" :
           <div style={{ height: "100%", display: "flex", flexFlow: "column nowrap", justifyContent: "space-around", alignItems: "center" }}>
-            <div></div>
+            <div style={{fontSize: "3em"}}>I S L A N T I
+              <img src="lobby.png" width="100" height="100" style={{position: "relative", top: "-10px", marginLeft: "30px", verticalAlign: "middle"}}></img>            </div>
             <div id="enterCodeView">
               <h1>Liity peliin</h1>
               <div className="form-group">
