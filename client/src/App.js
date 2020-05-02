@@ -1,9 +1,23 @@
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import React, { Component } from "react";
+import Menu from './Menu.js';
 import Lobby from './Lobby.js';
 import GameRoom from './GameRoom.js';
 import StateManager from './StateManager.js';
+
+import { library } from '@fortawesome/fontawesome-svg-core'
+import {
+  faBars,
+  faTimes,
+  faSpinner
+} from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+library.add(
+  faBars,
+  faTimes,
+  faSpinner
+)
 
 class App extends Component {
 
@@ -53,6 +67,7 @@ class App extends Component {
       <div className="App">
         {this.state.inLobby ? <Lobby stateManager={this.stateManager} goToGame={this.goToGame} lobbyReady={this.state.lobbyReady}></Lobby> : ""}
         {this.state.inGame ? <GameRoom stateManager={this.stateManager} abandonGame={this.abandonGame} exitGame={this.exitGame}></GameRoom> : ""}
+        <Menu/>
       </div>
     );
   }
