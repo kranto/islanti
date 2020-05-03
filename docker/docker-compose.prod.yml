@@ -32,7 +32,5 @@ services:
     environment:
       - MONGO_ADDRESS=mongodb://mongo:27017/
     volumes:
-      - client-app:/usr/src/app/client
+      - ${CLIENT_APP_DIR}:/usr/src/app/client
 
-volumes:
-  client-app:${CLIENT_APP_DIR}
