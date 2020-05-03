@@ -52,6 +52,8 @@ const ROUNDS = [
 const cardsToString = (cards) => cards.map(card => card.str);
 const anonymise = (cardStrings) => cardStrings ? cardStrings.map(cardStr => cardStr.substring(0,4)) : null;
 
+const deepCopy = object => object !== undefined ? JSON.parse(JSON.stringify(object)) : object;
+
 class Card {
   constructor(back, suit, rank) {
     this.b = back;
@@ -125,7 +127,7 @@ class Connector  {
 
   stateChange = (change) => {
     console.log('connector.stateChange', this.playerGameIndex, change.action);
-    let state = JSON.parse(JSON.stringify(change.state));
+    let state = deepCopy(change.state);
     switch (change.action) {
       case 'gameState':
         state.imOwner = this.imOwner;
@@ -342,9 +344,7 @@ class ServerState {
     this.cards.forEach((card, index) => card.setId(index));
     shuffle(this.cards);
 
-    let roundIndex = this.game.roundNumber - 1;
-
-    this.round = ROUNDS[roundIndex];
+    this.round = ROUNDS[this.game.roundNumber - 1];
     this.notifyRoundUpdated();
 
     this.roundState = {
