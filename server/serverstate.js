@@ -50,22 +50,24 @@ const ROUNDS = [
 ];
 
 const cardsToString = (cards) => cards.map(card => card.str);
-const cardToString = (card) => pad(card.i,3) + card.b + (card.s !== undefined ? card.s : "") + (card.r !== undefined ? card.r : "");
-const anonymise = (cards) => cards ? cards.map(cardStr => cardStr.substring(0,4)) : null;
+const anonymise = (cardStrings) => cardStrings ? cardStrings.map(cardStr => cardStr.substring(0,4)) : null;
 
 class Card {
   constructor(back, suit, rank) {
     this.b = back;
     this.s = suit;
     this.r = rank;
-    this.str = "xxxxxxxx";
   }
 
   setId(id) {
     this.i = id;
-    this.str = cardToString(this);
+    this.str = this.stringPresentation();
   }
 
+  stringPresentation() {
+    return pad(this.i,3) + this.b + (this.s !== undefined ? this.s : "") + (this.r !== undefined ? this.r : "");
+  }
+  
   static value(r) {
     return r === 0 ? 25 : r === 1 ? 15 : r <= 7 ? 5 : 10;
   }
