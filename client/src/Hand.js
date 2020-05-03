@@ -22,7 +22,7 @@ class Hand extends Component {
   render() {
     return (
       <div id={this.props.id} className={this.getClasses()} style={this.props.style} onClick={this.onClick}>
-        <div class="hand-score">{this.props.score}</div>
+        <div className="hand-score">{this.props.score}</div>
       </div>
     );
   }

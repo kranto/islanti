@@ -119,7 +119,6 @@ class CardTable extends Component {
 
   createInstructions() {
     let state = this.state.s;
-    console.log(state);
     if (state.phase === 1) {
       if (state.myTurn) {
         return <div>Sinun vuorosi jakaa.</div>
@@ -198,13 +197,9 @@ class CardTable extends Component {
 
   render() {
 
-    console.log(this.state.s);
-
     if (!this.props.canStart || !this.state.s || this.state.s.phase === 6) return (
       <div className="CardTable"></div>
     );
-
-    console.log(this.state.s);
 
     // if (!this.state.s) return "Latautuu...";
 
