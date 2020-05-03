@@ -110,6 +110,10 @@ class StateManager {
     this.game.emit('state');
   }
 
+  getGameState() {
+    return this.gameState;
+  }
+
   getState() {
     return this.state;
   }
@@ -117,8 +121,14 @@ class StateManager {
   stateChange(params) {
     console.log('StateManager.stateChange', params);
     switch(params.action) {
-      case 'fullState': 
+      case 'gameState':
+        this.gameState = params.state;
+        let gameEvent = new CustomEvent('gameStateChange', { detail: {action: 'gameState', state: params.state}});
+        document.dispatchEvent(gameEvent);
+        break;
+      case 'fullState':
         this.state = params.state;
+        console.log('fullState @StateManager', this.state);
         let event = new CustomEvent('stateChange', { detail: {action: 'fullState', state: params.state}});
         document.dispatchEvent(event);
         break;

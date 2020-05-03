@@ -18,6 +18,7 @@ class CardTable extends Component {
   }
 
   onStateChange = () => {
+    console.log('cardtable onstatechange', this.props.stateManager.getState());
     this.setState({...this.state, s : this.props.stateManager.getState()});
   }
 
@@ -197,7 +198,8 @@ class CardTable extends Component {
 
   render() {
 
-    if (!this.props.canStart || !this.state.s || this.state.s.phase === 6) return (
+    console.log('CardTable.render', this.props.canStart, this.state.s);
+    if (!this.props.canStart || !this.state.s || this.state.s.phase === 0 || this.state.s.phase === 6) return (
       <div className="CardTable"></div>
     );
 

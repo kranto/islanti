@@ -15,16 +15,15 @@ class GameRoom extends Component {
   }
 
   onStateChange = () => {
-    let roundState = this.props.stateManager.getState();
-    this.setState({game: roundState.game});
+    this.setState({game: this.props.stateManager.getGameState()});
   }
 
   componentDidMount() {
-    this.props.stateManager.subscribeTo('stateChange', this.onStateChange);
+    this.props.stateManager.subscribeTo('gameStateChange', this.onStateChange);
   }
 
   componentWillUnmount() {
-    this.props.stateManager.unsubscribe('stateChange', this.onStateChange);
+    this.props.stateManager.unsubscribe('gameStateChange', this.onStateChange);
   }
 
   componentDidUpdate() {

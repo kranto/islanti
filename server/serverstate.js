@@ -77,8 +77,9 @@ class Connector  {
   constructor(serverstate, playerGameIndex, socket) {
     this.serverstate = serverstate;
     this.playerGameIndex = playerGameIndex;
+    this.imOwner = playerGameIndex === 0;
+    this.imGuest = playerGameIndex === null;
     this.playerRoundIndex = null;
-    this.imGuest = this.playerGameIndex === null;
     this.socket = socket;
 
     this.socket.on('exitGame', async args => {
@@ -106,7 +107,11 @@ class Connector  {
       this.serverstate.validateSelection(this.playerRoundIndex, args, callback);
     });
 
-    this.socket.on('state', () => this.stateChange({action: 'fullState', state: this.serverstate.getFullState()}));
+    this.socket.on('state', () => {
+      this.stateChange({action: 'gameState', state: this.serverstate.game});
+      this.stateChange({action: 'fullState', state: this.serverstate.getFullState()});
+    });
+
     this.socket.emit('authenticated');
 
     this.serverstate.eventEmitter.on('stateChange', this.stateChange);
@@ -119,12 +124,14 @@ class Connector  {
 
   stateChange = (change) => {
     console.log('connector.stateChange', this.playerGameIndex, change.action);
+    let state = JSON.parse(JSON.stringify(change.state));
     switch (change.action) {
+      case 'gameState':
+        state.imOwner = this.imOwner;
+        break;
       case 'fullState':
         console.log('connector.stateChange.fullState', this.playerGameIndex, change.state.index, change.state.phase);
-        let state = JSON.parse(JSON.stringify(change.state));
 
-        state.game.imOwner = this.playerGameIndex === 0;
         if (state.phase > this.serverstate.BEGIN) {
           this.playerRoundIndex = this.serverstate.gameIndexToRoundIndex(this.playerGameIndex);
           if (!this.imGuest) state.players = [...state.players.slice(this.playerRoundIndex, state.players.length), ...state.players.slice(0,this.playerRoundIndex)];
@@ -143,14 +150,13 @@ class Connector  {
             open: state.phase === this.serverstate.TURN_ACTIVE && state.myTurn && !state.myhands.opened,
             complete: state.phase === this.serverstate.TURN_ACTIVE && state.myTurn && state.myhands.opened,
             discard: state.phase === this.serverstate.TURN_ACTIVE && state.myTurn,
-            startNextRound: state.phase === this.serverstate.ROUND_ENDED && state.game.imOwner && state.game.roundNumber < 8,
-            endGame: state.phase === this.serverstate.ROUND_ENDED && state.game.imOwner && state.game.roundNumber === 8
+            startNextRound: state.phase === this.serverstate.ROUND_ENDED && this.imOwner && this.serverstate.game.roundNumber < 8,
+            endGame: state.phase === this.serverstate.ROUND_ENDED && this.imOwner && this.serverstate.game.roundNumber === 8
           };
         }
-
-        change = {...change, state: state};
         break;
     }
+    change = {...change, state: state};
     this.socket.emit('stateChange', change);
   }
 
@@ -265,22 +271,25 @@ class ServerState {
   async exitGame(playerGameIndex) {
     if (playerGameIndex === 0 || this.round.phase !== this.BEGIN) return false;
     this.game.players.splice(playerGameIndex, 1);
-    await updateGame(this.game);
-    this.notifyConnectors(false);
+    await this.notifyGameUpdated(true);
+    // await updateGame(this.game);
+    // this.notifyConnectors(false);
   }
 
   async abandonGame(playerGameIndex) {
     if (playerGameIndex !== 0 || this.round.phase !== this.BEGIN) return false;
     this.game.locked = true;
     this.game.ended = true;
-    await updateGame(this.game);
-    this.notifyConnectors(false);
+    await this.notifyGameUpdated(true);
+    // await updateGame(this.game);
+    // this.notifyConnectors(false);
   }
 
   async onGameUpdated() {
     this.game = await findGameByToken(this.gameToken);
-    this.round.game = this.game;
-    this.notifyConnectors(false);
+    // this.round.game = this.game;
+    this.notifyGameUpdated(false);
+    // this.notifyConnectors(false);
   }
 
   async onGameAction(playerGameIndex, args) {
@@ -310,7 +319,8 @@ class ServerState {
     this.game.playerOrder = shuffle([...Array(this.game.players.length).keys()]);
     this.game.players.forEach((p, i) => {p.order = this.game.playerOrder.indexOf(i); p.index = i;});
 
-    await updateGame(this.game);
+    await this.notifyGameUpdated(true);
+    // await updateGame(this.game);
 
     this.startRound(playerGameIndex);
   }
@@ -322,7 +332,8 @@ class ServerState {
     this.game.roundNumber++;
     this.game.dealer = (this.game.dealer + 1) % this.game.players.length;
 
-    await updateGame(this.game);
+    await this.notifyGameUpdated(true);
+    // await updateGame(this.game);
 
     this.startRound(playerGameIndex);
   }
@@ -370,16 +381,22 @@ class ServerState {
 
     this.game.ended = true;
     this.game.endedAt = new Date();
+
+    await this.notifyGameUpdated(true);
+    // await updateGame(this.game);
+
     this.round.phase = this.GAME_ENDED;
-
-    await updateGame(this.game);
-
     this.notifyConnectors(true);
   }
 
   async notifyConnectors(saveState) {
     if (saveState) await writeRoundState({...this.round, index: undefined, _id: undefined});
     this.eventEmitter.emit('stateChange', {action: 'fullState', state: this.getFullState()});
+  }
+
+  async notifyGameUpdated(saveState) {
+    if (saveState) await updateGame(this.game);
+    this.eventEmitter.emit('stateChange', {action: 'gameState', state: this.game});
   }
 
   createCards() {
