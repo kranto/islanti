@@ -112,7 +112,7 @@ class Connector  {
     this.socket.on('state', () => {
       this.stateChange({action: 'gameState', state: this.serverstate.game});
       this.stateChange({action: 'round', state: this.serverstate.round});
-      this.stateChange({action: 'fullState', state: this.serverstate.getFullState()});
+      this.stateChange({action: 'roundState', state: this.serverstate.getRoundState()});
     });
 
     this.socket.emit('authenticated');
@@ -134,8 +134,8 @@ class Connector  {
         break;
       case 'round':
         break;
-      case 'fullState':
-        console.log('connector.stateChange.fullState', this.playerGameIndex, change.state.index, change.state.phase);
+      case 'roundState':
+        console.log('connector.stateChange.roundState', this.playerGameIndex, change.state.index, change.state.phase);
 
         if (state.phase > this.serverstate.BEGIN) {
           this.playerRoundIndex = this.serverstate.gameIndexToRoundIndex(this.playerGameIndex);
@@ -389,7 +389,7 @@ class ServerState {
 
   async notifyConnectors(saveState) {
     if (saveState) await writeRoundState({...this.roundState, index: undefined, _id: undefined}, this.game.token);
-    this.eventEmitter.emit('stateChange', {action: 'fullState', state: this.getFullState()});
+    this.eventEmitter.emit('stateChange', {action: 'roundState', state: this.getRoundState()});
   }
 
   async notifyGameUpdated(saveState) {
@@ -410,7 +410,7 @@ class ServerState {
     ).flat(3)
   }
 
-  getFullState() {
+  getRoundState() {
     let deck = this.roundState.deck ? cardsToString(this.roundState.deck) : [];
     let pile = this.roundState.pile ? cardsToString(this.roundState.pile) : [];
     return {

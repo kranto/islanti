@@ -173,7 +173,7 @@ function newOrder(movedCard, hand, index) {
 function stateChange(params) {
   console.log('game.stateChange', params);
 	switch (params.action) {
-		case 'init': case 'fullState':
+		case 'init': case 'roundState':
       state = params.state;
 			populateState();
 			break;

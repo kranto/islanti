@@ -17,16 +17,15 @@ class CardTable extends Component {
   }
 
   onStateChange = () => {
-    console.log('cardtable onstatechange', this.props.stateManager.state.roundState);
     this.setState({...this.state, s : this.props.stateManager.state.roundState});
   }
 
   componentDidMount() {
-    this.props.stateManager.subscribeTo('stateChange', this.onStateChange);
+    this.props.stateManager.subscribeTo('roundStateChange', this.onStateChange);
   }
 
   componentWillUnmount() {
-    this.props.stateManager.unsubscribe('stateChange', this.onStateChange);
+    this.props.stateManager.unsubscribe('roundStateChange', this.onStateChange);
   }
 
   componentDidUpdate() {
@@ -34,7 +33,7 @@ class CardTable extends Component {
       if (!this.gameInitialized) {
         game.init(this.props.stateManager);      
       }
-      game.stateChange({action: 'fullState', state: {...this.state.s, opening: this.state.opening}});
+      game.stateChange({action: 'roundState', state: {...this.state.s, opening: this.state.opening}});
     }
   }
 
@@ -197,12 +196,9 @@ class CardTable extends Component {
 
   render() {
 
-    console.log('CardTable.render', this.props.canStart, this.state.s);
     if (!this.props.canStart || !this.state.s || this.state.s.phase === 0 || this.state.s.phase === 6) return (
       <div className="CardTable"></div>
     );
-
-    // if (!this.state.s) return "Latautuu...";
 
     let imGuest = this.state.s.myhands === null || this.state.s.myhands.open === undefined;
 

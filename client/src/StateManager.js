@@ -122,10 +122,9 @@ class StateManager {
         this.state.round = params.state;
         document.dispatchEvent(new CustomEvent('roundChange'));
         break;
-      case 'fullState':
+      case 'roundState':
         this.state.roundState = params.state;
-        console.log('fullState @StateManager', this.state);
-        document.dispatchEvent(new CustomEvent('stateChange'));
+        document.dispatchEvent(new CustomEvent('roundStateChange'));
         break;
     }
   }
