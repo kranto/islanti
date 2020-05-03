@@ -2,10 +2,10 @@ const storage = require('./storage');
 
 const gamestates = {};
 
-function pad(num, size) {
-  var s = "000000000" + num;
+const pad = (num, size) => {
+  let s = "000" + num;
   return s.substr(s.length-size);
-}
+};
 
 const updateGame = async (game) => {
   await storage.game().replaceOne({_id: game._id}, game);
@@ -51,7 +51,6 @@ const ROUNDS = [
 
 const cardsToString = (cards) => cards.map(card => card.str);
 const cardToString = (card) => pad(card.i,3) + card.b + (card.s !== undefined ? card.s : "") + (card.r !== undefined ? card.r : "");
-// const anonymise = (cards) => cards ? cards.map(card => ({...card, s:undefined, r:undefined})).map(card => cardToString(card)) : null;
 const anonymise = (cards) => cards ? cards.map(cardStr => cardStr.substring(0,4)) : null;
 
 class Card {
