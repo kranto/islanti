@@ -2,6 +2,11 @@ const storage = require('./storage');
 
 const gamestates = {};
 
+function pad(num, size) {
+  var s = "000000000" + num;
+  return s.substr(s.length-size);
+}
+
 const updateGame = async (game) => {
   await storage.game().replaceOne({_id: game._id}, game);
 };
@@ -44,21 +49,26 @@ const ROUNDS = [
   { roundNumber: 8, roundName: "freestyle", expectedSets: 1, expectedStraights: 1,	isFreestyle: true },
 ];
 
-anonymise = (cards) => cards ? cards.map(card => ({...card, s:undefined, r:undefined})) : null;
+const cardsToString = (cards) => cards.map(card => card.str);
+const cardToString = (card) => pad(card.i,3) + card.b + (card.s !== undefined ? card.s : "") + (card.r !== undefined ? card.r : "");
+// const anonymise = (cards) => cards ? cards.map(card => ({...card, s:undefined, r:undefined})).map(card => cardToString(card)) : null;
+const anonymise = (cards) => cards ? cards.map(cardStr => cardStr.substring(0,4)) : null;
 
 class Card {
   constructor(back, suit, rank) {
     this.b = back;
     this.s = suit;
     this.r = rank;
+    this.str = "xxxxxxxx";
+  }
+
+  setId(id) {
+    this.i = id;
+    this.str = cardToString(this);
   }
 
   static value(r) {
     return r === 0 ? 25 : r === 1 ? 15 : r <= 7 ? 5 : 10;
-  }
-
-  toPlayer(faceUp) {
-    return faceUp ? {i: this.i, b: this.b, s:this.s, r:this.r} : {i: this.i, b: this.b};
   }
 }
 
@@ -320,7 +330,7 @@ class ServerState {
     console.log('startRound', this.game.token, playerGameIndex, this.game.roundNumber, this.game.dealer);
     this.cards = this.createCards();
     shuffle(this.cards);
-    this.cards.forEach((card, index) => card.i = index);
+    this.cards.forEach((card, index) => card.setId(index));
     shuffle(this.cards);
 
     let roundIndex = this.game.roundNumber - 1;
@@ -381,9 +391,13 @@ class ServerState {
   }
 
   getFullState() {
-    return {...this.round, 
-      deck: anonymise(this.round.deck ? this.round.deck : []), 
-      pile: this.round.pile ? [...this.round.pile.slice(0,2), ...anonymise(this.round.pile.slice(2)) ] : null
+    let deck = this.round.deck ? cardsToString(this.round.deck) : [];
+    let pile = this.round.pile ? cardsToString(this.round.pile) : [];
+    return {
+      ...this.round,
+      players: this.round.players ? this.round.players.map(p => ({...p, closed: p.closed.map(hand => cardsToString(hand)), open: p.open.map(hand => ({...hand, cards:cardsToString(hand.cards)}))})) : null,
+      deck: anonymise(deck),
+      pile: [...pile.slice(0,2), ...anonymise(pile.slice(2)) ]
     };
   }
 
@@ -650,7 +664,6 @@ class ServerState {
     if (round.isFreestyle) {
       let playerCardsCount = this.round.players[playerRoundIndex].closed.flat().length;
       let selectedCardsCount = selected.map(validity => validity.data.cards).flat().length;
-      console.log(playerCardsCount, selectedCardsCount)
       if (selectedCardsCount < playerCardsCount - 1) {
         return {valid: false, msg: "Freestylessä saa käteen jäädä korkeintaan yksi kortti"};
       }
