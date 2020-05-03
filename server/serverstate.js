@@ -16,11 +16,11 @@ const findGameByToken = async (token) => {
 };
 
 const findRoundState = async (gameToken) => {
-  return await storage.roundstate().findOne({'game.token': gameToken}, {sort:{$natural:-1}});
+  return await storage.roundstate().findOne({'gameToken': gameToken}, {sort:{$natural:-1}});
 };
 
-const writeRoundState = async (state) => {
-  await storage.roundstate().insertOne(state);
+const writeRoundState = async (state, gameToken) => {
+  await storage.roundstate().insertOne({...state, gameToken: gameToken});
 };
 
 const shuffle = (anyArray) => {
@@ -390,7 +390,7 @@ class ServerState {
   }
 
   async notifyConnectors(saveState) {
-    if (saveState) await writeRoundState({...this.round, index: undefined, _id: undefined});
+    if (saveState) await writeRoundState({...this.round, index: undefined, _id: undefined}, this.game.token);
     this.eventEmitter.emit('stateChange', {action: 'fullState', state: this.getFullState()});
   }
 

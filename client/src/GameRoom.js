@@ -15,7 +15,7 @@ class GameRoom extends Component {
   }
 
   onStateChange = () => {
-    this.setState({game: this.props.stateManager.getGameState()});
+    this.setState({game: this.props.stateManager.state.gameState});
   }
 
   componentDidMount() {

@@ -9,7 +9,6 @@ class CardTable extends Component {
   constructor() {
     super();
     this.state = {
-      // s: { can: {}, players: [], myhands: {closed: [], open: []} },
       selected: [],
       selectionOk: false,
       opening: false
@@ -18,8 +17,8 @@ class CardTable extends Component {
   }
 
   onStateChange = () => {
-    console.log('cardtable onstatechange', this.props.stateManager.getState());
-    this.setState({...this.state, s : this.props.stateManager.getState()});
+    console.log('cardtable onstatechange', this.props.stateManager.state.roundState);
+    this.setState({...this.state, s : this.props.stateManager.state.roundState});
   }
 
   componentDidMount() {

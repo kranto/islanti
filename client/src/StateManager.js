@@ -4,6 +4,7 @@ class StateManager {
 
   constructor() {
     this.endpoint = window.location.hostname === 'localhost' ? "http://localhost:4000" : "";
+    this.state = {};
   }
 
   async initLobby(lobbyName, callback) {
@@ -110,27 +111,21 @@ class StateManager {
     this.game.emit('state');
   }
 
-  getGameState() {
-    return this.gameState;
-  }
-
-  getState() {
-    return this.state;
-  }
-
   stateChange(params) {
     console.log('StateManager.stateChange', params);
     switch(params.action) {
       case 'gameState':
-        this.gameState = params.state;
-        let gameEvent = new CustomEvent('gameStateChange', { detail: {action: 'gameState', state: params.state}});
-        document.dispatchEvent(gameEvent);
+        this.state.gameState = params.state;
+        document.dispatchEvent(new CustomEvent('gameStateChange'));
+        break;
+      case 'round':
+        this.state.round = params.state;
+        document.dispatchEvent(new CustomEvent('roundChange'));
         break;
       case 'fullState':
-        this.state = params.state;
+        this.state.roundState = params.state;
         console.log('fullState @StateManager', this.state);
-        let event = new CustomEvent('stateChange', { detail: {action: 'fullState', state: params.state}});
-        document.dispatchEvent(event);
+        document.dispatchEvent(new CustomEvent('stateChange'));
         break;
     }
   }
