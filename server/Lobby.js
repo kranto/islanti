@@ -25,8 +25,12 @@ class Lobby {
         this.joinGame(args, callback);
       });
 
-      socket.on('resumeParticipation', (args, callback) => {
-        this.resumeParticipation(args, callback);
+      socket.on('resumeParticipation', async (args, callback) => {
+        await this.resumeParticipation(args, callback);
+      });
+
+      socket.on('validateParticipations', async (args, callback) => {
+        await this.validateParticipations(args, callback);
       });
     });
   }
@@ -97,6 +101,23 @@ class Lobby {
       result = {ok: false, msg: "Osallistuminen ei ole voimassa"};
     }
     setTimeout(() => callback(result), 0);
+  }
+
+  async validateParticipations(args, callback) {
+    console.log('validateParticipations', args);
+    let result = [];
+    for (const index in args.participations) {
+      const participationToken = args.participations[index];
+      let game = await storage.findGameByPartipation(participationToken);
+      console.log(participationToken, game);
+      if (game && !game.ended) {
+        let participation = game.players.filter(p => p.token === participationToken)[0];
+        result.push({participation: participation, game: game});
+        console.log(participationToken);
+      }
+    }
+    console.log(result.length);
+    setTimeout(() => callback({ok: true, participations: result}), 0);
   }
 
   async exitGame(args, callback) {

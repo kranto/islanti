@@ -58,13 +58,29 @@ class App extends Component {
     this.stateManager.closeGame();
   }
   
+  closeGame = () => {
+    console.log('closeGame');
+    this.setState({ inLobby: true, inGame: false });
+    Lobby.resetState();
+    this.stateManager.closeGame();
+  }
+  
   render() {
     document.title = "Islanti";
     return (
       <div className="App">
         {this.state.inLobby ? <Lobby stateManager={this.stateManager} goToGame={this.goToGame} lobbyReady={this.state.lobbyReady}></Lobby> : ""}
-        {this.state.inGame ? <GameRoom stateManager={this.stateManager} abandonGame={this.abandonGame} exitGame={this.exitGame}></GameRoom> : ""}
-        <Menu/>
+        {this.state.inGame ? 
+          <>
+          <GameRoom 
+            stateManager={this.stateManager}
+            abandonGame={this.abandonGame}
+            closeGame={this.closeGame}
+            exitGame={this.exitGame}>
+          </GameRoom> 
+          <Menu closeGame={this.closeGame}/>
+          </>
+          : ""}
       </div>
     );
   }

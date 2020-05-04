@@ -7,7 +7,7 @@ class Menu extends Component {
   constructor() {
     super();
     this.state = {
-      open: true
+      open: false
     }
   }
 
@@ -15,10 +15,15 @@ class Menu extends Component {
     this.setState({open: !this.state.open});
   }
 
+  onCloseGame = () => {
+    this.setState({open: false});
+    this.props.closeGame();
+  }
+
   render() {
     return (
       <div className={"Menu " + (this.state.open ? "menu-open" : "")}>
-        <MenuContent/>
+        <MenuContent onCloseGame={this.props.closeGame}/>
         <button className="menubutton" onClick={this.toggleMenu}>
           <FontAwesomeIcon className="open-icon"
             icon={['fas', 'bars']}

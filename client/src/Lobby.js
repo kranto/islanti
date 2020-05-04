@@ -9,6 +9,15 @@ let writeToLocalStorage = (object) => {
   window.localStorage.setItem('IslantiState', JSON.stringify(object));
 }
 
+let readOpenParticipations = () => {
+  let stringItem = window.localStorage.getItem('IslantiOpenParticipations') || "[]";
+  return JSON.parse(stringItem);
+}
+
+let writeOpenParticipations = (object) => {
+  window.localStorage.setItem('IslantiOpenParticipations', JSON.stringify(object));
+}
+
 class Lobby extends Component {
 
   constructor() {
@@ -29,7 +38,7 @@ class Lobby extends Component {
     this.state = {
       game: null,
       participation: participation,
-      phase: participation ? 3 : 1,
+      phase: participation ? 3 : 0,
       joinedGame: false,
       code: "",
       errorMsg: "",
@@ -44,7 +53,7 @@ class Lobby extends Component {
 
   static resetState() {
     let state = readFromLocalStorage();
-    state = {...state, game: undefined, participation: undefined};
+    state = { ...state, game: undefined, participation: undefined };
     writeToLocalStorage(state);
   }
 
@@ -60,11 +69,13 @@ class Lobby extends Component {
       this.resumeParticipation();
     } else if (this.state.joinedGame) {
       this.props.goToGame(this.state.game, this.state.participation);
+    } else if (this.state.phase === 0 && this.props.lobbyReady) {
+      this.refreshOpenParticipations();
     }
   }
 
   saveState() {
-    let savedState = {nick: this.state.nick, game: this.state.game, participation: this.state.participation};
+    let savedState = { nick: this.state.nick, game: this.state.game, participation: this.state.participation };
     writeToLocalStorage(savedState);
   }
 
@@ -76,9 +87,9 @@ class Lobby extends Component {
     this.setState({ loading: true });
     this.props.stateManager.findGame(this.state.code, (result) => {
       if (result.ok) {
-        this.setState({loading: false, phase: 2, game: result.game, gameCreatedBy: result.createdBy, gameCreatedAt: result.createdAt});
+        this.setState({ loading: false, phase: 2, game: result.game, gameCreatedBy: result.createdBy, gameCreatedAt: result.createdAt });
       } else {
-        this.setState({loading: false, code: "", phase: 1, errorMsg: result.msg});
+        this.setState({ loading: false, code: "", phase: 1, errorMsg: result.msg });
       }
     });
   }
@@ -104,9 +115,12 @@ class Lobby extends Component {
   createGame = () => {
     this.props.stateManager.createGame(this.state.nick, (result) => {
       if (result.ok) {
-        this.setState({loading: false, participation: result.participation.token, nick: result.participation.nick, game: result.game, phase: 3, joinedGame: true});
+        this.setState({ loading: false, participation: result.participation.token, nick: result.participation.nick, game: result.game, phase: 3, joinedGame: true });
+        let openParticipations = readOpenParticipations();
+        openParticipations.push(result.participation.token);
+        writeOpenParticipations(openParticipations);
       } else {
-        this.setState({loading: false, errorMsg: result.msg, code: "", participation: undefined, game: undefined, phase: 1, joinedGame: false});
+        this.setState({ loading: false, errorMsg: result.msg, code: "", participation: undefined, game: undefined, phase: 1, joinedGame: false });
       }
       this.saveState();
     });
@@ -115,9 +129,14 @@ class Lobby extends Component {
   joinGame = () => {
     this.props.stateManager.joinGame(this.state.game, this.state.nick, (result) => {
       if (result.ok) {
-        this.setState({loading: false, participation: result.participation.token, nick: result.participation.nick, game: result.game, phase: 3, joinedGame: true});
+        this.setState({ loading: false, participation: result.participation.token, nick: result.participation.nick, game: result.game, phase: 3, joinedGame: true });
+        let openParticipations = readOpenParticipations();
+        if (openParticipations.indexOf(result.participation.token) < 0) {
+          openParticipations.push(result.participation.token);
+          writeOpenParticipations(openParticipations);
+        }
       } else {
-        this.setState({loading: false, errorMsg: result.msg, code: "", participation: undefined, game: undefined, phase: 1, joinedGame: false});
+        this.setState({ loading: false, errorMsg: result.msg, code: "", participation: undefined, game: undefined, phase: 1, joinedGame: false });
       }
       this.saveState();
     });
@@ -126,16 +145,82 @@ class Lobby extends Component {
   resumeParticipation = () => {
     if (this.validating) return;
     this.validating = true;
-    this.setState({loading: true});
+    this.setState({ loading: true });
     this.props.stateManager.resumeParticipation(this.state.participation, (result) => {
       if (result.ok) {
-        this.setState({loading: false, participation: result.participation.token, game: result.game, nick: result.participation.nick, phase: 3, joinedGame: true});
+        this.setState({ loading: false, participation: result.participation.token, game: result.game, nick: result.participation.nick, phase: 3, joinedGame: true });
       } else {
-        this.setState({loading: false, code: "", participation: undefined, game: undefined, phase: 1, joinedGame: false});
+        this.setState({ loading: false, code: "", participation: undefined, game: undefined, phase: 0, joinedGame: false });
       }
       this.saveState();
       this.validating = false;
     });
+  }
+
+  resumeParticipationWithToken = token => {
+    this.setState({participation: token, phase: 3});
+  }
+
+  refreshOpenParticipations = () => {
+    let openParticipations = readOpenParticipations();
+    if (openParticipations.length > 0) {
+      this.props.stateManager.validateParticipations(openParticipations, result => {
+        if (result.ok) {
+          this.setState({ loading: false, openParticipations: result.participations, phase: 1 });
+        } else {
+          this.setState({ loading: false, phase: 1, openParticipations: null, errorMsg: "Avoimia pelejä ei voitu ladata" });
+        }
+        writeOpenParticipations(result.participations.map(p => p.participation.token));
+      });
+    }
+
+  }
+
+  createRejoinGameView = () => {
+    if (this.state.openParticipations.length === 0) return "";
+    return (
+      <div>
+      <h1>Keskeneräiset pelit</h1>
+      <table id="rejoinGameTable">
+        <tbody>
+          <tr><th>Pelinjohtaja</th><th>Muut pelaajat</th><th>Aloitettu</th><th>Kierros</th><th></th><th></th></tr>
+          {this.state.openParticipations.map((p, i) => (
+            <tr className="openGame" key={i}>
+              <td>{p.game.createdBy}</td>
+              <td>{p.game.players.slice(1).map(p => p.nick).join(", ")}</td>
+              <td>{p.game.createdAt}</td>
+              <td>{p.game.roundNumber}</td>
+              <td><button onClick={() => this.resumeParticipationWithToken(p.participation.token)}>Jatka peliä</button></td>
+              <td><button>Poistu pelistä</button></td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      </div>
+    )
+  }
+
+  createEnterCodeView = () => {
+    return (
+      <div id="enterCodeView">
+        <h1>Liity peliin</h1>
+        <div className="form-group">
+          <label htmlFor="inputGameCode">Kutsukoodi</label>
+          <input autoFocus type="text" className="form-control" id="inputGameCode" maxLength="4" minLength="4" value={this.state.code} onChange={this.onCodeChanged} disabled={this.state.loading} />
+          <small id="gameHelp" className="form-text text-muted text-gray">Syötä pelinjohtajalta saamasi nelinumeroinen kutsukoodi</small>
+          <div style={{ visibility: this.state.code.length === 4 ? "visible" : "hidden" }}>
+            <button type="button" className="btn btn-dark" onClick={this.onCodeReady} disabled={this.state.loading}>
+              Osallistu...
+          </button>
+            <br />
+            <div className="spinner-border spinner-border-sm" role="status" style={{ visibility: this.state.loading ? "visible" : "hidden" }}>
+              <span className="sr-only">Ladataan...</span>
+            </div>
+          </div>
+        </div>
+        <div>{this.state.errorMsg}<span>&nbsp;</span></div>
+      </div>
+    )
   }
 
   render() {
@@ -144,26 +229,11 @@ class Lobby extends Component {
       <div className="Lobby">
         {this.state.phase !== 1 ? "" :
           <div style={{ height: "100%", display: "flex", flexFlow: "column nowrap", justifyContent: "space-around", alignItems: "center" }}>
-            <div style={{fontSize: "3em"}}>I S L A N T I
-              <img src="lobby.png" alt="logo" width="100" height="100" style={{position: "relative", top: "-10px", marginLeft: "30px", verticalAlign: "middle"}}></img>            </div>
-            <div id="enterCodeView">
-              <h1>Liity peliin</h1>
-              <div className="form-group">
-                <label htmlFor="inputGameCode">Kutsukoodi</label>
-                <input autoFocus type="text" className="form-control" id="inputGameCode" maxLength="4" minLength="4" value={this.state.code} onChange={this.onCodeChanged} disabled={this.state.loading} />
-                <small id="gameHelp" className="form-text text-muted text-gray">Syötä pelinjohtajalta saamasi nelinumeroinen kutsukoodi</small>
-                <div style={{ visibility: this.state.code.length === 4 ? "visible" : "hidden" }}>
-                  <button type="button" className="btn btn-dark" onClick={this.onCodeReady} disabled={this.state.loading}>
-                    Osallistu...
-                  </button>
-                  <br />
-                  <div className="spinner-border spinner-border-sm" role="status" style={{ visibility: this.state.loading ? "visible" : "hidden" }}>
-                    <span className="sr-only">Ladataan...</span>
-                  </div>
-                </div>
-              </div>
-              <div>{this.state.errorMsg}<span>&nbsp;</span></div>
+            <div style={{ fontSize: "3em" }}>I S L A N T I
+              <img src="lobby.png" alt="logo" width="100" height="100" style={{ position: "relative", top: "-10px", marginLeft: "30px", verticalAlign: "middle" }}></img>
             </div>
+            {this.createRejoinGameView()}
+            {this.createEnterCodeView()}
             <div id="newGame" style={{ visibility: this.state.code.length === 0 ? "visible" : "hidden" }}>
               <button type="button" className="btn btn-dark" onClick={this.onNewGameClicked} disabled={this.state.code.length > 0}>
                 Tai aloita uusi peli...

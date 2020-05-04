@@ -6,12 +6,16 @@ class MenuContent extends Component {
     super();
   }
 
+  onCloseGame = () => {
+    console.log('onCloseGame', this);
+    this.props.onCloseGame();
+  }
+
   render() {
     return (
       <div className={"MenuContent "}>
           <div></div>
-          <button className="btn btn-dark">Palaa pelin valintaan</button>
-          <button className="btn btn-warning">Poistu pelistä lopullisesti</button>
+          <button className="btn btn-dark" onClick={this.onCloseGame}>Sulje peli</button>
       </div>
     );
   }
