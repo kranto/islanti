@@ -46,7 +46,7 @@ class App extends Component {
     console.log('exitGame');
     this.setState({ inLobby: true, inGame: false });
     this.stateManager.exitGame();
-    Lobby.resetState();
+    Lobby.resetParticipation();
     this.stateManager.closeGame();
   }
   
@@ -54,14 +54,14 @@ class App extends Component {
     console.log('abandonGame');
     this.setState({ inLobby: true, inGame: false });
     this.stateManager.abandonGame();
-    Lobby.resetState();
+    Lobby.resetParticipation();
     this.stateManager.closeGame();
   }
   
   closeGame = () => {
     console.log('closeGame');
     this.setState({ inLobby: true, inGame: false });
-    Lobby.resetState();
+    Lobby.resetParticipation();
     this.stateManager.closeGame();
   }
   

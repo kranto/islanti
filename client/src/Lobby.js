@@ -51,7 +51,7 @@ class Lobby extends Component {
     console.log('entered lobby')
   }
 
-  static resetState() {
+  static resetParticipation() {
     let state = readFromLocalStorage();
     state = { ...state, game: undefined, participation: undefined };
     writeToLocalStorage(state);
@@ -61,6 +61,7 @@ class Lobby extends Component {
     if (window.location.search.length > 1) {
       window.history.replaceState({}, "", window.location.href.split('?')[0]);
     }
+    this.setState({});
   }
 
   componentDidUpdate() {
