@@ -17,7 +17,7 @@ class Lobby extends Component {
     let participationFromUri = "";
     let query = window.location.search.substring(1);
     if (query.length > 0) {
-      query.split("&").map(q => {
+      query.split("&").forEach(q => {
         let [key, value] = q.split("=");
         if (key === "pid") participationFromUri = value;
       });
@@ -49,7 +49,9 @@ class Lobby extends Component {
   }
 
   componentDidMount() {
-    window.history.replaceState({}, "", window.location.href.split('?')[0]);
+    if (window.location.search.length > 1) {
+      window.history.replaceState({}, "", window.location.href.split('?')[0]);
+    }
   }
 
   componentDidUpdate() {
@@ -143,7 +145,7 @@ class Lobby extends Component {
         {this.state.phase !== 1 ? "" :
           <div style={{ height: "100%", display: "flex", flexFlow: "column nowrap", justifyContent: "space-around", alignItems: "center" }}>
             <div style={{fontSize: "3em"}}>I S L A N T I
-              <img src="lobby.png" width="100" height="100" style={{position: "relative", top: "-10px", marginLeft: "30px", verticalAlign: "middle"}}></img>            </div>
+              <img src="lobby.png" alt="logo" width="100" height="100" style={{position: "relative", top: "-10px", marginLeft: "30px", verticalAlign: "middle"}}></img>            </div>
             <div id="enterCodeView">
               <h1>Liity peliin</h1>
               <div className="form-group">

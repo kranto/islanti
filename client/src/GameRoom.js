@@ -2,7 +2,7 @@
 import React, { Component } from "react";
 import './GameRoom.css';
 import GameStart from './GameStart.js';
-import ScoreBoard from './ScoreBoard.js';
+// import ScoreBoard from './ScoreBoard.js';
 import CardTable from './CardTable.js';
 
 class GameRoom extends Component {

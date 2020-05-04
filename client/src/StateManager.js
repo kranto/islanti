@@ -126,6 +126,8 @@ class StateManager {
         this.state.roundState = params.state;
         document.dispatchEvent(new CustomEvent('roundStateChange'));
         break;
+      default:
+        break;
     }
   }
 

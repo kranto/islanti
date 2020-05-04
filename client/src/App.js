@@ -1,9 +1,9 @@
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import React, { Component } from "react";
-import Lobby from './Lobby.js';
-import GameRoom from './GameRoom.js';
-import StateManager from './StateManager.js';
+import Lobby from './Lobby';
+import GameRoom from './GameRoom';
+import StateManager from './StateManager';
 
 class App extends Component {
 
@@ -14,9 +14,6 @@ class App extends Component {
   }
 
   componentDidMount() {
-    let search = window.location.search;
-    let code = search ? decodeURIComponent(search.substring(1)) : "guest";
-
     this.stateManager.initLobby("lobby", (x) => {
       this.setState({ lobbyReady: true });
       console.log('In the lobby', x);
