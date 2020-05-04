@@ -185,7 +185,11 @@ class Lobby extends Component {
               <label htmlFor="inputNick">Anna nimimerkkisi</label>
               <input autoFocus type="text" className="form-control" id="inputNick" minLength="1" maxLength="20" value={this.state.nick} onChange={this.onNickChanged} />
               <small id="nickHelp" className="form-text text-muted text-gray">Voit käyttää eri nimimerkkejä eri peleissä</small>
-              <button type="button" className="btn btn-dark" onClick={this.onNickReady} style={{ visibility: this.state.nick.length > 0 ? "visible" : "hidden" }}>{this.state.newGame ? "Aloita uusi peli" : "Liity peliin"}</button>
+              <button type="button" className="btn btn-dark" onClick={this.onNickReady}
+                disabled={this.state.loading}
+                style={{ visibility: this.state.nick.length > 0 ? "visible" : "hidden" }}>
+                {this.state.newGame ? "Aloita uusi peli" : "Liity peliin"}
+              </button>
               <div className="spinner-border spinner-border-sm" role="status" style={{ visibility: this.state.loading ? "visible" : "hidden" }}>
                 <span className="sr-only">Ladataan...</span>
               </div>
