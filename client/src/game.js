@@ -86,7 +86,7 @@ function findCard(servercard) {
 function updateContainer(container, servercards, reverse) {
 	let cards = servercards.map(servercard => ({
     i: parseInt(servercard.substring(0,3)),
-    b: parseInt(servercard.substring(3,4)),
+    b: servercard.substring(3,4),
     s: servercard.substring(4,5),
     r: parseInt(servercard.substring(5))
   })).map(servercard => findCard(servercard));
