@@ -4,22 +4,6 @@ const utils = require('./cardUtils');
 
 const gamestates = {};
 
-const updateGame = async (game) => {
-  await storage.game().replaceOne({_id: game._id}, game);
-};
-
-const findGameByToken = async (token) => {
-  return await storage.game().findOne({active: true, token: token});
-};
-
-const findRoundState = async (gameToken) => {
-  return await storage.roundstate().findOne({'gameToken': gameToken}, {sort:{$natural:-1}});
-};
-
-const writeRoundState = async (state, gameToken) => {
-  await storage.roundstate().insertOne({...state, gameToken: gameToken});
-};
-
 const EventEmitter = require('events');
 
 const deepCopy = object => object !== undefined ? JSON.parse(JSON.stringify(object)) : object;
@@ -152,7 +136,7 @@ class ServerState {
       phase: this.BEGIN
     };
 
-    let savedState = await findRoundState(this.gameToken);
+    let savedState = await storage.findRoundState(this.gameToken);
     this.roundState = savedState ? savedState : initialRoundState;
     this.roundState.index = 0;
 
@@ -236,7 +220,7 @@ class ServerState {
   }
 
   async onGameUpdated() {
-    this.game = await findGameByToken(this.gameToken);
+    this.game = await storage.findGameByToken(this.gameToken);
     this.round = rules.ROUNDS[this.game.roundNumber-1];
     this.notifyRoundUpdated();
     this.notifyGameUpdated(false);
@@ -334,12 +318,12 @@ class ServerState {
   }
 
   async notifyConnectors(saveState) {
-    if (saveState) await writeRoundState({...this.roundState, index: undefined, _id: undefined}, this.game.token);
+    if (saveState) await storage.writeRoundState({...this.roundState, index: undefined, _id: undefined}, this.game.token);
     this.eventEmitter.emit('stateChange', {action: 'roundState', state: this.getRoundState()});
   }
 
   async notifyGameUpdated(saveState) {
-    if (saveState) await updateGame(this.game);
+    if (saveState) await storage.updateGame(this.game);
     this.eventEmitter.emit('stateChange', {action: 'gameState', state: this.game});
   }
 
