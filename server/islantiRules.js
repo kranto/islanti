@@ -10,8 +10,10 @@ const ROUNDS = [
   { roundNumber: 8, roundName: "freestyle", expectedSets: 1, expectedStraights: 1, isFreestyle: true },
 ];
 
+const cardValue = card => card.r === 0 ? 25 : card.r === 1 ? 15 : card.r >= 8 ? 10 : 5;
+
 const calculateScore = (sections) => {
-  return sections.flat().reduce((sum, card) => Card.value(card.r) + sum, 0);
+  return sections.flat().reduce((sum, card) => cardValue(card) + sum, 0);
 }
 
 const validateOpening = (selected, allClosedCards, round) => {

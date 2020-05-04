@@ -20,9 +20,6 @@ class Card {
     return pad(this.i, 3) + this.b + (this.s !== undefined ? this.s : "") + (this.r !== undefined ? this.r : "");
   }
 
-  static value(r) {
-    return r === 0 ? 25 : r === 1 ? 15 : r <= 7 ? 5 : 10;
-  }
 }
 
 const shuffle = (anyArray) => {
