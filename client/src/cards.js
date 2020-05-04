@@ -52,7 +52,7 @@ var cards = (function() {
 			setTimeout(() => {
 				this.suit = suit;
 				this.rank = rank;
-				this.cardback = back === 1 ? 'red' : 'blue';
+				this.cardback = back === "1" ? 'red' : 'blue';
 				this.name = suit ? suit + rank : "e";
 				$(this.el).find(".faceup-img").attr("src", "svg/" + this.name + ".svg");
 				$(this.el).find(".facedown-img").attr("src", "svg/cardback_" + this.cardback + ".svg");	

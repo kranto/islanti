@@ -9,7 +9,6 @@ class CardTable extends Component {
   constructor() {
     super();
     this.state = {
-      // s: { can: {}, players: [], myhands: {closed: [], open: []} },
       selected: [],
       selectionOk: false,
       opening: false
@@ -18,15 +17,15 @@ class CardTable extends Component {
   }
 
   onStateChange = () => {
-    this.setState({...this.state, s : this.props.stateManager.getState()});
+    this.setState({...this.state, s : this.props.stateManager.state.roundState});
   }
 
   componentDidMount() {
-    this.props.stateManager.subscribeTo('stateChange', this.onStateChange);
+    this.props.stateManager.subscribeTo('roundStateChange', this.onStateChange);
   }
 
   componentWillUnmount() {
-    this.props.stateManager.unsubscribe('stateChange', this.onStateChange);
+    this.props.stateManager.unsubscribe('roundStateChange', this.onStateChange);
   }
 
   componentDidUpdate() {
@@ -34,7 +33,7 @@ class CardTable extends Component {
       if (!this.gameInitialized) {
         game.init(this.props.stateManager);      
       }
-      game.stateChange({action: 'fullState', state: {...this.state.s, opening: this.state.opening}});
+      game.stateChange({action: 'roundState', state: {...this.state.s, opening: this.state.opening}});
     }
   }
 
@@ -80,10 +79,10 @@ class CardTable extends Component {
         cards: acc.cards + state.myhands.closed[i].length
       }), {sets: 0, straights: 0, cards: 0});
     let selectionOk = 
-      (!state.round.isFreestyle 
-        && selection.sets === state.round.expectedSets
-        && selection.straights === state.round.expectedStraights) ||
-      (state.round.isFreestyle
+      (!this.props.stateManager.state.round.isFreestyle 
+        && selection.sets === this.props.stateManager.state.round.expectedSets
+        && selection.straights === this.props.stateManager.state.round.expectedStraights) ||
+      (this.props.stateManager.state.round.isFreestyle
         && state.myhands.closed.flat().length - selection.cards <= 1);
 
     if (selectionOk) {
@@ -119,7 +118,6 @@ class CardTable extends Component {
 
   createInstructions() {
     let state = this.state.s;
-    console.log(state);
     if (state.phase === 1) {
       if (state.myTurn) {
         return <div>Sinun vuorosi jakaa.</div>
@@ -151,7 +149,7 @@ class CardTable extends Component {
         if (state.can.open && !this.state.opening) {
           return <div>Pelaa vuoro ja laita lopuksi kortti avopakkaan</div>
         } else if (this.state.opening) {
-          return <div>Valitse {this.state.s.round.roundName}</div>
+          return <div>Valitse {this.props.stateManager.state.round.roundName}</div>
         } else {
           return <div>Pelaa vuoro ja laita lopuksi kortti avopakkaan</div>
         }
@@ -198,15 +196,9 @@ class CardTable extends Component {
 
   render() {
 
-    console.log(this.state.s);
-
-    if (!this.props.canStart || !this.state.s || this.state.s.phase === 6) return (
+    if (!this.props.canStart || !this.state.s || this.state.s.phase === 0 || this.state.s.phase === 6) return (
       <div className="CardTable"></div>
     );
-
-    console.log(this.state.s);
-
-    // if (!this.state.s) return "Latautuu...";
 
     let imGuest = this.state.s.myhands === null || this.state.s.myhands.open === undefined;
 
@@ -219,7 +211,7 @@ class CardTable extends Component {
             {this.createPlayers()}
         </div>
         <div id="gamearea" className={"turn-indicator " + (this.state.s.myhands && this.state.s.myhands.inTurn ? "in-turn" : "")}>
-          <div id="roundinfo">Kierros {this.state.s.round.roundNumber}/8 &ndash; {this.state.s.round.roundName}</div>
+          <div id="roundinfo">Kierros {this.props.stateManager.state.round.roundNumber}/8 &ndash; {this.props.stateManager.state.round.roundName}</div>
           <div id="instructions">
                 {this.createInstructions()}
           </div>

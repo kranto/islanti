@@ -55,12 +55,13 @@ class GameStart extends Component {
             <h3>Uusi peli alkamassa</h3>
             <div>
               Pelin kutsukoodi <b>{game.code}</b>
-              {game.imOwner ? <span>. Kerro kutsukoodi pelaajille.</span> : ""}
+              {game.imOwner ? <span>. 
+              Kerro kutsukoodi pelaajille.</span> : ""}
             </div>
             <div>Odotetaan pelaajien liittymistä.</div>
           </div><div>
             <h3>Pelaajat ({game.players.length})</h3>
-            {game.players.map(p => (<div>{p.nick}</div>))}
+            {game.players.map((p, i) => (<div key={i}>{p.nick}</div>))}
           </div>
           {game.imOwner ?
             <div style={{display: 'flex', flexFlow: "row nowrap", justifyContent: "space-around", minWidth: "80%" }}>

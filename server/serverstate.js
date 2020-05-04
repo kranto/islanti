@@ -1,73 +1,20 @@
 const storage = require('./storage');
+const rules = require('./islantiRules');
+const utils = require('./cardUtils');
 
 const gamestates = {};
 
-const updateGame = async (game) => {
-  await storage.game().replaceOne({_id: game._id}, game);
-};
-
-const findGameByToken = async (token) => {
-  return await storage.game().findOne({active: true, token: token});
-};
-
-const findRoundState = async (gameToken) => {
-  return await storage.roundstate().findOne({'game.token': gameToken}, {sort:{$natural:-1}});
-};
-
-const writeRoundState = async (state) => {
-  await storage.roundstate().insertOne(state);
-};
-
-const shuffle = (anyArray) => {
-  for (var k in [1, 2, 3, 4, 5, 6]) {
-    var i = anyArray.length;
-    while (--i >= 0) {
-      var j = Math.floor(Math.random() * anyArray.length);
-      var temp = anyArray[i];
-      anyArray[i] = anyArray[j];
-      anyArray[j] = temp;
-    }
-  }
-  return anyArray;
-};
-
 const EventEmitter = require('events');
 
-const ROUNDS = [
-  { roundNumber: 1, roundName: "kolmoset ja suora", expectedSets: 1, expectedStraights: 1,	isFreestyle: false },
-  { roundNumber: 2, roundName: "kahdet kolmoset", expectedSets: 2, expectedStraights: 0,	isFreestyle: false },
-  { roundNumber: 3, roundName: "kaksi suoraa", expectedSets: 0, expectedStraights: 2,	isFreestyle: false },
-  { roundNumber: 4, roundName: "kahdet kolmoset ja suora", expectedSets: 2, expectedStraights: 1,	isFreestyle: false },
-  { roundNumber: 5, roundName: "kolmoset ja kaksi suoraa", expectedSets: 1, expectedStraights: 2,	isFreestyle: false },
-  { roundNumber: 6, roundName: "kolmet kolmoset", expectedSets: 3, expectedStraights: 0,	isFreestyle: false },
-  { roundNumber: 7, roundName: "kolme suoraa", expectedSets: 0, expectedStraights: 3,	isFreestyle: false },
-  { roundNumber: 8, roundName: "freestyle", expectedSets: 1, expectedStraights: 1,	isFreestyle: true },
-];
-
-anonymise = (cards) => cards ? cards.map(card => ({...card, s:undefined, r:undefined})) : null;
-
-class Card {
-  constructor(back, suit, rank) {
-    this.b = back;
-    this.s = suit;
-    this.r = rank;
-  }
-
-  static value(r) {
-    return r === 0 ? 25 : r === 1 ? 15 : r <= 7 ? 5 : 10;
-  }
-
-  toPlayer(faceUp) {
-    return faceUp ? {i: this.i, b: this.b, s:this.s, r:this.r} : {i: this.i, b: this.b};
-  }
-}
+const deepCopy = object => object !== undefined ? JSON.parse(JSON.stringify(object)) : object;
 
 class Connector  {
   constructor(serverstate, playerGameIndex, socket) {
     this.serverstate = serverstate;
     this.playerGameIndex = playerGameIndex;
+    this.imOwner = playerGameIndex === 0;
+    this.imGuest = playerGameIndex === null;
     this.playerRoundIndex = null;
-    this.imGuest = this.playerGameIndex === null;
     this.socket = socket;
 
     this.socket.on('exitGame', async args => {
@@ -95,7 +42,12 @@ class Connector  {
       this.serverstate.validateSelection(this.playerRoundIndex, args, callback);
     });
 
-    this.socket.on('state', () => this.stateChange({action: 'fullState', state: this.serverstate.getFullState()}));
+    this.socket.on('state', () => {
+      this.stateChange({action: 'gameState', state: this.serverstate.game});
+      this.stateChange({action: 'round', state: this.serverstate.round});
+      this.stateChange({action: 'roundState', state: this.serverstate.getRoundState()});
+    });
+
     this.socket.emit('authenticated');
 
     this.serverstate.eventEmitter.on('stateChange', this.stateChange);
@@ -108,12 +60,16 @@ class Connector  {
 
   stateChange = (change) => {
     console.log('connector.stateChange', this.playerGameIndex, change.action);
+    let state = deepCopy(change.state);
     switch (change.action) {
-      case 'fullState':
-        console.log('connector.stateChange.fullState', this.playerGameIndex, change.state.index, change.state.phase);
-        let state = JSON.parse(JSON.stringify(change.state));
+      case 'gameState':
+        state.imOwner = this.imOwner;
+        break;
+      case 'round':
+        break;
+      case 'roundState':
+        console.log('connector.stateChange.roundState', this.playerGameIndex, change.state.index, change.state.phase);
 
-        state.game.imOwner = this.playerGameIndex === 0;
         if (state.phase > this.serverstate.BEGIN) {
           this.playerRoundIndex = this.serverstate.gameIndexToRoundIndex(this.playerGameIndex);
           if (!this.imGuest) state.players = [...state.players.slice(this.playerRoundIndex, state.players.length), ...state.players.slice(0,this.playerRoundIndex)];
@@ -122,7 +78,7 @@ class Connector  {
           state.winner = this.rollIndex(state.winner, state);
           state.myhands = this.imGuest ? null : state.players.splice(0, 1)[0];  // --- create myhands, remove from players ---
           state.myTurn = state.playerInTurn < 0;
-          state.players = state.players.map(p => ({...p, validity: undefined, closed: p.closed ? anonymise(p.closed.flat()) : []}));
+          state.players = state.players.map(p => ({...p, validity: undefined, closed: p.closed ? utils.anonymise(p.closed.flat()) : []}));
           state.can = {
             deal: state.phase === this.serverstate.DEAL && state.myTurn,
             show: state.phase === this.serverstate.SHOW_CARD && state.myTurn,
@@ -132,14 +88,13 @@ class Connector  {
             open: state.phase === this.serverstate.TURN_ACTIVE && state.myTurn && !state.myhands.opened,
             complete: state.phase === this.serverstate.TURN_ACTIVE && state.myTurn && state.myhands.opened,
             discard: state.phase === this.serverstate.TURN_ACTIVE && state.myTurn,
-            startNextRound: state.phase === this.serverstate.ROUND_ENDED && state.game.imOwner && state.game.roundNumber < 8,
-            endGame: state.phase === this.serverstate.ROUND_ENDED && state.game.imOwner && state.game.roundNumber === 8
+            startNextRound: state.phase === this.serverstate.ROUND_ENDED && this.imOwner && this.serverstate.game.roundNumber < 8,
+            endGame: state.phase === this.serverstate.ROUND_ENDED && this.imOwner && this.serverstate.game.roundNumber === 8
           };
         }
-
-        change = {...change, state: state};
         break;
     }
+    change = {...change, state: state};
     this.socket.emit('stateChange', change);
   }
 
@@ -168,7 +123,7 @@ class ServerState {
     this.io = io.of('/game/' + gameToken);
 
     this.connectors = [];
-    this.round = false;
+    this.roundState = false;
 
     this.eventEmitter = new EventEmitter();
   }
@@ -181,9 +136,9 @@ class ServerState {
       phase: this.BEGIN
     };
 
-    let savedState = await findRoundState(this.gameToken);
-    this.round = savedState ? savedState : initialRoundState;
-    this.round.index = 0;
+    let savedState = await storage.findRoundState(this.gameToken);
+    this.roundState = savedState ? savedState : initialRoundState;
+    this.roundState.index = 0;
 
     await this.onGameUpdated();
 
@@ -252,24 +207,23 @@ class ServerState {
   }
 
   async exitGame(playerGameIndex) {
-    if (playerGameIndex === 0 || this.round.phase !== this.BEGIN) return false;
+    if (playerGameIndex === 0 || this.roundState.phase !== this.BEGIN) return false;
     this.game.players.splice(playerGameIndex, 1);
-    await updateGame(this.game);
-    this.notifyConnectors(false);
+    await this.notifyGameUpdated(true);
   }
 
   async abandonGame(playerGameIndex) {
-    if (playerGameIndex !== 0 || this.round.phase !== this.BEGIN) return false;
+    if (playerGameIndex !== 0 || this.roundState.phase !== this.BEGIN) return false;
     this.game.locked = true;
     this.game.ended = true;
-    await updateGame(this.game);
-    this.notifyConnectors(false);
+    await this.notifyGameUpdated(true);
   }
 
   async onGameUpdated() {
-    this.game = await findGameByToken(this.gameToken);
-    this.round.game = this.game;
-    this.notifyConnectors(false);
+    this.game = await storage.findGameByToken(this.gameToken);
+    this.round = rules.ROUNDS[this.game.roundNumber-1];
+    this.notifyRoundUpdated();
+    this.notifyGameUpdated(false);
   }
 
   async onGameAction(playerGameIndex, args) {
@@ -288,46 +242,43 @@ class ServerState {
   }
 
   async startGame(playerGameIndex) {
-    console.log('startGame', playerGameIndex, this.game.token, this.round.phase);
-    if (playerGameIndex !== 0 || this.round.phase !== this.BEGIN) return false;
+    console.log('startGame', playerGameIndex, this.game.token, this.roundState.phase);
+    if (playerGameIndex !== 0 || this.roundState.phase !== this.BEGIN) return false;
 
     this.game.locked = true;
     this.game.ended = false;
     this.game.roundNumber = 1;
     this.game.dealer = 0;
 
-    this.game.playerOrder = shuffle([...Array(this.game.players.length).keys()]);
+    this.game.playerOrder = utils.shuffle([...Array(this.game.players.length).keys()]);
     this.game.players.forEach((p, i) => {p.order = this.game.playerOrder.indexOf(i); p.index = i;});
 
-    await updateGame(this.game);
+    await this.notifyGameUpdated(true);
 
     this.startRound(playerGameIndex);
   }
 
   async nextRound(playerGameIndex) {
-    console.log('nextRound', playerGameIndex, this.game.token, this.round.phase);
-    if (playerGameIndex !== 0 || this.round.phase !== this.ROUND_ENDED || this.round.roundNumber >= 8) return false;
+    console.log('nextRound', playerGameIndex, this.game.token, this.roundState.phase);
+    if (playerGameIndex !== 0 || this.roundState.phase !== this.ROUND_ENDED || this.roundState.roundNumber >= 8) return false;
 
     this.game.roundNumber++;
     this.game.dealer = (this.game.dealer + 1) % this.game.players.length;
 
-    await updateGame(this.game);
+    await this.notifyGameUpdated(true);
 
     this.startRound(playerGameIndex);
   }
 
   startRound(playerGameIndex) {
     console.log('startRound', this.game.token, playerGameIndex, this.game.roundNumber, this.game.dealer);
-    this.cards = this.createCards();
-    shuffle(this.cards);
-    this.cards.forEach((card, index) => card.i = index);
-    shuffle(this.cards);
+    this.cards = utils.createCardsAndShuffle();
 
-    let roundIndex = this.game.roundNumber - 1;
+    this.round = rules.ROUNDS[this.game.roundNumber - 1];
+    this.notifyRoundUpdated();
 
-    this.round = {
-      ...this.round,
-      round: ROUNDS[roundIndex],
+    this.roundState = {
+      ...this.roundState,
       turnIndex: 0,
       playerInTurn: this.game.dealer,
       phase: this.DEAL,
@@ -348,53 +299,57 @@ class ServerState {
       }))
     };
 
-    this.round.index++;
+    this.roundState.index++;
 
     this.notifyConnectors(true);
   }
 
   async endGame(playerGameIndex) {
-    console.log('endGame', playerGameIndex, this.game.token, this.round.phase);
-    if (playerGameIndex !== 0 || this.round.phase !== this.ROUND_ENDED || this.round.round.roundNumber !== 8) return false;
+    console.log('endGame', playerGameIndex, this.game.token, this.roundState.phase);
+    if (playerGameIndex !== 0 || this.roundState.phase !== this.ROUND_ENDED || this.round.roundNumber !== 8) return false;
 
     this.game.ended = true;
     this.game.endedAt = new Date();
-    this.round.phase = this.GAME_ENDED;
 
-    await updateGame(this.game);
+    await this.notifyGameUpdated(true);
 
+    this.roundState.phase = this.GAME_ENDED;
     this.notifyConnectors(true);
   }
 
   async notifyConnectors(saveState) {
-    if (saveState) await writeRoundState({...this.round, index: undefined, _id: undefined});
-    this.eventEmitter.emit('stateChange', {action: 'fullState', state: this.getFullState()});
+    if (saveState) await storage.writeRoundState({...this.roundState, index: undefined, _id: undefined}, this.game.token);
+    this.eventEmitter.emit('stateChange', {action: 'roundState', state: this.getRoundState()});
   }
 
-  createCards() {
-    return [0, 1].map(back =>
-      ['h', 's', 'd', 'c'].map(suit =>
-        [...Array(13).keys()].map(rank => new Card(back, suit, rank + 1))).concat([
-          new Card(back, 'r', 0), new Card(back, 'b', 0)
-        ])
-    ).flat(3)
+  async notifyGameUpdated(saveState) {
+    if (saveState) await storage.updateGame(this.game);
+    this.eventEmitter.emit('stateChange', {action: 'gameState', state: this.game});
   }
 
-  getFullState() {
-    return {...this.round, 
-      deck: anonymise(this.round.deck ? this.round.deck : []), 
-      pile: this.round.pile ? [...this.round.pile.slice(0,2), ...anonymise(this.round.pile.slice(2)) ] : null
+  async notifyRoundUpdated() {
+    this.eventEmitter.emit('stateChange', {action: 'round', state: this.round});
+  }
+
+  getRoundState() {
+    let deck = this.roundState.deck ? utils.cardsToString(this.roundState.deck) : [];
+    let pile = this.roundState.pile ? utils.cardsToString(this.roundState.pile) : [];
+    return {
+      ...this.roundState,
+      players: this.roundState.players ? this.roundState.players.map(p => ({...p, closed: p.closed.map(utils.cardsToString), open: p.open.map(hand => ({...hand, cards: utils.cardsToString(hand.cards)}))})) : null,
+      deck: utils.anonymise(deck),
+      pile: [...pile.slice(0,2), ...utils.anonymise(pile.slice(2)) ]
     };
   }
 
   deal(playerRoundIndex) {
     console.log('deal', playerRoundIndex);
-    if (playerRoundIndex !== this.round.playerInTurn || this.round.phase !== this.DEAL || this.round.dealt) return false;
-    this.round.dealt = true;
-    [...Array(13).keys()].forEach(() => this.round.players.forEach(p => p.closed[0].push(this.round.deck.shift())));
+    if (playerRoundIndex !== this.roundState.playerInTurn || this.roundState.phase !== this.DEAL || this.roundState.dealt) return false;
+    this.roundState.dealt = true;
+    [...Array(13).keys()].forEach(() => this.roundState.players.forEach(p => p.closed[0].push(this.roundState.deck.shift())));
     this.nextPlayerInTurn();
-    this.round.phase = this.SHOW_CARD;
-    this.round.index++;
+    this.roundState.phase = this.SHOW_CARD;
+    this.roundState.index++;
     this.notifyConnectors(true);
     return true;
   }
@@ -402,7 +357,7 @@ class ServerState {
   newOrder(playerRoundIndex, newCardOrder) {
     console.log('newOrder', playerRoundIndex, newCardOrder);
     if (this.phase < this.SHOW_CARD || this.phase >= this.ROUND_ENDED) return false;
-    let playersCards = this.round.players[playerRoundIndex].closed.flat();
+    let playersCards = this.roundState.players[playerRoundIndex].closed.flat();
     let cardIds = playersCards.map(card => card.i);
     let cardsById = playersCards.reduce((acc, card) => ({...acc, [card.i]: card}), {});
     if ([...cardIds].sort().join(',') !== [...newCardOrder.flat()].sort().join(',')) {
@@ -412,90 +367,85 @@ class ServerState {
 
     let newSections = newCardOrder.map(section => section.map(id => cardsById[id]));
 
-    this.round.players[playerRoundIndex].closed = newSections;
-    this.round.players[playerRoundIndex].validity = newSections.map(section => 
-      this.testSection(section, this.round.round.expectedStraights > 0, this.round.round.expectedSets > 0));
-    this.round.index++;
+    this.roundState.players[playerRoundIndex].closed = newSections;
+    this.roundState.players[playerRoundIndex].validity = newSections.map(section => rules.testSection(section, this.round));
+    this.roundState.index++;
     this.notifyConnectors(false);
     return true;
   }
 
   showCard(playerRoundIndex) {
     console.log('showCard', playerRoundIndex);
-    if (playerRoundIndex !== this.round.playerInTurn || this.round.phase !== this.SHOW_CARD) return false;
-    this.round.pile.unshift(this.round.deck.shift());
-    this.round.phase = this.PICK_CARD;
-    this.round.index++;
+    if (playerRoundIndex !== this.roundState.playerInTurn || this.roundState.phase !== this.SHOW_CARD) return false;
+    this.roundState.pile.unshift(this.roundState.deck.shift());
+    this.roundState.phase = this.PICK_CARD;
+    this.roundState.index++;
     this.notifyConnectors(true);
   }
 
   pickCard(playerRoundIndex, fromDeck) {
     console.log('pickCard', playerRoundIndex, fromDeck);
-    if (playerRoundIndex !== this.round.playerInTurn || (this.round.phase !== this.PICK_CARD && this.round.phase !== this.PICK_CARD_BOUGHT)) return false;
-    let card = fromDeck ? this.round.deck.shift() : this.round.pile.shift();
+    if (playerRoundIndex !== this.roundState.playerInTurn || (this.roundState.phase !== this.PICK_CARD && this.roundState.phase !== this.PICK_CARD_BOUGHT)) return false;
+    let card = fromDeck ? this.roundState.deck.shift() : this.roundState.pile.shift();
     this.checkDeck();
-    this.round.players[playerRoundIndex].closed[0].unshift(card);
-    this.round.players[playerRoundIndex].validity[0] = 
-      this.testSection(this.round.players[playerRoundIndex].closed[0], this.round.round.expectedStraights > 0, this.round.round.expectedSets > 0);
+    this.roundState.players[playerRoundIndex].closed[0].unshift(card);
+    this.roundState.players[playerRoundIndex].validity[0] = rules.testSection(this.roundState.players[playerRoundIndex].closed[0], this.round);
 
-    this.round.phase = this.TURN_ACTIVE;
-    this.round.index++;
+    this.roundState.phase = this.TURN_ACTIVE;
+    this.roundState.index++;
     this.notifyConnectors(true);
   }
 
   requestToBuy(playerRoundIndex) {
     console.log('requestToBuy', playerRoundIndex);
-    if (playerRoundIndex === this.round.playerInTurn || this.round.phase !== this.PICK_CARD || 
-      (this.turnIndex > 1 && playerRoundIndex === this.previousPlayer(this.round.playerInTurn))) return false;
-    this.round.phase = this.PICK_CARD_BUYING;
-    this.round.buying = playerRoundIndex;
-    this.round.index++;
+    if (playerRoundIndex === this.roundState.playerInTurn || this.roundState.phase !== this.PICK_CARD || 
+      (this.turnIndex > 1 && playerRoundIndex === this.previousPlayer(this.roundState.playerInTurn))) return false;
+    this.roundState.phase = this.PICK_CARD_BUYING;
+    this.roundState.buying = playerRoundIndex;
+    this.roundState.index++;
     this.notifyConnectors(true);
   }
 
   sell(playerRoundIndex) {
     console.log('sell', playerRoundIndex);
-    if (playerRoundIndex !== this.round.playerInTurn || this.round.phase !== this.PICK_CARD_BUYING) return false;
-    this.round.players[this.round.buying].closed[0].unshift(this.round.pile.shift());
-    this.round.players[this.round.buying].closed[0].unshift(this.round.deck.shift());
-    this.round.players[this.round.buying].validity[0] = 
-      this.testSection(this.round.players[this.round.buying].closed[0], this.round.round.expectedStraights > 0, this.round.round.expectedSets > 0);
+    if (playerRoundIndex !== this.roundState.playerInTurn || this.roundState.phase !== this.PICK_CARD_BUYING) return false;
+    this.roundState.players[this.roundState.buying].closed[0].unshift(this.roundState.pile.shift());
+    this.roundState.players[this.roundState.buying].closed[0].unshift(this.roundState.deck.shift());
+    this.roundState.players[this.roundState.buying].validity[0] = rules.testSection(this.roundState.players[this.roundState.buying].closed[0], this.round);
     this.checkDeck();
-    this.round.players[this.round.buying].bought++;
-    this.round.buying = null;
-    this.round.phase = this.PICK_CARD_BOUGHT;
-    this.round.index++;
+    this.roundState.players[this.roundState.buying].bought++;
+    this.roundState.buying = null;
+    this.roundState.phase = this.PICK_CARD_BOUGHT;
+    this.roundState.index++;
     this.notifyConnectors(true);
   }
 
   dontsell(playerRoundIndex) {
     console.log('dontsell', playerRoundIndex);
-    if (playerRoundIndex !== this.round.playerInTurn || this.round.phase !== this.PICK_CARD_BUYING) return false;
-    this.round.players[playerRoundIndex].closed[0].unshift(this.round.pile.shift());
-    this.round.players[playerRoundIndex].validity[0] = 
-      this.testSection(this.round.players[playerRoundIndex].closed[0], this.round.round.expectedStraights > 0, this.round.round.expectedSets > 0);
-    this.round.buying = null;
-    this.round.phase = this.TURN_ACTIVE;
-    this.round.index++;
+    if (playerRoundIndex !== this.roundState.playerInTurn || this.roundState.phase !== this.PICK_CARD_BUYING) return false;
+    this.roundState.players[playerRoundIndex].closed[0].unshift(this.roundState.pile.shift());
+    this.roundState.players[playerRoundIndex].validity[0] = rules.testSection(this.roundState.players[playerRoundIndex].closed[0], this.round);
+    this.roundState.buying = null;
+    this.roundState.phase = this.TURN_ACTIVE;
+    this.roundState.index++;
     this.notifyConnectors(true);
   }
 
   discarded(playerRoundIndex, cardId) {
     console.log('discarded', playerRoundIndex, cardId);
-    if (playerRoundIndex !== this.round.playerInTurn || this.round.phase !== this.TURN_ACTIVE) return false;
-    let p = this.round.players[playerRoundIndex];
+    if (playerRoundIndex !== this.roundState.playerInTurn || this.roundState.phase !== this.TURN_ACTIVE) return false;
+    let p = this.roundState.players[playerRoundIndex];
     let matchingCards = p.closed.flat().filter(c => c.i === cardId);
     if (matchingCards.length !== 1) return; // not found
     let card = matchingCards[0];
     p.closed = p.closed.map(section => section.filter(c => c !== card)).filter(section => section.length > 0);
-    p.validity = p.closed.map(section => 
-      this.testSection(section, this.round.round.expectedStraights > 0, this.round.round.expectedSets > 0));
-    this.round.pile.unshift(card);
-    this.round.index++;
+    p.validity = p.closed.map(section => rules.testSection(section, this.round));
+    this.roundState.pile.unshift(card);
+    this.roundState.index++;
 
     if (!this.checkIfFinished(playerRoundIndex)) {
       this.nextPlayerInTurn();
-      this.round.phase = this.PICK_CARD;
+      this.roundState.phase = this.PICK_CARD;
     };
 
     this.notifyConnectors(true);
@@ -503,10 +453,10 @@ class ServerState {
 
   open(playerRoundIndex, selectedIndices) {
     console.log('open', playerRoundIndex, selectedIndices);
-    if (playerRoundIndex !== this.round.playerInTurn || this.round.phase !== this.TURN_ACTIVE) return false;
+    if (playerRoundIndex !== this.roundState.playerInTurn || this.roundState.phase !== this.TURN_ACTIVE) return false;
     if (!this.validateSelected(playerRoundIndex, selectedIndices).valid) return false;
 
-    let p = this.round.players[playerRoundIndex];
+    let p = this.roundState.players[playerRoundIndex];
     selectedIndices.sort().reverse();
     selectedIndices.forEach(ind => {
       p.closed.splice(ind, 1);
@@ -514,16 +464,16 @@ class ServerState {
       p.open.unshift({cards: validity.data.cards, accepts: validity.data.accepts});
     });
     p.opened = true;
-    this.round.index++;
+    this.roundState.index++;
     this.checkIfFinished(playerRoundIndex);
     this.notifyConnectors(true);
   }
 
   complete(playerRoundIndex, handPlayer, handIndex, cardId, dropIndex) {
     console.log('complete', playerRoundIndex, handPlayer, handIndex, cardId, dropIndex);
-    if (playerRoundIndex !== this.round.playerInTurn || this.round.phase !== this.TURN_ACTIVE || !this.round.players[playerRoundIndex].opened) return false;
+    if (playerRoundIndex !== this.roundState.playerInTurn || this.roundState.phase !== this.TURN_ACTIVE || !this.roundState.players[playerRoundIndex].opened) return false;
 
-    let p = this.round.players[playerRoundIndex];
+    let p = this.roundState.players[playerRoundIndex];
     let playersCards = p.closed.flat();
     let cardIds = playersCards.map(card => card.i);
     if (cardIds.indexOf(cardId) < 0) return false;
@@ -531,7 +481,7 @@ class ServerState {
     let card = playersCards.filter(c => c.i === cardId)[0];
     let newSections = p.closed.map(section => section.filter(c => c.i !== cardId)).filter(section => section.length > 0);
 
-    let hand = this.round.players[handPlayer].open[handIndex];
+    let hand = this.roundState.players[handPlayer].open[handIndex];
 
     let accepts = hand.accepts.filter(acc => acc.r === card.r && (!acc.s || acc.s === card.s));
     let accept = null;
@@ -548,28 +498,27 @@ class ServerState {
       newSections[0].unshift(joker[0]);
     }
 
-    hand.accepts = this.testSection(hand.cards, this.round.round.expectedStraights > 0, this.round.round.expectedSets > 0).data.accepts;
+    hand.accepts = rules.testSection(hand.cards, this.round).data.accepts;
 
     p.closed = newSections;
-    p.validity = newSections.map(section => 
-      this.testSection(section, this.round.round.expectedStraights > 0, this.round.round.expectedSets > 0));
-    this.round.index++;
+    p.validity = newSections.map(section => rules.testSection(section, this.round));
+    this.roundState.index++;
     this.checkIfFinished(playerRoundIndex);
     this.notifyConnectors(true);
     return true;
   }
 
   nextPlayerInTurn() {
-    this.round.playerInTurn = ( this.round.playerInTurn + 1 ) % this.round.players.length;
-    this.round.players.forEach((p, i) => p.inTurn = i === this.round.playerInTurn);
-    this.round.turnIndex++;
+    this.roundState.playerInTurn = ( this.roundState.playerInTurn + 1 ) % this.roundState.players.length;
+    this.roundState.players.forEach((p, i) => p.inTurn = i === this.roundState.playerInTurn);
+    this.roundState.turnIndex++;
   } 
 
   checkIfFinished(playerRoundIndex) {
     console.log('checkIfFinished', playerRoundIndex);
-    if (this.round.players[playerRoundIndex].closed.flat().length === 0) {
-      this.round.phase = this.ROUND_ENDED;
-      this.round.winner = playerRoundIndex;
+    if (this.roundState.players[playerRoundIndex].closed.flat().length === 0) {
+      this.roundState.phase = this.ROUND_ENDED;
+      this.roundState.winner = playerRoundIndex;
       this.calculateScores();
       return true;
     }
@@ -577,21 +526,21 @@ class ServerState {
   }
 
   calculateScores() {
-    this.round.players.forEach(p => {
-      p.score = p.closed.flat().reduce((sum, card) => Card.value(card.r) + sum, 0);
+    this.roundState.players.forEach(p => {
+      p.score = rules.calculateScore(p.closed);
     });
   }
 
   checkDeck() {
-    if (this.round.deck.length === 0) {
-      let newDeck = this.round.pile.splice(0,this.round.pile.length - 1);
-      shuffle(newDeck);
-      this.round.deck = newDeck;
+    if (this.roundState.deck.length === 0) {
+      let newDeck = this.roundState.pile.splice(0,this.roundState.pile.length - 1);
+      utils.shuffle(newDeck);
+      this.roundState.deck = newDeck;
     }
   }
 
   previousPlayer(playerRoundIndex) {
-    return (playerRoundIndex + this.round.players.length - 1) % this.round.players.length;
+    return (playerRoundIndex + this.roundState.players.length - 1) % this.roundState.players.length;
   }
 
 // ---------------------
@@ -605,183 +554,12 @@ class ServerState {
 
   validateSelected = (playerRoundIndex, selectedIndices) => {
     console.log('validateSelected', playerRoundIndex, selectedIndices);
-    var sets = [];
-    var straights = [];
-    let round = this.round.round;
 
-    let selected = selectedIndices.map(i => this.round.players[playerRoundIndex].validity[i]);
+    let selected = selectedIndices.map(i => this.roundState.players[playerRoundIndex].validity[i]);
 
-    for (let i = 0; i < selected.length; i++) {
-      let validity = selected[i];
-      if (!validity.valid) {
-        return {valid: false, msg: "Joku valituista sarjoista ei ole sallittu."};
-      }
-      if (validity.type === 'straight') {
-        straights.push(validity.data);
-      }
-      if (validity.type === 'set') {
-        sets.push(validity.data);
-      }
-    }
-
-    if (sets.length !== round.expectedSets && !round.isFreestyle) {
-      return {valid: false, msg: "Pitäisi olla " + round.expectedSets + " kolmoset, mutta onkin " + sets.length};
-    }
-    if (straights.length !== round.expectedStraights && !round.isFreestyle) {
-      return {valid: false, msg: "Pitäisi olla " + round.expectedStraights + " suoraa, mutta onkin " + straights.length};
-    }
-
-    var setsNumbers = [];
-    for (let i = 0; i < sets.length; i++) {
-      if (setsNumbers.indexOf(sets[i].rank) >= 0) {
-        return {valid: false, msg: "Kaikki kolmossarjat täytyy olla eri numeroa"};
-      }
-      setsNumbers.push(sets[i].rank);
-    }
-    var straightSuits = [];
-    for (let i = 0; i < straights.length; i++) {
-      console.log('straightsuits', straightSuits, straights[i])
-      if (straightSuits.indexOf(straights[i].suit) >= 0) {
-        return {valid: false, msg: "Suorat täytyy olla eri maista"};
-      }
-      straightSuits.push(straights[i].suit);
-    }
-  
-    if (round.isFreestyle) {
-      let playerCardsCount = this.round.players[playerRoundIndex].closed.flat().length;
-      let selectedCardsCount = selected.map(validity => validity.data.cards).flat().length;
-      console.log(playerCardsCount, selectedCardsCount)
-      if (selectedCardsCount < playerCardsCount - 1) {
-        return {valid: false, msg: "Freestylessä saa käteen jäädä korkeintaan yksi kortti"};
-      }
-    }
-
-    return {valid: true};
+    return rules.validateOpening(selected, this.roundState.players[playerRoundIndex].closed, this.round);
   }
-    
-  testSection = (section, testForStraight, testForSets) => {
-    console.log('testSection', section, testForStraight, testForSets);
-    var straight = testForStraight ? this.testStraight(section) : false;
-    var set = testForSets ? this.testSet(section) : false;
-  
-    if (straight && straight.valid) return {type: 'straight', valid: true, msg: 'Suora', data: straight};
-    if (set && set.valid) return {type: 'set', valid: true, msg: 'Kolmoset', data: set};
 
-    return {valid: false, type: false, msg: (straight ? (straight.msg + ". "): "") + (set ? (set.msg + ".") : "")};
-  }
-  
-  testStraight = (section) => {
-    if (section.length < 4) {
-      return {valid: false, msg: "Suorassa täytyy olla vähintään neljä korttia"};
-    }
-    if (section.length > 13) {
-      return {valid: false, msg: "Suorassa ei saa olla yli 13 korttia"};
-    }
-  
-    let others = section.filter(c => c.r > 0);
-    let jokers = section.filter(c => c.r === 0);
-    let aces = others.filter(c => c.r === 1);
-    let suit = others[0].s;
-
-    if (others.filter(c => c.s !== suit).length > 0) {
-      return {valid: false, msg: "Suorassa saa olla vain yhtä maata"};
-    }
-    if (jokers.length >= others.length) {
-      return {valid: false, msg: "Suorassa vähintään puolet korteista pitää olla muita kuin jokereita"}
-    }
-    if (aces.length > 1) {
-      return {valid: false, msg: "Suorassa voi olla vain yksi ässä"};
-    }
-
-    let ranks = section.map(c => c.r);
-    let otherRanks = ranks.filter(r => r > 0);
-    let otherRanksThanAces = otherRanks.filter(r => r > 1);
-
-    if (otherRanksThanAces.length < 2) { // this should never occur
-      return {valid: false, msg: "Suorassa pitää olla ainakin 2 muuta korttia kuin ässä ja jokeri"};
-    }
-    
-    let increasing = otherRanksThanAces[0] < otherRanksThanAces[1];
-
-    if (!increasing) {
-      section = [...section].reverse();
-      others = [...others].reverse();
-      jokers = [...jokers].reverse();
-      ranks = [...ranks].reverse();
-      otherRanks = [...otherRanks].reverse();
-      otherRanksThanAces = [...otherRanksThanAces].reverse();
-    }
-
-    let minRank = otherRanksThanAces[0] - ranks.indexOf(otherRanksThanAces[0]);
-    let maxRank = minRank + ranks.length - 1;
-    if (minRank < 1 || maxRank > 14) {
-      return {valid: false, msg: "Suorassa täytyy olla kortit oikeassa järjestyksessä"};
-    }
-
-    let accepts = [];
-    let acceptsJoker = jokers.length < others.length - 1;
-    if (minRank > 1 && ranks.length < 13) {
-      accepts.push({s: suit, r: minRank - 1, ind: 0});
-      if (acceptsJoker) {
-        accepts.push({r: 0, ind: 0});
-      }
-    }
-
-    for (var i = 0; i < ranks.length; i++) {
-      if (ranks[i] === 0) {
-        accepts.push({s: suit, r: minRank + i, ind: i, replace: true})
-      } else if (ranks[i] !== minRank + i && (ranks[i] !== 1 || minRank + i !== 14)) {
-        return {valid: false, msg: "Suorassa täytyy olla kortit oikeassa järjestyksessä"}
-      }
-    }
-
-    if (maxRank < 14 && ranks.length < 13) {
-      accepts.push({s: suit, r: (maxRank == 13 ? 1 : maxRank + 1), ind: ranks.length});
-      if (acceptsJoker) {
-        accepts.push({r: 0, ind: ranks.length});
-      }
-    }
-    
-    return {
-      type: 'straight',
-      valid: true,
-      suit: suit,
-      cards: section,
-      minRank: minRank,
-      maxRank: maxRank,
-      accepts: accepts
-    };
-  }
-  
-  testSet = (hand) => {
-    if (hand.length < 3) {
-      return {valid: false, msg: "Kolmosissa täytyy olla vähintään kolme korttia"};
-    }
-
-    var jokers = hand.filter(c => c.r === 0);
-    var others = hand.filter(c => c.r > 0);
-
-    if (jokers.length >= others.length) {
-      return {valid: false, msg: "Kolmosissa vähintään puolet korteista pitää olla muita kuin jokereita"}
-    }
-
-    let rank = others[0].r;
-    if (others.filter(c => c.r !== rank).length > 0) {
-      return {valid: false, msg: "Kolmosissa saa olla vain yhtä numeroa"};
-    }
-  
-    let accepts = [{r: rank, ind: 0}];
-    if (jokers.length < others.length - 1) accepts.push({r: 0, ind: 0});
-
-    return {
-      type: 'set',
-      valid: true,
-      rank: rank,
-      cards: hand,
-      accepts: accepts
-    };
-  }
-  
 }
 
 module.exports = {

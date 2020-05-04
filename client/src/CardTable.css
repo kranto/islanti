@@ -136,9 +136,32 @@
 
 .turn-indicator.in-turn {
 	background-color: rgb(46, 177, 57);
-    transition: background-color 0.7s linear 0.7s;
+	transition: background-color 0.7s linear 0.7s;
 }
-	
+
+#gamearea.turn-indicator.in-turn {
+	background-color: rgb(46, 177, 57);
+	animation: color-me-in 2s;
+}
+
+
+@keyframes color-me-in {
+	0% {
+		background-color: inherit;
+	  }
+	10% {
+		background-color: inherit;
+	  }
+	25% {
+	  background-color: rgb(167, 221, 171);
+	}
+	40% {
+		background-color: rgb(167, 221, 171);
+	}
+	100% {
+	  background-color:  rgb(46, 177, 57);;
+	}
+  }
 
 #gamearea {
 	float: left;
