@@ -148,6 +148,8 @@ function populateState() {
     
   }
 
+  if (deck.length > 0) deck[deck.length-1].el.draggable(state.can.pick ? "enable" : "disable");
+  if (discardPile.length > 0) discardPile[discardPile.length-1].el.draggable(state.can.pick || state.can.sell ? "enable" : "disable");
   $("#pile").droppable({disabled: !state.can.discard});
   $(".open-hand").droppable({disabled: !state.can.complete});
 }
@@ -206,27 +208,29 @@ function init(_stateManager) {
 
 	deck = new cards.Deck({
     faceUp: false,
-    element: $("#deck")
-  }); 
+    element: $("#deck"),
+    onDragStart: () => {
+      if (state.can.pick) {
+        sendAction('pickCard', {fromDeck: true});
+      }
+    }
+  });
 
-  deck.click(() => {
-		if (state.can.pick) {
-      sendAction('pickCard', {fromDeck: true});
-		}
-	});
-	
 	discardPile = new cards.Deck({
     faceUp: true, 
-    element: $("#pile")
+    element: $("#pile"),
+    onDragStart: () => {
+      if (state.can.sell) {
+        sendAction('dontsell');
+      } else if (state.can.pick) {
+        sendAction('pickCard', {fromDeck: false});
+      }
+    }
 	});
 
 	discardPile.click(() => {
     if (state.can.buy) {
       sendAction('requestToBuy');
-    } else if (state.can.sell) {
-      sendAction('dontsell');
-    } else if (state.can.pick) {
-      sendAction('pickCard', {fromDeck: false});
 		}
 	});
 

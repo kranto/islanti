@@ -42,8 +42,15 @@ var cards = (function() {
 			$(this.el).draggable({
 				stack: ".playingcard",
 				containment: ".CardTable",
-				start: () => {this.dragging = true; $(this.el).css('z-index', 1000);},
-				stop: () => {this.dragging = false} 
+				start: () => {
+					this.dragging = true;
+					$(this.el).css('z-index', 1000); 
+					if (this.container && this.container.onDragStart) this.container.onDragStart(this);
+				},
+				stop: () => {
+					this.dragging = false;
+					if (this.container && this.container.onDragStop) this.container.onDragStop(this);
+				}
 			});	
 		},
 
@@ -122,6 +129,8 @@ var cards = (function() {
 			this.faceUp = options.faceUp;
 			this.element = options.element;
 			this.isDraggable = options.isDraggable;
+			this.onDragStart = options.onDragStart;
+			this.onDragStop = options.onDragStop;
 			this.pullUp = options.pullUp;
 
 			if (this.element) {

@@ -44,6 +44,10 @@
 	transition: none;
 }
 
+.playingcard.ui-draggable-dragging img {
+	transition: opacity 0.2s ease-in;
+}
+
 .CardTable {
 	padding: 5px;
 	background-color:green;
