@@ -54,9 +54,9 @@ class GameStart extends Component {
           <div>
             <h3>Uusi peli alkamassa</h3>
             <div>
-              Pelin kutsukoodi <b>{game.code}</b>
+              Pelin osallistumiskoodi <b>{game.code}</b>
               {game.imOwner ? <span>. 
-              Kerro kutsukoodi pelaajille.</span> : ""}
+              Kerro osallistumiskoodi pelaajille.</span> : ""}
             </div>
             <div>Odotetaan pelaajien liittymistä.</div>
           </div><div>

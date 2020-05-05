@@ -26,6 +26,9 @@ class CardTable extends Component {
 
   componentWillUnmount() {
     this.props.stateManager.unsubscribe('roundStateChange', this.onStateChange);
+    if (this.gameInitialized) {
+      game.unload();
+    }
   }
 
   componentDidUpdate() {

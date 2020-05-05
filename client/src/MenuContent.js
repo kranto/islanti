@@ -15,7 +15,7 @@ class MenuContent extends Component {
     return (
       <div className={"MenuContent "}>
           <div></div>
-          <button className="btn btn-dark" onClick={this.onCloseGame}>Sulje peli</button>
+          <button className="btn btn-dark" onClick={this.onCloseGame}>Palaa aloitussivulle</button>
       </div>
     );
   }

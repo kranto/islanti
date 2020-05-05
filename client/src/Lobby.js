@@ -1,23 +1,48 @@
 import React, { Component } from "react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 
-let readFromLocalStorage = () => {
-  let stringItem = window.localStorage.getItem('IslantiState') || "{}";
+const pad = (num, size) => ("00000" + num).substring(5 + ("" + num).length - size);
+
+const readFromLocalStorage = () => {
+  const stringItem = window.localStorage.getItem('IslantiState') || "{}";
   return JSON.parse(stringItem);
 }
 
-let writeToLocalStorage = (object) => {
+const writeToLocalStorage = (object) => {
   window.localStorage.setItem('IslantiState', JSON.stringify(object));
 }
 
-let readOpenParticipations = () => {
-  let stringItem = window.localStorage.getItem('IslantiOpenParticipations') || "[]";
+const readOpenParticipations = () => {
+  const stringItem = window.localStorage.getItem('IslantiOpenParticipations') || "[]";
   return JSON.parse(stringItem);
 }
 
-let writeOpenParticipations = (object) => {
+const writeOpenParticipations = (object) => {
   window.localStorage.setItem('IslantiOpenParticipations', JSON.stringify(object));
 }
+
+const getHumanFriendlyTime = (dateStr) => {
+
+  const date = new Date(dateStr);
+  const now = new Date();
+  const delta = Math.round((now - date) / 1000);
+
+  const minute = 60, hour = minute * 60, day = hour * 24, week = day * 7;
+
+  if (delta < 60) {
+    return "hetki sitten";
+  } else if (delta < 2 * 60) {
+    return 'minuutti sitten';
+  } else if (delta < 3600) {
+    return Math.floor(delta / minute) + ' minuuttia sitten';
+  } else if (delta < 24 * 3600 && now.getDate() === date.getDate()) {
+    return date.getHours() + "." + pad(date.getMinutes(),2);
+  } else if (delta < 2 * 24* 3600 && now.getDate() === date.getDate() + 1) {
+    return "eilen";
+  } else {
+    return date.getDate() + "." + (date.getMonth()+1) + ".";
+  }
+};
 
 class Lobby extends Component {
 
@@ -175,12 +200,13 @@ class Lobby extends Component {
         writeOpenParticipations(result.participations.map(p => p.participation.token));
       });
     } else {
-      this.setState({loading: false, openParticipations: [], phase: 1});
+      this.setState({ loading: false, openParticipations: [], phase: 1 });
     }
 
   }
 
-  exitGame = (index) => {
+  exitGame = (event, index) => {
+    event.stopPropagation();
     if (window.confirm("Haluatko varmasti poistua pelistä lopullisesti?")) {
       const token = this.state.openParticipations[index].participation.token;
       this.props.stateManager.exitGameWithToken(token, result => {
@@ -193,24 +219,24 @@ class Lobby extends Component {
     if (this.state.openParticipations.length === 0) return "";
     return (
       <div>
-        <h1>Keskeneräiset pelit</h1>
-        <table id="rejoinGameTable" className="table">
+        <h1>Käynnissä olevat pelisi</h1>
+        <table id="rejoinGameTable" className="table table-hover">
           <tbody>
-            <tr><th>Pelinjohtaja</th><th>Muut pelaajat</th><th>Aloitettu</th><th>Kierros</th><th></th><th></th></tr>
+            <tr><th>Aloitettu</th><th>Pelaajat</th><th>Kierros</th><th></th></tr>
             {this.state.openParticipations.map((p, i) => (
-              <tr className="openGame" key={i}>
-                <td>{p.game.createdBy}</td>
-                <td>{p.game.players.slice(1).map(p => p.nick).join(", ")}</td>
-                <td>{p.game.createdAt}</td>
-                <td>{p.game.roundNumber}</td>
-                <td><button className="btn btn-dark" onClick={() => this.resumeParticipationWithToken(p.participation.token)}>Palaa peliin</button></td>
-                <td><button className="btn btn-warning exit-button" onClick={() => this.exitGame(i)}>
+              <tr className="openGame" key={i} onClick={() => this.resumeParticipationWithToken(p.participation.token)}>
+                <td>{getHumanFriendlyTime(p.game.createdAt)}</td>
+                <td>{p.game.players.map(p => p.nick).join(", ")}</td>
+                <td>{p.game.roundNumber}/8</td>
+                {/* <td><button className="btn btn-dark" onClick={() => this.resumeParticipationWithToken(p.participation.token)}>Palaa peliin</button></td> */}
+                <td><button className="btn btn-warning exit-button" onClick={(event) => this.exitGame(event, i)}>
                   <FontAwesomeIcon className="open-icon" icon={['fas', 'trash']} size="1x" />
                 </button></td>
               </tr>
             ))}
           </tbody>
         </table>
+        <small id="gameHelp" className="form-text text-muted text-gray">Klikkaa peliä jatkaaksesi</small>
       </div>
     )
   }
@@ -218,11 +244,11 @@ class Lobby extends Component {
   createEnterCodeView = () => {
     return (
       <div id="enterCodeView">
-        <h1>Liity peliin</h1>
+        <h1>Osallistu peliin</h1>
         <div className="form-group">
-          <label htmlFor="inputGameCode">Kutsukoodi</label>
+          <label htmlFor="inputGameCode">Osallistumiskoodi</label>
           <input autoFocus type="text" className="form-control" id="inputGameCode" maxLength="4" minLength="4" value={this.state.code} onChange={this.onCodeChanged} disabled={this.state.loading} />
-          <small id="gameHelp" className="form-text text-muted text-gray">Syötä pelinjohtajalta saamasi nelinumeroinen kutsukoodi</small>
+          <small id="gameHelp" className="form-text text-muted text-gray">Syötä pelinjohtajalta saamasi nelinumeroinen osallistumiskoodi</small>
           <div style={{ visibility: this.state.code.length === 4 ? "visible" : "hidden" }}>
             <button type="button" className="btn btn-dark" onClick={this.onCodeReady} disabled={this.state.loading}>
               Osallistu...

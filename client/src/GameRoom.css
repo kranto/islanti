@@ -105,6 +105,6 @@
     text-align: center;
 }
 
-.ScoreBoardTable td:first-child,th:first-child {
+.ScoreBoardTable td:first-child, .ScoreBoardTable th:first-child {
     text-align: left;
 }

@@ -135,6 +135,15 @@ svg.close-icon {
   background-color: rgba(255,255,255,0.5);
 }
 
+#rejoinGameTable tr:not(:first-child) {
+  cursor: pointer;
+}
+
+#rejoinGameTable.table-hover tbody tr:first-child:hover {
+  color: initial;
+  background-color: initial;
+}
+
 #rejoinGameTable .exit-button {
   margin-left: 30px;
 }

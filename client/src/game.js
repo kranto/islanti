@@ -184,6 +184,14 @@ function stateChange(params) {
 
 var stateManager;
 
+function onResize() {
+	setTimeout(populateState, 100);
+}
+
+function unload() {
+  $(window).off("resize", onResize);
+}
+
 function init(_stateManager) {
   console.log('game.init');
   stateManager = _stateManager;
@@ -194,9 +202,7 @@ function init(_stateManager) {
   myClosedHandSections = [];
   myOpenHandSections = [];
 
-  $(window).resize(function(){
-		setTimeout(populateState, 100);
-	});
+  $(window).resize(onResize);
 
 	deck = new cards.Deck({
     faceUp: false,
@@ -256,6 +262,7 @@ function init(_stateManager) {
 
 return {
   init: init,
+  unload: unload,
   stateChange: stateChange
 };
 
