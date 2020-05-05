@@ -78,7 +78,7 @@ function findCard(servercard) {
 	if (!card) {
 		card = new cards.Card(servercard.s, servercard.r, servercard.b, servercard.i, ".CardTable");
 		allCards.push(card);
-	}
+  }
 	card.reveal(servercard.s, servercard.r, servercard.b);
 	return card;
 }
@@ -145,10 +145,9 @@ function populateState() {
       updateContainer(hand, open.cards);
       hand.accepts = open.accepts;
     });
-    
   }
 
-  if (deck.length > 0) deck[deck.length-1].el.draggable(state.can.pick ? "enable" : "disable");
+  if (deck.length > 0) deck[deck.length-1].el.draggable(state.can.pick ? "enable" : "disable").draggable("option", "refreshPositions", true);
   if (discardPile.length > 0) discardPile[discardPile.length-1].el.draggable(state.can.pick || state.can.sell ? "enable" : "disable");
   $("#pile").droppable({disabled: !state.can.discard});
   $(".open-hand").droppable({disabled: !state.can.complete});

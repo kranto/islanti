@@ -48,22 +48,24 @@ var cards = (function() {
 					if (this.container && this.container.onDragStart) this.container.onDragStart(this);
 				},
 				stop: () => {
-					this.dragging = false;
 					if (this.container && this.container.onDragStop) this.container.onDragStop(this);
+					this.dragging = false;
 				}
 			});	
 		},
 
 		reveal(suit, rank, back) {
 			if (this.suit === suit && this.rank === rank && this.back === back) return;
+			const oldSuit = this.suit;
+			this.suit = suit;
+			this.rank = rank;
+			this.cardback = back === "1" ? 'red' : 'blue';
+			this.name = suit ? suit + rank : "e";
+
 			setTimeout(() => {
-				this.suit = suit;
-				this.rank = rank;
-				this.cardback = back === "1" ? 'red' : 'blue';
-				this.name = suit ? suit + rank : "e";
 				$(this.el).find(".faceup-img").attr("src", "svg/" + this.name + ".svg");
 				$(this.el).find(".facedown-img").attr("src", "svg/cardback_" + this.cardback + ".svg");	
-			}, this.suit !== undefined && suit === undefined ? 2000 : 0); // delay anonymisign so that the card has been flipped
+			}, oldSuit !== "" && suit === "" ? 2000 : 0); // delay anonymising so that the card has been flipped
 		},
 
 		pullUp: function(pixels) {
