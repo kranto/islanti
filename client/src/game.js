@@ -185,10 +185,16 @@ function stateChange(params) {
 var stateManager;
 
 function init(_stateManager) {
-
+  console.log('game.init');
   stateManager = _stateManager;
-  
-	$(window).resize(function(){
+
+  $(".CardTable playingcard").remove();
+  allCards = [];
+  otherPlayers = [];
+  myClosedHandSections = [];
+  myOpenHandSections = [];
+
+  $(window).resize(function(){
 		setTimeout(populateState, 100);
 	});
 

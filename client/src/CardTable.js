@@ -32,6 +32,7 @@ class CardTable extends Component {
     if (this.state.s && this.state.s.phase > 0 && this.state.s.phase < 6 && this.props.canStart) {
       if (!this.gameInitialized) {
         game.init(this.props.stateManager);      
+        this.gameInitialized = true;
       }
       game.stateChange({action: 'roundState', state: {...this.state.s, opening: this.state.opening}});
     }
