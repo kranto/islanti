@@ -39,9 +39,9 @@ class GameStart extends Component {
     }
   }
 
-  abandonGame = () => {
+  discardGame = () => {
     if (window.confirm("Haluatko varmasti hylätä tämän pelin?")) {
-      this.props.onAbandonGame();
+      this.props.onDiscardGame();
     }
   }
 
@@ -65,7 +65,7 @@ class GameStart extends Component {
           </div>
           {game.imOwner ?
             <div style={{display: 'flex', flexFlow: "row nowrap", justifyContent: "space-around", minWidth: "80%" }}>
-              <button className="btn btn-secondary" onClick={this.abandonGame}>Hylkää peli</button>
+              <button className="btn btn-secondary" onClick={this.discardGame}>Hylkää peli</button>
               <button className="btn btn-dark" onClick={this.startGame}>Kaikki paikalla, aloitetaan</button>
             </div>
             :

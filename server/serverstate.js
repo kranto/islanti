@@ -22,9 +22,9 @@ class Connector  {
       await this.serverstate.exitGame(this.playerGameIndex, args);
     });
 
-    this.socket.on('abandonGame', async args => {
-      console.log('connector.abandonGame', this.playerGameIndex, args);
-      await this.serverstate.abandonGame(this.playerGameIndex, args);
+    this.socket.on('discardGame', async args => {
+      console.log('connector.discardGame', this.playerGameIndex, args);
+      await this.serverstate.discardGame(this.playerGameIndex, args);
     });
 
     this.socket.on('gameAction', async args => {
@@ -212,7 +212,7 @@ class ServerState {
     await this.notifyGameUpdated(true);
   }
 
-  async abandonGame(playerGameIndex) {
+  async discardGame(playerGameIndex) {
     if (playerGameIndex !== 0 || this.roundState.phase !== this.BEGIN) return false;
     this.game.locked = true;
     this.game.ended = true;

@@ -56,6 +56,14 @@ class StateManager {
     });
   }
 
+  exitGameWithToken(participation, callback) {
+    console.log('exiting', participation);
+    this.lobby.emit('exitGame', {participation: participation}, (result) => {
+      console.log('exitGame result', result);
+      callback(result);
+    });
+  }
+  
   resumeParticipation(participation, callback) {
     this.lobby.emit('resumeParticipation', {participation: participation}, (result) => {
       console.log('resumeParticipation result', result);
@@ -70,9 +78,8 @@ class StateManager {
     });
   }
 
-
-  initGame(gameToken, credentials, callback) {
-    console.log('initGame', gameToken, credentials);
+  openGameConnection(gameToken, credentials, callback) {
+    console.log('openGameConnection', gameToken, credentials);
 
     this.game = socketIOClient(this.endpoint + "/game/" + gameToken);
 
@@ -103,7 +110,7 @@ class StateManager {
     });
   }
 
-  closeGame() {
+  closeGameConnection() {
     if (this.game) {
       this.game.close();
       this.game = null;
@@ -153,8 +160,8 @@ class StateManager {
     this.game.emit('exitGame');
   }
   
-  abandonGame() {
-    this.game.emit('abandonGame');
+  discardGame() {
+    this.game.emit('discardGame');
   }
   
   sendGameAction(action, params) {

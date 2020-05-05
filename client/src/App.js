@@ -10,13 +10,14 @@ import { library } from '@fortawesome/fontawesome-svg-core'
 import {
   faBars,
   faTimes,
-  faSpinner
+  faSpinner,
+  faTrash
 } from '@fortawesome/free-solid-svg-icons'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 library.add(
   faBars,
   faTimes,
-  faSpinner
+  faSpinner,
+  faTrash
 )
 
 class App extends Component {
@@ -36,7 +37,7 @@ class App extends Component {
 
   goToGame = (gameToken, participation) => {
     console.log('goToGame', gameToken, participation);
-    this.stateManager.initGame(gameToken, {participation: participation }, (result) => {
+    this.stateManager.openGameConnection(gameToken, {participation: participation }, (result) => {
       this.setState({ inLobby: false, inGame: true, myName: result.myName, authenticated: true });
       console.log('App.callback', result);
     });
@@ -47,22 +48,22 @@ class App extends Component {
     this.setState({ inLobby: true, inGame: false });
     this.stateManager.exitGame();
     Lobby.resetParticipation();
-    this.stateManager.closeGame();
+    this.stateManager.closeGameConnection();
   }
   
-  abandonGame = () => {
-    console.log('abandonGame');
+  discardGame = () => {
+    console.log('discardGame');
     this.setState({ inLobby: true, inGame: false });
-    this.stateManager.abandonGame();
+    this.stateManager.discardGame();
     Lobby.resetParticipation();
-    this.stateManager.closeGame();
+    this.stateManager.closeGameConnection();
   }
   
   closeGame = () => {
     console.log('closeGame');
     this.setState({ inLobby: true, inGame: false });
     Lobby.resetParticipation();
-    this.stateManager.closeGame();
+    this.stateManager.closeGameConnection();
   }
   
   render() {
@@ -74,7 +75,7 @@ class App extends Component {
           <>
           <GameRoom 
             stateManager={this.stateManager}
-            abandonGame={this.abandonGame}
+            discardGame={this.discardGame}
             closeGame={this.closeGame}
             exitGame={this.exitGame}>
           </GameRoom> 

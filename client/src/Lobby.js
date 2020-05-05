@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 
 let readFromLocalStorage = () => {
   let stringItem = window.localStorage.getItem('IslantiState') || "{}";
@@ -65,7 +66,7 @@ class Lobby extends Component {
   }
 
   componentDidUpdate() {
-    if (!this.state) return;
+    console.log("component did update", this.state);
     if (this.state.phase === 3 && this.props.lobbyReady && !this.state.joinedGame) {
       this.resumeParticipation();
     } else if (this.state.joinedGame) {
@@ -159,7 +160,7 @@ class Lobby extends Component {
   }
 
   resumeParticipationWithToken = token => {
-    this.setState({participation: token, phase: 3});
+    this.setState({ participation: token, phase: 3 });
   }
 
   refreshOpenParticipations = () => {
@@ -173,30 +174,43 @@ class Lobby extends Component {
         }
         writeOpenParticipations(result.participations.map(p => p.participation.token));
       });
+    } else {
+      this.setState({loading: false, openParticipations: [], phase: 1});
     }
 
+  }
+
+  exitGame = (index) => {
+    if (window.confirm("Haluatko varmasti poistua pelistä lopullisesti?")) {
+      const token = this.state.openParticipations[index].participation.token;
+      this.props.stateManager.exitGameWithToken(token, result => {
+        this.setState({ phase: 0 });
+      });
+    }
   }
 
   createRejoinGameView = () => {
     if (this.state.openParticipations.length === 0) return "";
     return (
       <div>
-      <h1>Keskeneräiset pelit</h1>
-      <table id="rejoinGameTable">
-        <tbody>
-          <tr><th>Pelinjohtaja</th><th>Muut pelaajat</th><th>Aloitettu</th><th>Kierros</th><th></th><th></th></tr>
-          {this.state.openParticipations.map((p, i) => (
-            <tr className="openGame" key={i}>
-              <td>{p.game.createdBy}</td>
-              <td>{p.game.players.slice(1).map(p => p.nick).join(", ")}</td>
-              <td>{p.game.createdAt}</td>
-              <td>{p.game.roundNumber}</td>
-              <td><button onClick={() => this.resumeParticipationWithToken(p.participation.token)}>Jatka peliä</button></td>
-              <td><button>Poistu pelistä</button></td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+        <h1>Keskeneräiset pelit</h1>
+        <table id="rejoinGameTable" className="table">
+          <tbody>
+            <tr><th>Pelinjohtaja</th><th>Muut pelaajat</th><th>Aloitettu</th><th>Kierros</th><th></th><th></th></tr>
+            {this.state.openParticipations.map((p, i) => (
+              <tr className="openGame" key={i}>
+                <td>{p.game.createdBy}</td>
+                <td>{p.game.players.slice(1).map(p => p.nick).join(", ")}</td>
+                <td>{p.game.createdAt}</td>
+                <td>{p.game.roundNumber}</td>
+                <td><button className="btn btn-dark" onClick={() => this.resumeParticipationWithToken(p.participation.token)}>Palaa peliin</button></td>
+                <td><button className="btn btn-warning exit-button" onClick={() => this.exitGame(i)}>
+                  <FontAwesomeIcon className="open-icon" icon={['fas', 'trash']} size="1x" />
+                </button></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     )
   }

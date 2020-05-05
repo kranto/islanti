@@ -32,6 +32,10 @@ class Lobby {
       socket.on('validateParticipations', async (args, callback) => {
         await this.validateParticipations(args, callback);
       });
+
+      socket.on('exitGame', async (args, callback) => {
+        await this.exitGame(args, callback);
+      });
     });
   }
 
@@ -109,14 +113,13 @@ class Lobby {
     for (const index in args.participations) {
       const participationToken = args.participations[index];
       let game = await storage.findGameByPartipation(participationToken);
-      console.log(participationToken, game);
       if (game && !game.ended) {
         let participation = game.players.filter(p => p.token === participationToken)[0];
-        result.push({participation: participation, game: game});
-        console.log(participationToken);
+        if (!participation.exited) {
+          result.push({participation: participation, game: game});
+        }
       }
     }
-    console.log(result.length);
     setTimeout(() => callback({ok: true, participations: result}), 0);
   }
 
@@ -125,14 +128,18 @@ class Lobby {
     let result = {};
     let game = await storage.findGameByPartipation(args.participation);
     if (game && !game.ended) {
-      game.players = game.players.filter(p => p.token !== args.participation)[0];
-      await updateGame(game);
+      if (game.locked) {
+        game.players.forEach(p => {if (p.token === args.participation) p.exited = true});
+      } else {
+        game.players = game.players.filter(p => p.token !== args.participation);
+      }
+      await storage.updateGame(game);
       await (await ss.getGame(this.io, game.token)).onGameUpdated();
-      result = {ok: true, participation: newParticipation, game: game.token};
+      result = {ok: true, game: game.token};
     } else {
-      result = {ok: false, msg: "Peli on suljettu"};
+      result = {ok: false, msg: "Peli on päättynyt"};
     }
-    setTimeout(() => callback(result), 2000);
+    setTimeout(() => callback(result), 0);
   }
 }
 

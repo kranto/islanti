@@ -26,6 +26,7 @@ html, body, #root {
   position: fixed;
   right: 15px;
   top: 20px;
+  z-index: 10;
 }
 
 .menubutton {
@@ -130,3 +131,10 @@ svg.close-icon {
   margin-bottom: 20px;
 }
 
+#rejoinGameTable {
+  background-color: rgba(255,255,255,0.5);
+}
+
+#rejoinGameTable .exit-button {
+  margin-left: 30px;
+}
