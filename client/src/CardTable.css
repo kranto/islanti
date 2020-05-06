@@ -40,7 +40,7 @@
 
 .playingcard.ui-draggable-dragging {
 	transform: scale(1.2) ;
-	opacity: 0.6;
+	opacity: 0.75;
 	transition: none;
 }
 

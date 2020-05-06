@@ -237,29 +237,31 @@ var cards = (function() {
 	Hand.prototype.extend({
 		setElementWidth: function() {
 			if (!this.minWidth || !this.element) return;
+			let countedCards = this.filter(card => !card.dragging || !card.origin);
 			var pad = this.spacing;
-			var desiredWidth = opt.cardSize.width + Math.max(this.length - 1, 0) * pad;
+			var desiredWidth = opt.cardSize.width + Math.max(countedCards.length - 1, 0) * pad;
 			var width = Math.max(this.minWidth, desiredWidth);
 			this.element.width(width);
 		},
-		calcSpacing: function(options) {
+		calcSpacing: function(options, countedCards) {
 			var maxWidth = this.element ? elementRect(this.element).width - 10 : false || this.maxWidth;
 			var spacing = options.spacing ? options.spacing : opt.cardSize.spacing;
-			var desiredWidth = Math.max(this.length - 1, 0) * spacing + opt.cardSize.width;
-			return desiredWidth  <= maxWidth ? spacing : (maxWidth - opt.cardSize.width) / Math.max(this.length - 1, 0);
+			var desiredWidth = Math.max(countedCards.length - 1, 0) * spacing + opt.cardSize.width;
+			return desiredWidth  <= maxWidth ? spacing : (maxWidth - opt.cardSize.width) / Math.max(countedCards.length - 1, 0);
 		},
 		calcPosition : function(options) {
 			options = options || {};
-			var spacing = this.calcSpacing(options);
-			var cardWidth = opt.cardSize.width + (this.length-1)*spacing;
+			let countedCards = this.filter(card => !card.dragging || !card.origin);
+			var spacing = this.calcSpacing(options, countedCards);
+			var cardWidth = opt.cardSize.width + (countedCards.length-1)*spacing;
 			var boundingRect = this.element ? elementRect(this.element) : { x: this.x, y: this.y, width: 0, height: 0};
 			var centerX = boundingRect.x + boundingRect.width / 2;
 			var centerY = boundingRect.y + boundingRect.height / 2;
 			var left = Math.round(centerX - cardWidth/2);
 			var top = Math.round(centerY - opt.cardSize.height/2, 0);
-			for (var i=0;i<this.length;i++) {
-				this[i].targetTop = top;
-				this[i].targetLeft = left + i * spacing;
+			for (var i=0;i<countedCards.length;i++) {
+				countedCards[i].targetTop = top;
+				countedCards[i].targetLeft = left + i * spacing;
 			}
 		},
 	});

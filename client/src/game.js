@@ -208,22 +208,32 @@ function init(_stateManager) {
 	deck = new cards.Deck({
     faceUp: false,
     element: $("#deck"),
-    onDragStart: () => {
+    onDragStart: (card) => {
       if (state.can.pick) {
         sendAction('pickCard', {fromDeck: true});
+        card.origin = 'deck';
       }
+    },
+    onDragStop: (card) => {
+      card.origin = undefined;
     }
+
   });
 
 	discardPile = new cards.Deck({
     faceUp: true, 
     element: $("#pile"),
-    onDragStart: () => {
+    onDragStart: (card) => {
       if (state.can.sell) {
         sendAction('dontsell');
+        card.origin = 'pile';
       } else if (state.can.pick) {
         sendAction('pickCard', {fromDeck: false});
+        card.origin = 'pile';
       }
+    },
+    onDragStop: (card) => {
+      card.origin = undefined;
     }
 	});
 
