@@ -226,15 +226,14 @@ function init(_stateManager) {
     faceUp: true, 
     element: $("#pile"),
     onDragStart: (card) => {
-      if (state.can.sell) {
-        sendAction('dontsell');
-        card.origin = 'pile';
-      } else if (state.can.pick) {
-        sendAction('pickCard', {fromDeck: false});
+      if (state.can.sell || state.can.pick) {
+        card.el.draggable("option", "refreshPositions", true);
+        sendAction(state.can.sell ? 'dontsell' : 'pickCard');
         card.origin = 'pile';
       }
     },
     onDragStop: (card) => {
+      card.el.draggable("option", "refreshPositions", false);
       card.origin = undefined;
     }
 	});
