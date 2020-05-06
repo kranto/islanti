@@ -88,7 +88,7 @@ function updateContainer(container, servercards, reverse) {
     i: parseInt(servercard.substring(0,3)),
     b: servercard.substring(3,4),
     s: servercard.substring(4,5),
-    r: parseInt(servercard.substring(5))
+    r: servercard.length > 4 ? parseInt(servercard.substring(5)) : null
   })).map(servercard => findCard(servercard));
   cards.forEach(card => {if (card.container) card.container.removeCard(card); });
   container.forEach(card => container.removeCard(card));

@@ -54,18 +54,20 @@ var cards = (function() {
 			});	
 		},
 
-		reveal(suit, rank, back) {
+		reveal: function(suit, rank, back) {
 			if (this.suit === suit && this.rank === rank && this.back === back) return;
-			const oldSuit = this.suit;
+			const delay = this.suit !== "" && this.suit !== undefined && suit === "" ? 2000 : 0;
+
 			this.suit = suit;
 			this.rank = rank;
+			this.back = back;
 			this.cardback = back === "1" ? 'red' : 'blue';
 			this.name = suit ? suit + rank : "e";
 
 			setTimeout(() => {
 				$(this.el).find(".faceup-img").attr("src", "svg/" + this.name + ".svg");
 				$(this.el).find(".facedown-img").attr("src", "svg/cardback_" + this.cardback + ".svg");	
-			}, oldSuit !== "" && suit === "" ? 2000 : 0); // delay anonymising so that the card has been flipped
+			}, delay); // delay anonymising so that the card has enough time to be flipped
 		},
 
 		pullUp: function(pixels) {
