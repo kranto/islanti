@@ -147,7 +147,7 @@ function populateState() {
     });
   }
 
-  if (deck.length > 0) deck[deck.length-1].el.draggable(state.can.pick ? "enable" : "disable").draggable("option", "refreshPositions", true);
+  if (deck.length > 0) deck[deck.length-1].el.draggable(state.can.pick ? "enable" : "disable");
   if (discardPile.length > 0) discardPile[discardPile.length-1].el.draggable(state.can.pick || state.can.sell ? "enable" : "disable");
   $("#pile").droppable({disabled: !state.can.discard});
   $(".open-hand").droppable({disabled: !state.can.complete});
@@ -210,14 +210,16 @@ function init(_stateManager) {
     element: $("#deck"),
     onDragStart: (card) => {
       if (state.can.pick) {
+        // must refreshPositions so that when the value of the card is known, droppable.accept is called again.
+        card.el.draggable("option", "refreshPositions", true);
         sendAction('pickCard', {fromDeck: true});
         card.origin = 'deck';
       }
     },
     onDragStop: (card) => {
+      card.el.draggable("option", "refreshPositions", false);
       card.origin = undefined;
     }
-
   });
 
 	discardPile = new cards.Deck({
