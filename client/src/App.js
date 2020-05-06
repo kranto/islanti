@@ -76,8 +76,7 @@ class App extends Component {
           <GameRoom 
             stateManager={this.stateManager}
             discardGame={this.discardGame}
-            closeGame={this.closeGame}
-            exitGame={this.exitGame}>
+            closeGame={this.closeGame}>
           </GameRoom> 
           <Menu closeGame={this.closeGame}/>
           </>

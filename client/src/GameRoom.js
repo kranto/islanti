@@ -44,6 +44,7 @@ class GameRoom extends Component {
 
   onEndGame = () => {
     this.props.stateManager.sendGameAction('endGame');
+    this.props.closeGame();
   }
 
   render() {
