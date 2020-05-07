@@ -168,6 +168,7 @@ var cards = (function() {
 
 		render : function(options) {
 			options = options || {};
+			if (options.adjustWidth && this.setElementWidth) this.setElementWidth();
 			var speed = options.speed;
 			this.calcPosition(options);
 			for (var i=0;i<this.length;i++) {
