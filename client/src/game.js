@@ -14,9 +14,9 @@ require('jquery-ui-touch-punch');
 
 var game = (function () {
 
-  var allCards = [];
+  let allCards = [];
 
-  var state = {};
+  let state = {};
 
   let deck;
   let otherPlayers = [];
@@ -77,6 +77,7 @@ var game = (function () {
     let card = allCards.filter(c => c.id === servercard.i)[0];
     if (!card) {
       card = new cards.Card(servercard.s, servercard.r, servercard.b, servercard.i, ".CardTable");
+      console.log('card created', card);
       allCards.push(card);
     }
     card.reveal(servercard.s, servercard.r, servercard.b);
@@ -95,6 +96,8 @@ var game = (function () {
     container.addCards(reverse ? cards.reverse() : cards);
     setTimeout(() => container.render(), 0);
   }
+
+  let deckPickTimeout = null;
 
   function populateState() {
 
@@ -147,8 +150,26 @@ var game = (function () {
       });
     }
 
-    if (deck.length > 0) deck[deck.length - 1].el.draggable(state.can.pick ? "enable" : "disable");
-    if (discardPile.length > 0) discardPile[discardPile.length - 1].el.draggable(state.can.pick || state.can.sell ? "enable" : "disable");
+    if (state.can.pick) {
+      if (!deckPickTimeout) {
+        deckPickTimeout = setTimeout(() => {
+          if (deck.length > 0) {
+            deck[deck.length - 1].el.draggable(state.can.pick ? "enable" : "disable");
+          }
+          deckPickTimeout = null;
+        }, 3000);
+      }
+    } else {
+      if (deckPickTimeout) {
+        clearTimeout(deckPickTimeout);
+        deckPickTimeout = null;
+      }
+      if (deck.length > 0) {
+        deck[deck.length - 1].el.draggable("disable");
+      }
+    }
+
+    if (discardPile.length > 0) discardPile[discardPile.length - 1].el.draggable(state.can.pick ? "enable" : "disable");
     $("#pile").droppable({ disabled: !state.can.discard });
     $(".open-hand").droppable({ disabled: !state.can.complete });
   }

@@ -144,7 +144,7 @@
 
 #gamearea.turn-indicator.in-turn {
 	background-color: rgb(46, 177, 57);
-	animation: color-me-in 2s;
+	animation: color-me-in 1.5s;
 }
 
 
@@ -152,13 +152,13 @@
 	0% {
 		background-color: inherit;
 	  }
-	10% {
+	20% {
 		background-color: inherit;
 	  }
-	25% {
+	50% {
 	  background-color: rgb(167, 221, 171);
 	}
-	40% {
+	70% {
 		background-color: rgb(167, 221, 171);
 	}
 	100% {
@@ -207,7 +207,11 @@
 #deck.canDrag,#pile.canDrag {
 	border-style: none;
 	background-color: rgba(255,255,255,0.4);
-	animation: pulse 1.5s infinite;
+	animation: pulse 1.5s infinite 3000ms;
+}
+
+#deck.canDrag {
+	transition: background-color 300ms linear 3000ms;
 }
 
 #deckrowcolumn2 {
