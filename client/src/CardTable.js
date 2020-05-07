@@ -1,5 +1,6 @@
 
 import React, { Component } from "react";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import './CardTable.css';
 import Hand from './Hand.js';
 import game from './game';
@@ -221,8 +222,8 @@ class CardTable extends Component {
           </div>
           <div id="deckrow">
             <div id="deckandpile">
-              <div id="deck"></div>
-              <div id="pile"></div>
+              <div id="deck" className={this.state.s.can.pick ? "canDrag" : ""}></div>
+              <div id="pile" className={(this.state.s.can.pick ? "canDrag" : "" ) + (this.state.s.can.discard ? " canDrop" : "")}></div>
             </div>
             {imGuest ? "" : (
             <div id="deckrowcolumn2">

@@ -93,7 +93,6 @@
 	flex-flow: row nowrap;
 	box-shadow: -5px -5px 10px darkgreen;
 	border: 1px solid darkgreen;
-
 }
 
 .other-player .player-name {
@@ -195,27 +194,24 @@
 	overflow: auto;
 }
 
-#deck {
+#deck,#pile {
 	float: left;
 	margin: 10px;
 	height: 110px;
 	width: 100px;
-	border: 1px dashed darkgreen;
 	border-radius: 10px;
+	border: 1px dashed darkgreen;
+	transition: background-color 300ms linear;
 }
 
-#pile {
-	float: left;
-	margin: 10px;
-	height: 110px;
-	width: 100px;
-	border: 1px dashed darkgreen;
-	border-radius: 10px;
+#deck.canDrag,#pile.canDrag {
+	border-style: none;
+	background-color: rgba(255,255,255,0.4);
+	animation: pulse 1.5s infinite;
 }
 
 #deckrowcolumn2 {
 	float: left;
-	/* min-width: 500px; */
 }
 
 #instructions {
@@ -227,10 +223,6 @@
 .winner {
 	font-size: 30px;
 	font-style: bold;
-}
-
-#myopenhands {
-	/* clear: left; */
 }
 
 #my-closed-hand-sections {
@@ -268,6 +260,7 @@
 }
 
 .CardTable .ui-droppable-hover {
+	border-width: 2px !important;
 	border-style: solid !important; 
 	border-color: gold !important;
 }

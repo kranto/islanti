@@ -230,7 +230,7 @@ class Lobby extends Component {
                 <td>{p.game.roundNumber}/8</td>
                 {/* <td><button className="btn btn-dark" onClick={() => this.resumeParticipationWithToken(p.participation.token)}>Palaa peliin</button></td> */}
                 <td><button className="btn btn-warning exit-button" onClick={(event) => this.exitGame(event, i)}>
-                  <FontAwesomeIcon className="open-icon" icon={['fas', 'trash']} size="1x" />
+                  <FontAwesomeIcon icon={['fas', 'trash']} size="1x" />
                 </button></td>
               </tr>
             ))}
