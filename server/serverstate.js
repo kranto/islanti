@@ -48,6 +48,10 @@ class Connector  {
       this.stateChange({action: 'roundState', state: this.serverstate.getRoundState()});
     });
 
+    this.socket.on('ping1', () => {
+      this.socket.emit('pong1');
+    });
+
     this.socket.emit('authenticated');
 
     this.serverstate.eventEmitter.on('stateChange', this.stateChange);

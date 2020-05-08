@@ -79,11 +79,16 @@ class StateManager {
   }
 
   gameConnection = false;
+  pingInterval = null;
 
   reopenGameSocket() {
     if (this.game) {
       this.game.close();
       this.game = null;
+    }
+    if (this.pingInterval) {
+      clearInterval(this.pingInterval);
+      this.pingInterval = null;
     }
 
     this.game = socketIOClient(this.endpoint + "/game/" + this.gameToken);
@@ -116,6 +121,17 @@ class StateManager {
       this.requestFullState();
       this.callback({connected: true, authenticated: true, msg: "Yhteys ok"});
     });
+
+    this.game.on('pong1', () => {
+      this.lastPong = new Date().getTime();
+    });
+
+    this.lastPong = new Date().getTime();
+    this.pingInterval = setInterval(() => {
+      this.game.emit('ping1');
+      this.onGameConnectionChange(this.lastPong > new Date().getTime() - 2500);
+    }, 2000);
+
   }
 
   openGameConnection(gameToken, credentials, callback) {
