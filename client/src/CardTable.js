@@ -211,7 +211,8 @@ class CardTable extends Component {
       <div className={"CardTable " 
       + (this.state.opening ? "selecting" : "") 
       + (this.state.s.myhands && this.state.s.myhands.inTurn ? " in-turn" : "")
-      + (this.state.s.phase >= 5 ? " round-ended" : "")}>
+      + (this.state.s.phase >= 5 ? " round-ended" : "")
+      + (this.state.s.players.length < 2 ? " small-game" : "")}>
         <div id="otherplayers">
             {this.createPlayers()}
         </div>

@@ -207,11 +207,13 @@
 #deck.canDrag,#pile.canDrag {
 	border-style: none;
 	background-color: rgba(255,255,255,0.4);
+	transition-delay: 3000ms;
 	animation: pulse 1.5s infinite 3000ms;
 }
 
-#deck.canDrag {
-	transition: background-color 300ms linear 3000ms;
+.CardTable.small-game #deck.canDrag,.CardTable.small-game #pile.canDrag {
+	animation-delay: 0ms;
+	transition-delay: 0ms;
 }
 
 #deckrowcolumn2 {
@@ -243,7 +245,7 @@
 .section, .new-section {
 	float: left;
 	height: 100px;
-	margin: 5px 2px;
+	margin: 5px 0px;
 	border: 2px solid transparent;
 	border-radius: 10px;
 	pointer-events: none;
@@ -305,7 +307,7 @@
 
 .CardTable.selecting .hand-section.selected {
 	background-color: orange;
-	border-color: orange;
+	border-color: rgb(210,136,0);
 }
 
 .CardTable.selecting .playingcard {

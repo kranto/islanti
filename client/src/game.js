@@ -157,7 +157,7 @@ var game = (function () {
             deck[deck.length - 1].el.draggable(state.can.pick ? "enable" : "disable");
           }
           deckPickTimeout = null;
-        }, 3000);
+        }, state.players.length > 1 ? 2700 : 0);
       }
     } else {
       if (deckPickTimeout) {
