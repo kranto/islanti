@@ -9,7 +9,8 @@ class Lobby {
     this.lobby = io.of('/lobby');
   }
 
-  init() {
+  async init() {
+    await this.initOpenGames();
     this.lobby.on('connection', socket => {
       console.log('someone connected to lobby', new Date());
 
@@ -37,6 +38,15 @@ class Lobby {
         await this.exitGame(args, callback);
       });
     });
+  }
+
+  async initOpenGames() {
+    let games = await storage.findOpenGames();
+    console.log(games);
+    for (let i in games) {
+      console.log(games[i]);
+      await ss.getGame(this.io, games[i].token);
+    }
   }
 
   async createGame(args, callback) {

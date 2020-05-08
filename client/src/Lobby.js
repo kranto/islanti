@@ -27,17 +27,15 @@ const getHumanFriendlyTime = (dateStr) => {
   const now = new Date();
   const delta = Math.round((now - date) / 1000);
 
-  const minute = 60, hour = minute * 60, day = hour * 24, week = day * 7;
-
   if (delta < 60) {
     return "hetki sitten";
   } else if (delta < 2 * 60) {
     return 'minuutti sitten';
   } else if (delta < 3600) {
-    return Math.floor(delta / minute) + ' minuuttia sitten';
+    return Math.floor(delta / 60) + ' minuuttia sitten';
   } else if (delta < 24 * 3600 && now.getDate() === date.getDate()) {
     return date.getHours() + "." + pad(date.getMinutes(),2);
-  } else if (delta < 2 * 24* 3600 && now.getDate() === date.getDate() + 1) {
+  } else if (delta < 2 * 24 * 3600 && now.getDate() === date.getDate() + 1) {
     return "eilen";
   } else {
     return date.getDate() + "." + (date.getMonth()+1) + ".";

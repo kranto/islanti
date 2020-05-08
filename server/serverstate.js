@@ -144,7 +144,7 @@ class ServerState {
 
     this.io.on('connection', socket => {
       console.log('someone connected to ' + this.gameToken, new Date());
-      socket.on('authenticate', (args, callback) => {
+      socket.once('authenticate', (args, callback) => {
         console.log('authenticate', args);
         let matching = this.game.players.map((p, i) => ({...p, index: i})).filter(p => p.token === args.participation);
         let player = matching.length === 1 ? matching[0] : null;
@@ -172,6 +172,11 @@ class ServerState {
 
   onAction(index, args) {
     console.log('onAction', index, args);
+    if (index === null) {
+      console.log('playerRoundIndex === null -> ignored');
+      return;
+    }
+
     switch (args.action) {
       case 'deal':
         this.deal(index);

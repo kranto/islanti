@@ -23,6 +23,10 @@ const updateGame = async (game) => {
   await db.collection('game').replaceOne({_id: game._id}, game);
 };
 
+const findOpenGames = async (token) => {
+  return await db.collection('game').find({ended: false}).toArray();
+};
+
 const findGameByToken = async (token) => {
   return await db.collection('game').findOne({active: true, token: token});
 };
@@ -66,6 +70,7 @@ module.exports = {
   close: async () => await client.close(),
   insertGame: insertGame,
   updateGame: updateGame,
+  findOpenGames: findOpenGames,
   findGameByToken: findGameByToken,
   findGameByCode: findGameByCode,
   findGameByPartipation: findGameByPartipation,

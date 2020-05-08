@@ -77,7 +77,6 @@ var game = (function () {
     let card = allCards.filter(c => c.id === servercard.i)[0];
     if (!card) {
       card = new cards.Card(servercard.s, servercard.r, servercard.b, servercard.i, ".CardTable");
-      console.log('card created', card);
       allCards.push(card);
     }
     card.reveal(servercard.s, servercard.r, servercard.b);

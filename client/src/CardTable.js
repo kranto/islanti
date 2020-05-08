@@ -1,6 +1,5 @@
 
 import React, { Component } from "react";
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import './CardTable.css';
 import Hand from './Hand.js';
 import game from './game';

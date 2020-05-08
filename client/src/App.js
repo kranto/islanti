@@ -11,13 +11,17 @@ import {
   faBars,
   faTimes,
   faSpinner,
-  faTrash
+  faTrash,
+  faWifi,
+  faSlash
 } from '@fortawesome/free-solid-svg-icons'
 library.add(
   faBars,
   faTimes,
   faSpinner,
-  faTrash
+  faTrash,
+  faWifi,
+  faSlash
 )
 
 class App extends Component {

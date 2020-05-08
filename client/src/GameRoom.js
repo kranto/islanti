@@ -1,16 +1,17 @@
 
 import React, { Component } from "react";
 import './GameRoom.css';
-import GameStart from './GameStart.js';
-// import ScoreBoard from './ScoreBoard.js';
-import CardTable from './CardTable.js';
+import GameStart from './GameStart';
+// import ScoreBoard from './ScoreBoard';
+import CardTable from './CardTable';
+import ConnectionWatcher from './ConnectionWatcher';
 
 class GameRoom extends Component {
 
   constructor() {
     super();
     this.state = {
-      canStart: false,
+      canStart: false
     };
   }
 
@@ -58,6 +59,7 @@ class GameRoom extends Component {
             canStart={this.state.game && this.state.game.locked} 
             stateManager={this.props.stateManager}>
           </CardTable>
+          <ConnectionWatcher stateManager={this.props.stateManager} />
         </div>        
     );
   }
