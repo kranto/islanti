@@ -82,14 +82,8 @@ class StateManager {
   pingInterval = null;
 
   reopenGameSocket() {
-    if (this.game) {
-      this.game.close();
-      this.game = null;
-    }
-    if (this.pingInterval) {
-      clearInterval(this.pingInterval);
-      this.pingInterval = null;
-    }
+
+    this.closeGameConnection();
 
     this.game = socketIOClient(this.endpoint + "/game/" + this.gameToken);
 
@@ -150,6 +144,10 @@ class StateManager {
   }
 
   closeGameConnection() {
+    if (this.pingInterval) {
+      clearInterval(this.pingInterval);
+      this.pingInterval = null;
+    }
     if (this.game) {
       this.game.close();
       this.game = null;
