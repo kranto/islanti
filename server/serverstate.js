@@ -535,9 +535,22 @@ class ServerState {
   }
 
   calculateScores() {
+    let playerScores = [];
     this.roundState.players.forEach(p => {
       p.score = rules.calculateScore(p.closed);
+      playerScores.push(p.score);
     });
+
+    this.game.scoreBoard = this.game.scoreBoard || {rounds:[], total: []};
+    this.game.scoreBoard.rounds.push({round: {roundNumber: this.round.roundNumber, roundName: this.round.roundName}, scores: playerScores});
+    this.game.scoreBoard.total = 
+      this.game.scoreBoard.rounds.reduce((acc, round) => 
+        acc.map((s,i) => s + round.scores[i]),
+        playerScores.map(p => 0));
+
+    console.log(this.game.scoreBoard);
+
+    this.notifyGameUpdated(true);
   }
 
   checkDeck() {
