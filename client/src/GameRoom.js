@@ -2,8 +2,8 @@
 import React, { Component } from "react";
 import './GameRoom.css';
 import GameStart from './GameStart';
-// import ScoreBoard from './ScoreBoard';
 import CardTable from './CardTable';
+import Menu from './Menu';
 import ConnectionWatcher from './ConnectionWatcher';
 
 class GameRoom extends Component {
@@ -59,6 +59,7 @@ class GameRoom extends Component {
             canStart={this.state.game && this.state.game.locked} 
             stateManager={this.props.stateManager}>
           </CardTable>
+          <Menu closeGame={this.props.closeGame} game={this.state.game}/>
           <ConnectionWatcher stateManager={this.props.stateManager} />
         </div>        
     );

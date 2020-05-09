@@ -91,42 +91,109 @@
     opacity: 1;
 }
 
-.ScoreBoard {
-	position: absolute;
-	z-index: 2;
-
-    opacity: 0.95;
-
-    position: absolute;
-	top: 0;
+.Menu {
+    position: fixed;
     left: 0;
-    height: 100%;
+    top: 0;
     width: 100%;
-
+    height: 100%;
+    pointer-events: none;
+    z-index: 10;
+  
     display: flex;
-    flex-flow: column nowrap;
+    flex-flow: row nowrap;
     justify-content: center;
     align-items: center;
-
-    transition: opacity 300ms linear;
-}
-
-.ScoreBoard.closed {
+  
+  }
+  
+  .menubutton {
+    position: absolute;
+    margin-right: 20px;
+    margin-top: 25px;
+    right: 0;
+    top: 0;
+    width: 37px;
+    height: 37px;
+    pointer-events: all;
+    background-color: rgba(255,255,255,0.3);
+    border-radius: 3px;
+    box-shadow: 2px 2px rgba(0,0,0,0.2);
+    border: none;
+    outline: none;
+  }
+  
+  .menubutton svg {
+    top: 2px;
+    right: 4px;
+    position: absolute;
+    color: black;
+    transition: opacity 200ms linear;
+  }
+  
+  svg.open-icon {
+    opacity: 1;
+  }
+  
+  svg.close-icon {
+    right: 7px;
+    opacity: 0;
+  }
+  
+  .menu-open svg.open-icon {
+    opacity: 0;
+  }
+  
+  .menu-open svg.close-icon {
+    opacity: 1;
+  }
+  
+  .menubutton:focus {
+    outline: none;
+  }
+  
+  .menubutton:hover {
+    background-color: rgba(255,255,255,0.5);
+  }
+  
+  .MenuContent {
+    min-height: 60%;
+    min-width: 60%;
     opacity: 0;
     pointer-events: none;
-}
+    border-radius: 10px;
+    background-color: rgba(240,240,240,0.95);
+    transition: opacity 300ms ease-in-out;
+    overflow: hidden;
 
-.ScoreSheet {
+    display: flex;
+    flex-flow: column nowrap;
+    justify-content: space-around;
+    align-items: center;
+  }
+  
+  .MenuContent button {
+    margin: 10px;
+    flex-grow: 0;
+    flex-shrink: 1;
+    width: 80%;
+  }
+  
+  .menu-open .MenuContent {
+    opacity: 1;
+    pointer-events: initial;
+  }
+  
+  
+.ScoreBoard {
     display: flex;
     flex-flow: column nowrap;
     justify-content: center;
     align-items: center;
-    max-height: 98%;
-    max-width: 98%;
 
+    flex-grow: 0;
+    flex-shrink: 0;
     background-color: rgb(246, 248, 241);
-    border: 3px dashed darkgray;
-    border-radius: 10px;
 }
 
 .ScoreBoardTable {

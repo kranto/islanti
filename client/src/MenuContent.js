@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+import ScoreBoard from "./ScoreBoard";
 
 class MenuContent extends Component {
 
@@ -15,6 +16,8 @@ class MenuContent extends Component {
     return (
       <div className={"MenuContent "}>
           <div></div>
+          <ScoreBoard game={this.props.game}></ScoreBoard>
+          <button className="btn btn-secondary" onClick={this.props.toggleMenu}>Sulje tulostaulu</button>
           <button className="btn btn-dark" onClick={this.onCloseGame}>Palaa aloitussivulle</button>
       </div>
     );

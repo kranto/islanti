@@ -1,7 +1,6 @@
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import React, { Component } from "react";
-import Menu from './Menu';
 import Lobby from './Lobby';
 import GameRoom from './GameRoom';
 import StateManager from './StateManager';
@@ -82,7 +81,6 @@ class App extends Component {
             discardGame={this.discardGame}
             closeGame={this.closeGame}>
           </GameRoom> 
-          <Menu closeGame={this.closeGame}/>
           </>
           : ""}
       </div>

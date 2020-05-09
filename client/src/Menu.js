@@ -23,7 +23,7 @@ class Menu extends Component {
   render() {
     return (
       <div className={"Menu " + (this.state.open ? "menu-open" : "")}>
-        <MenuContent onCloseGame={this.props.closeGame}/>
+        <MenuContent onCloseGame={this.props.closeGame} toggleMenu={this.toggleMenu} game={this.props.game}/>
         <button className="menubutton" onClick={this.toggleMenu}>
           <FontAwesomeIcon className="open-icon"
             icon={['fas', 'bars']}
