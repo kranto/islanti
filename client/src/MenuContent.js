@@ -15,10 +15,12 @@ class MenuContent extends Component {
   render() {
     return (
       <div className={"MenuContent "}>
-          <div></div>
-          <ScoreBoard game={this.props.game}></ScoreBoard>
+        <div></div>
+        <ScoreBoard game={this.props.game}></ScoreBoard>
+        {this.props.game && this.props.game.ended ? "" :
           <button className="btn btn-secondary" onClick={this.props.toggleMenu}>Sulje tulostaulu</button>
-          <button className="btn btn-dark" onClick={this.onCloseGame}>Palaa aloitussivulle</button>
+        }
+        <button className="btn btn-dark" onClick={this.onCloseGame}>Palaa aloitussivulle</button>
       </div>
     );
   }

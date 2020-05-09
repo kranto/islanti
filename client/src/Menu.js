@@ -11,29 +11,39 @@ class Menu extends Component {
     }
   }
 
+  componentDidUpdate = () => {
+    if (!this.state.open && this.props.game && this.props.game.ended) {
+      this.setState({ open: true });
+    }
+  }
+
   toggleMenu = () => {
-    this.setState({open: !this.state.open});
+    if (!this.props.game || !this.props.game.ended) {
+      this.setState({ open: !this.state.open });
+    }
   }
 
   onCloseGame = () => {
-    this.setState({open: false});
+    this.setState({ open: false });
     this.props.closeGame();
   }
 
   render() {
     return (
       <div className={"Menu " + (this.state.open ? "menu-open" : "")}>
-        <MenuContent onCloseGame={this.props.closeGame} toggleMenu={this.toggleMenu} game={this.props.game}/>
-        <button className="menubutton" onClick={this.toggleMenu}>
-          <FontAwesomeIcon className="open-icon"
-            icon={['fas', 'bars']}
-            size="2x"
-          />
-          <FontAwesomeIcon className="close-icon"
-            icon={['fas', 'times']}
-            size="2x"
-          />
-        </button>
+        <MenuContent onCloseGame={this.props.closeGame} toggleMenu={this.toggleMenu} game={this.props.game} />
+        {this.props.game && this.props.game.ended ? "" :
+          <button className="menubutton" onClick={this.toggleMenu}>
+            <FontAwesomeIcon className="open-icon"
+              icon={['fas', 'bars']}
+              size="2x"
+            />
+            <FontAwesomeIcon className="close-icon"
+              icon={['fas', 'times']}
+              size="2x"
+            />
+          </button>
+        }
       </div>
     );
   }

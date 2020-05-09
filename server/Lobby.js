@@ -57,6 +57,7 @@ class Lobby {
         active: true,
         locked: false,
         ended: false,
+        closed: false,
         token: uuid(),
         code: await storage.generateGameCode(),
         createdBy: args.nick,
@@ -107,7 +108,7 @@ class Lobby {
     console.log('resumeParticipation', args);
     let result = {};
     let game = await storage.findGameByPartipation(args.participation);
-    if (game && !game.ended) {
+    if (game && !game.closed) {
       let participation = game.players.filter(p => p.token === args.participation)[0];
       result = {ok: true, participation: participation, game: game.token};
       await ss.getGame(this.io, game.token);
@@ -123,7 +124,7 @@ class Lobby {
     for (const index in args.participations) {
       const participationToken = args.participations[index];
       let game = await storage.findGameByPartipation(participationToken);
-      if (game && !game.ended) {
+      if (game && !game.closed) {
         let participation = game.players.filter(p => p.token === participationToken)[0];
         if (!participation.exited) {
           result.push({participation: participation, game: game});
@@ -137,7 +138,7 @@ class Lobby {
     console.log('exitGame', args);
     let result = {};
     let game = await storage.findGameByPartipation(args.participation);
-    if (game && !game.ended) {
+    if (game && !game.closed) {
       if (game.locked) {
         game.players.forEach(p => {if (p.token === args.participation) p.exited = true});
       } else {

@@ -24,7 +24,7 @@ const updateGame = async (game) => {
 };
 
 const findOpenGames = async (token) => {
-  return await db.collection('game').find({ended: false}).toArray();
+  return await db.collection('game').find({closed: {$ne: true}}).toArray();
 };
 
 const findGameByToken = async (token) => {

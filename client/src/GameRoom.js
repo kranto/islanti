@@ -52,7 +52,6 @@ class GameRoom extends Component {
     return (
         <div className="GameRoom">
           <GameStart game={this.state.game} onStartGame={this.onStartGame} onDiscardGame={this.props.discardGame} onExitGame={this.props.exitGame}></GameStart>
-          {/* <ScoreBoard game={this.state.game} onScoreBoardClosed={this.onScoreBoardClosed}></ScoreBoard> */}
           <CardTable 
             onNextRound={this.onNextRound} 
             onEndGame={this.onEndGame} 

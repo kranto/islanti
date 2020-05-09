@@ -224,7 +224,7 @@ class ServerState {
   async discardGame(playerGameIndex) {
     if (playerGameIndex !== 0 || this.roundState.phase !== this.BEGIN) return false;
     this.game.locked = true;
-    this.game.ended = true;
+    this.game.ended = false;
     await this.notifyGameUpdated(true);
   }
 
@@ -256,6 +256,7 @@ class ServerState {
 
     this.game.locked = true;
     this.game.ended = false;
+    this.game.closed = false;
     this.game.roundNumber = 1;
     this.game.dealer = 0;
 
