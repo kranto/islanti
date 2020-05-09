@@ -82,7 +82,7 @@ class Connector  {
           state.winner = this.rollIndex(state.winner, state);
           state.myhands = this.imGuest ? null : state.players.splice(0, 1)[0];  // --- create myhands, remove from players ---
           state.myTurn = state.playerInTurn < 0;
-          state.players = state.players.map(p => ({...p, validity: undefined, closed: p.closed ? utils.anonymise(p.closed.flat()) : []}));
+          state.players = state.players.map(p => ({...p, validity: undefined, closed: p.closed ? (p.revealed ? p.closed.flat() : utils.anonymise(p.closed.flat())) : []}));
           state.can = {
             deal: state.phase === this.serverstate.DEAL && state.myTurn,
             show: state.phase === this.serverstate.SHOW_CARD && state.myTurn,
@@ -92,6 +92,7 @@ class Connector  {
             open: state.phase === this.serverstate.TURN_ACTIVE && state.myTurn && !state.myhands.opened,
             complete: state.phase === this.serverstate.TURN_ACTIVE && state.myTurn && state.myhands.opened,
             discard: state.phase === this.serverstate.TURN_ACTIVE && state.myTurn,
+            reveal: state.phase === this.serverstate.ROUND_ENDED && !state.myhands.revealed && state.players.length > 0 && state.myhands.closed.length > 0,
             startNextRound: state.phase === this.serverstate.ROUND_ENDED && this.imOwner && this.serverstate.game.roundNumber < 8,
             endGame: state.phase === this.serverstate.ROUND_ENDED && this.imOwner && this.serverstate.game.roundNumber === 8
           };
@@ -211,6 +212,9 @@ class ServerState {
         break;
       case 'complete':
         this.complete(index, args.player, args.hand, args.card, args.dropIndex);
+        break;
+      case 'reveal':
+        this.reveal(index);
         break;
       }
   }
@@ -516,6 +520,14 @@ class ServerState {
     this.checkIfFinished(playerRoundIndex);
     this.notifyConnectors(true);
     return true;
+  }
+
+  reveal(playerRoundIndex) {
+    console.log('reveal', playerRoundIndex);
+    if (this.roundState.phase !== this.ROUND_ENDED) return false;
+    this.roundState.players[playerRoundIndex].revealed = true;
+    this.roundState.index++;
+    this.notifyConnectors(false);
   }
 
   nextPlayerInTurn() {

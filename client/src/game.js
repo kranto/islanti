@@ -115,6 +115,7 @@ var game = (function () {
         otherPlayers.push({ closed: closedhand, open: [] });
       }
       let otherPlayer = otherPlayers[i];
+      otherPlayer.closed.faceUp = p.revealed; 
       updateContainer(otherPlayer.closed, p.closed);
 
       otherPlayer.open.forEach(hand => hand.element = null);

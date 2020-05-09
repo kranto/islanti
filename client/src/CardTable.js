@@ -230,6 +230,7 @@ class CardTable extends Component {
               {this.state.s.myhands.open.map((h, i) => <Hand key={"m" + i} id={"myopen" + i} classes="player-hand open-hand"></Hand>)}
               <div id="controls">
                 {this.createControls()}
+                {this.state.s.can.reveal ? <button onClick={() => this.props.stateManager.sendAction('reveal')}>Paljasta korttisi</button> : ""}
               </div>
             </div>)}
           </div>
