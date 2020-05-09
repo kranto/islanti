@@ -16,8 +16,8 @@ class MenuContent extends Component {
     return (
       <div className={"MenuContent "}>
         <div></div>
-        <ScoreBoard game={this.props.game}></ScoreBoard>
-        {this.props.game && this.props.game.ended ? "" :
+        {this.props.game && this.props.game.locked ? <ScoreBoard game={this.props.game}></ScoreBoard> : ""}
+        {this.props.game && (this.props.game.ended || !this.props.game.locked) ? "" :
           <button className="btn btn-secondary" onClick={this.props.toggleMenu}>Sulje tulostaulu</button>
         }
         <button className="btn btn-dark" onClick={this.onCloseGame}>Palaa aloitussivulle</button>
