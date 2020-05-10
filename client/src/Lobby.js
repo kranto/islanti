@@ -175,7 +175,7 @@ class Lobby extends Component {
       if (result.ok) {
         this.setState({ loading: false, participation: result.participation.token, game: result.game, nick: result.participation.nick, phase: 3, joinedGame: true });
         let openParticipations = readOpenParticipations();
-        if (openParticipations.indexOf(result.participation.token) < 1) {
+        if (openParticipations.indexOf(result.participation.token) < 0) {
           openParticipations.push(result.participation.token);
           writeOpenParticipations(openParticipations);  
         }

@@ -159,12 +159,13 @@
   .MenuContent {
     min-height: 60%;
     min-width: 60%;
+    max-width: 90%;
+    max-height: 100%;
     opacity: 0;
     pointer-events: none;
     border-radius: 10px;
     background-color: rgba(240,240,240,0.95);
     transition: opacity 300ms ease-in-out;
-    overflow: hidden;
 
     display: flex;
     flex-flow: column nowrap;
@@ -186,19 +187,22 @@
   
   
 .ScoreBoard {
+    max-height: 100%;
+    max-width: 100%;
+    overflow: scroll;
+
     display: flex;
     flex-flow: column nowrap;
     justify-content: center;
     align-items: center;
 
     flex-grow: 0;
-    flex-shrink: 0;
+    flex-shrink: 10;
     background-color: rgb(246, 248, 241);
 }
 
 .ScoreBoardTable {
     overflow: scroll;
-
 }
 
 .ScoreBoardTable tr:first-child th {
