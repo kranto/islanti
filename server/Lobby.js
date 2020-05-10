@@ -108,7 +108,7 @@ class Lobby {
   async resumeParticipation(args, callback) {
     console.log('resumeParticipation', args);
     let result = {};
-    let game = await storage.findGameByPartipation(args.participation);
+    let game = await storage.findGameByParticipation(args.participation);
     if (game && !game.closed) {
       if (game.guest === args.participation) {
         result = {ok: true, participation: {token: game.guest, nick: "katsoja"}, game: game.token};
@@ -128,10 +128,10 @@ class Lobby {
     let result = [];
     for (const index in args.participations) {
       const participationToken = args.participations[index];
-      let game = await storage.findGameByPartipation(participationToken);
+      let game = await storage.findGameByParticipation(participationToken);
       if (game && !game.closed) {
         if (game.guest === participationToken) {
-          result.push({participation: {token: game.guest, nick: "katsoja"}, game: game});
+          result.push({participation: {token: game.guest, nick: "katsoja", isGuest: true}, game: game});
         } else {
           let participation = game.players.filter(p => p.token === participationToken)[0];
           if (!participation.exited) {
@@ -147,7 +147,7 @@ class Lobby {
   async exitGame(args, callback) {
     console.log('exitGame', args);
     let result = {};
-    let game = await storage.findGameByPartipation(args.participation);
+    let game = await storage.findGameByParticipation(args.participation);
     if (game && !game.closed) {
       if (game.locked) {
         game.players.forEach(p => {if (p.token === args.participation) p.exited = true});

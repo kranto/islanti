@@ -35,7 +35,7 @@ const findGameByCode = async (code) => {
   return await db.collection('game').findOne({active: true, locked: false, code: code});
 };
 
-const findGameByPartipation = async (token) => {
+const findGameByParticipation = async (token) => {
   let activeGames = await db.collection('game').find({active: true}).toArray();
   let matchingGamesAsGuest = activeGames.filter(g => g.guest == token);
   if (matchingGamesAsGuest.length === 1) {
@@ -77,7 +77,7 @@ module.exports = {
   findOpenGames: findOpenGames,
   findGameByToken: findGameByToken,
   findGameByCode: findGameByCode,
-  findGameByPartipation: findGameByPartipation,
+  findGameByParticipation: findGameByParticipation,
   findRoundState: findRoundState,
   writeRoundState: writeRoundState,
   generateGameCode: generateGameCode,
