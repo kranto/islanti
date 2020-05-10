@@ -100,7 +100,7 @@ var game = (function () {
 
   function populateState() {
 
-    let imGuest = state.myhands === null || state.myhands.open === undefined;
+    let imGuest = state.ownInfo === null || state.ownInfo.open === undefined;
 
     myClosedHandSections.forEach(section => section.element = null);
     myClosedHandSections = [];
@@ -130,7 +130,7 @@ var game = (function () {
     });
 
     if (!imGuest) {
-      state.myhands.closed.forEach((section, i) => {
+      state.ownInfo.closed.forEach((section, i) => {
         let hand = myClosedHandSections[i];
         updateContainer(hand, section);
       });
@@ -138,12 +138,12 @@ var game = (function () {
       myOpenHandSections.forEach(section => section.element = null);
       myOpenHandSections = [];
       let i = 0;
-      while (myOpenHandSections.length < state.myhands.open.length) {
-        createNewOpenHand(state.myhands.index, myOpenHandSections, "#myopen" + i);
+      while (myOpenHandSections.length < state.ownInfo.open.length) {
+        createNewOpenHand(state.ownInfo.index, myOpenHandSections, "#myopen" + i);
         i++;
       }
 
-      state.myhands.open.forEach((open, i) => {
+      state.ownInfo.open.forEach((open, i) => {
         let hand = myOpenHandSections[i];
         updateContainer(hand, open.cards);
         hand.accepts = open.accepts;

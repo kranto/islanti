@@ -57,17 +57,17 @@ class CardTable extends Component {
   }
 
   createMySections() {
-    if (!this.state.s.myhands) return "";
-    let sections = this.state.s.myhands.closed;
+    if (!this.state.s.ownInfo) return "";
+    let sections = this.state.s.ownInfo.closed;
     return (
       <div>
-        {this.state.s.myhands.closed.map((section, i) => 
+        {this.state.s.ownInfo.closed.map((section, i) => 
         <Hand key={i} id={"section" + i} 
           classes="hand-section section" 
-          error={this.state.opening && i < sections.length && !this.state.s.myhands.validity[i].valid}
+          error={this.state.opening && i < sections.length && !this.state.s.ownInfo.validity[i].valid}
           selected = {this.state.selected && this.state.selected.length > i ? this.state.selected[i] : false}
           onClick={() => this.onSectionClicked(i)}
-          score={this.state.s.myhands.score}>
+          score={this.state.s.ownInfo.score}>
         </Hand>)}
       </div>
     );
@@ -78,16 +78,16 @@ class CardTable extends Component {
     let selection = sel.reduce((acc, selected, i) => (
       !selected ? acc :
       {...acc, 
-        sets: acc.sets + (state.myhands.validity[i].type === 'set' ? 1 : 0),
-        straights: acc.straights + (state.myhands.validity[i].type === 'straight' ? 1 : 0),
-        cards: acc.cards + state.myhands.closed[i].length
+        sets: acc.sets + (state.ownInfo.validity[i].type === 'set' ? 1 : 0),
+        straights: acc.straights + (state.ownInfo.validity[i].type === 'straight' ? 1 : 0),
+        cards: acc.cards + state.ownInfo.closed[i].length
       }), {sets: 0, straights: 0, cards: 0});
     let selectionOk = 
       (!this.props.stateManager.state.round.isFreestyle 
         && selection.sets === this.props.stateManager.state.round.expectedSets
         && selection.straights === this.props.stateManager.state.round.expectedStraights) ||
       (this.props.stateManager.state.round.isFreestyle
-        && state.myhands.closed.flat().length - selection.cards <= 1);
+        && state.ownInfo.closed.flat().length - selection.cards <= 1);
 
     if (selectionOk) {
       this.props.stateManager.validateSelection(sel.map((x, i) => x ? i : -1).filter(i => i >= 0), result => {
@@ -100,7 +100,7 @@ class CardTable extends Component {
 
   onSectionClicked = (index) => {
     let state = this.state.s; 
-    if (!state.myhands.validity[index].valid) return;
+    if (!state.ownInfo.validity[index].valid) return;
     let sel = [...this.state.selected];
     sel[index] = !sel[index];
 
@@ -108,7 +108,7 @@ class CardTable extends Component {
   }
 
   startOpening() {
-    this.setState({opening: true, selected: this.state.s.myhands.closed.map(() => false), selectionOk: false});
+    this.setState({opening: true, selected: this.state.s.ownInfo.closed.map(() => false), selectionOk: false});
   }
 
   cancelOpening() {
@@ -204,18 +204,18 @@ class CardTable extends Component {
       <div className="CardTable"></div>
     );
 
-    let imGuest = this.state.s.myhands === null || this.state.s.myhands.open === undefined;
+    let imGuest = this.state.s.ownInfo === null || this.state.s.ownInfo.open === undefined;
 
     return (
       <div className={"CardTable " 
       + (this.state.opening ? "selecting" : "") 
-      + (this.state.s.myhands && this.state.s.myhands.inTurn ? " in-turn" : "")
+      + (this.state.s.ownInfo && this.state.s.ownInfo.inTurn ? " in-turn" : "")
       + (this.state.s.phase >= 5 ? " round-ended" : "")
       + (this.state.s.players.length < 2 ? " small-game" : "")}>
         <div id="otherplayers">
             {this.createPlayers()}
         </div>
-        <div id="gamearea" className={"turn-indicator " + (this.state.s.myhands && this.state.s.myhands.inTurn ? "in-turn" : "")}>
+        <div id="gamearea" className={"turn-indicator " + (this.state.s.ownInfo && this.state.s.ownInfo.inTurn ? "in-turn" : "")}>
           <div id="roundinfo">Kierros {this.props.stateManager.state.round.roundNumber}/8 &ndash; {this.props.stateManager.state.round.roundName}</div>
           <div id="instructions">
                 {this.createInstructions()}
@@ -227,7 +227,7 @@ class CardTable extends Component {
             </div>
             {imGuest ? "" : (
             <div id="deckrowcolumn2">
-              {this.state.s.myhands.open.map((h, i) => <Hand key={"m" + i} id={"myopen" + i} classes="player-hand open-hand"></Hand>)}
+              {this.state.s.ownInfo.open.map((h, i) => <Hand key={"m" + i} id={"myopen" + i} classes="player-hand open-hand"></Hand>)}
               <div id="controls">
                 {this.createControls()}
                 {this.state.s.can.reveal ? <button onClick={() => this.props.stateManager.sendAction('reveal')}>Paljasta korttisi</button> : ""}
@@ -235,7 +235,7 @@ class CardTable extends Component {
             </div>)}
           </div>
           {imGuest ? "" : (
-          <div id="my-closed-hand-sections" className={"turn-indicator " + (this.state.s.myhands && this.state.s.myhands.inTurn ? "in-turn" : "")}>
+          <div id="my-closed-hand-sections" className={"turn-indicator " + (this.state.s.ownInfo && this.state.s.ownInfo.inTurn ? "in-turn" : "")}>
             {this.createMySections()}
             <div id="newsection" className="new-section" style={{visibility: (this.state.s.phase >= 2 && this.state.s.phase <= 4) ? "visible" : "hidden"}}><div>+</div></div>
           </div>)}

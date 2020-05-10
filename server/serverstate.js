@@ -80,19 +80,19 @@ class Connector  {
           state.playerInTurn = this.rollIndex(state.playerInTurn, state);
           state.buying = this.rollIndex(state.buying, state);
           state.winner = this.rollIndex(state.winner, state);
-          state.myhands = this.imGuest ? null : state.players.splice(0, 1)[0];  // --- create myhands, remove from players ---
+          state.ownInfo = this.imGuest ? null : state.players.splice(0, 1)[0];  // --- create ownInfo, remove from players ---
           state.myTurn = state.playerInTurn < 0;
           state.players = state.players.map(p => ({...p, validity: undefined, closed: p.closed ? (p.revealed ? p.closed.flat() : utils.anonymise(p.closed.flat())) : []}));
           state.can = {
             deal: state.phase === this.serverstate.DEAL && state.myTurn,
             show: state.phase === this.serverstate.SHOW_CARD && state.myTurn,
             pick: (state.phase === this.serverstate.PICK_CARD || state.phase === this.serverstate.PICK_CARD_BOUGHT) && state.myTurn,
-            buy: !this.imGuest && state.phase === this.serverstate.PICK_CARD && (state.playerInTurn >= 1 || !state.myTurn && state.turnIndex === 1) && state.myhands.bought < 3,
+            buy: !this.imGuest && state.phase === this.serverstate.PICK_CARD && (state.playerInTurn >= 1 || !state.myTurn && state.turnIndex === 1) && state.ownInfo.bought < 3,
             sell: state.phase === this.serverstate.PICK_CARD_BUYING && state.myTurn,
-            open: state.phase === this.serverstate.TURN_ACTIVE && state.myTurn && !state.myhands.opened,
-            complete: state.phase === this.serverstate.TURN_ACTIVE && state.myTurn && state.myhands.opened,
+            open: state.phase === this.serverstate.TURN_ACTIVE && state.myTurn && !state.ownInfo.opened,
+            complete: state.phase === this.serverstate.TURN_ACTIVE && state.myTurn && state.ownInfo.opened,
             discard: state.phase === this.serverstate.TURN_ACTIVE && state.myTurn,
-            reveal: state.phase === this.serverstate.ROUND_ENDED && !state.myhands.revealed && state.players.length > 0 && state.myhands.closed.length > 0,
+            reveal: state.phase === this.serverstate.ROUND_ENDED && !state.ownInfo.revealed && state.players.length > 0 && state.ownInfo.closed.length > 0,
             startNextRound: state.phase === this.serverstate.ROUND_ENDED && this.imOwner && this.serverstate.game.roundNumber < 8,
             endGame: state.phase === this.serverstate.ROUND_ENDED && this.imOwner && this.serverstate.game.roundNumber === 8
           };
