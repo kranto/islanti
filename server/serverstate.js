@@ -472,8 +472,6 @@ class ServerState {
     if (!this.validateSelected(playerRoundIndex, selectedIndices).valid) return false;
 
     let player = this.roundState.players[playerRoundIndex];
-    console.log(player.validity);
-    console.log(selectedIndices);
 
     selectedIndices.sort((i1, i2) => player.validity[i1].type < player.validity[i2].type ? -1 : 1);
 
@@ -482,9 +480,7 @@ class ServerState {
       accepts: player.validity[ind].data.accepts
     }));
 
-
     player.closed = player.closed.filter((section, index) => selectedIndices.indexOf(index) < 0);
-    console.log(player.open, player.closed);
     player.opened = true;
     player.validity = [{}];
 
