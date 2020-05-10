@@ -387,8 +387,7 @@ class ServerState {
     let newSections = newCardOrder.map(section => section.map(id => cardsById[id]));
 
     player.closed = newSections;
-    player.validity = player.opened ? [{}] :
-      newSections.map(section => rules.testSection(section, this.round));
+    if (!player.opened) player.validity = newSections.map(section => rules.testSection(section, this.round));
     this.notifyConnectors(false);
     return true;
   }
@@ -426,11 +425,12 @@ class ServerState {
   sell(playerRoundIndex) {
     console.log('sell', playerRoundIndex);
     if (playerRoundIndex !== this.roundState.playerInTurn || this.roundState.phase !== this.PICK_CARD_BUYING) return false;
-    this.roundState.players[this.roundState.buying].closed[0].unshift(this.roundState.pile.shift());
-    this.roundState.players[this.roundState.buying].closed[0].unshift(this.roundState.deck.shift());
-    this.roundState.players[this.roundState.buying].validity[0] = rules.testSection(this.roundState.players[this.roundState.buying].closed[0], this.round);
+    let buyingPlayer = this.roundState.players[this.roundState.buying];
+    buyingPlayer.closed[0].unshift(this.roundState.pile.shift());
+    buyingPlayer.closed[0].unshift(this.roundState.deck.shift());
+    if (!buyingPlayer.opened) buyingPlayer.validity[0] = rules.testSection(buyingPlayer.closed[0], this.round);
     this.checkDeck();
-    this.roundState.players[this.roundState.buying].bought++;
+    buyingPlayer.bought++;
     this.roundState.buying = null;
     this.roundState.phase = this.PICK_CARD_BOUGHT;
     this.notifyConnectors(true);
@@ -472,13 +472,22 @@ class ServerState {
     if (!this.validateSelected(playerRoundIndex, selectedIndices).valid) return false;
 
     let player = this.roundState.players[playerRoundIndex];
-    selectedIndices.sort().reverse();
-    selectedIndices.forEach(ind => {
-      player.closed.splice(ind, 1);
-      let validity = player.validity.splice(ind, 1)[0]
-      player.open.unshift({cards: validity.data.cards, accepts: validity.data.accepts});
-    });
+    console.log(player.validity);
+    console.log(selectedIndices);
+
+    selectedIndices.sort((i1, i2) => player.validity[i1].type < player.validity[i2].type ? -1 : 1);
+
+    player.open = selectedIndices.map(ind => ({
+      cards: player.validity[ind].data.cards,
+      accepts: player.validity[ind].data.accepts
+    }));
+
+
+    player.closed = player.closed.filter((section, index) => selectedIndices.indexOf(index) < 0);
+    console.log(player.open, player.closed);
     player.opened = true;
+    player.validity = [{}];
+
     this.checkIfFinished(playerRoundIndex);
     this.notifyConnectors(true);
   }
