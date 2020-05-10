@@ -43,7 +43,7 @@ class Connector  {
     });
 
     this.socket.on('state', () => {
-      this.stateChange({action: 'gameState', state: this.serverstate.game});
+      this.stateChange({action: 'gameState', state: this.serverstate.getGame()});
       this.stateChange({action: 'round', state: this.serverstate.round});
       this.stateChange({action: 'roundState', state: this.serverstate.getRoundState()});
     });
@@ -334,11 +334,21 @@ class ServerState {
 
   async notifyGameUpdated(saveState) {
     if (saveState) await storage.updateGame(this.game);
-    this.eventEmitter.emit('stateChange', {action: 'gameState', state: this.game});
+    this.eventEmitter.emit('stateChange', {action: 'gameState', state: this.getGame()});
   }
 
   async notifyRoundUpdated() {
     this.eventEmitter.emit('stateChange', {action: 'round', state: this.round});
+  }
+
+  getGame() {
+    return {
+      ...this.game,
+      _id: undefined,
+      token: undefined,
+      code: undefined,
+      players: this.game.players.map(p => ({...p, token: undefined}))
+    }
   }
 
   getRoundState() {
