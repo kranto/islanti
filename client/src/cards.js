@@ -159,6 +159,12 @@ var cards = (function() {
 				let distance = Math.max(Math.abs(card.currTop-card.targetTop), Math.abs(card.currLeft-card.targetLeft)); 
 				card.el.toggleClass("fast-move", (distance < opt.cardSize.height && !this.pullUp));
 
+				if (Math.abs(card.currTop - card.targetTop) > 100) {
+					let targetZIndex = $(card.el).css("z-index");
+					$(card.el).css({"z-index": targetZIndex + 1000});
+					setTimeout(() => $(card.el).css({"z-index": targetZIndex}), 600);
+				}
+
 				setTimeout(() => {
 					var props = {top:card.targetTop, left:card.targetLeft, transition: ""};
 					$(card.el).css(props);
