@@ -375,7 +375,8 @@ class ServerState {
   newOrder(playerRoundIndex, newCardOrder) {
     console.log('newOrder', playerRoundIndex, newCardOrder);
     if (this.phase < this.SHOW_CARD || this.phase >= this.ROUND_ENDED) return false;
-    let playersCards = this.roundState.players[playerRoundIndex].closed.flat();
+    let player = this.roundState.players[playerRoundIndex];
+    let playersCards = player.closed.flat();
     let cardIds = playersCards.map(card => card.i);
     let cardsById = playersCards.reduce((acc, card) => ({...acc, [card.i]: card}), {});
     if ([...cardIds].sort().join(',') !== [...newCardOrder.flat()].sort().join(',')) {
@@ -385,8 +386,9 @@ class ServerState {
 
     let newSections = newCardOrder.map(section => section.map(id => cardsById[id]));
 
-    this.roundState.players[playerRoundIndex].closed = newSections;
-    this.roundState.players[playerRoundIndex].validity = newSections.map(section => rules.testSection(section, this.round));
+    player.closed = newSections;
+    player.validity = player.opened ? [{}] :
+      newSections.map(section => rules.testSection(section, this.round));
     this.notifyConnectors(false);
     return true;
   }
@@ -402,10 +404,11 @@ class ServerState {
   pickCard(playerRoundIndex, fromDeck) {
     console.log('pickCard', playerRoundIndex, fromDeck);
     if (playerRoundIndex !== this.roundState.playerInTurn || (this.roundState.phase !== this.PICK_CARD && this.roundState.phase !== this.PICK_CARD_BOUGHT)) return false;
+    let player = this.roundState.players[playerRoundIndex];
     let card = fromDeck ? this.roundState.deck.shift() : this.roundState.pile.shift();
     this.checkDeck();
-    this.roundState.players[playerRoundIndex].closed[0].unshift(card);
-    this.roundState.players[playerRoundIndex].validity[0] = rules.testSection(this.roundState.players[playerRoundIndex].closed[0], this.round);
+    player.closed[0].unshift(card);
+    if (!player.opened) player.validity[0] = rules.testSection(player.closed[0], this.round);
 
     this.roundState.phase = this.TURN_ACTIVE;
     this.notifyConnectors(true);
@@ -436,8 +439,9 @@ class ServerState {
   dontsell(playerRoundIndex) {
     console.log('dontsell', playerRoundIndex);
     if (playerRoundIndex !== this.roundState.playerInTurn || this.roundState.phase !== this.PICK_CARD_BUYING) return false;
-    this.roundState.players[playerRoundIndex].closed[0].unshift(this.roundState.pile.shift());
-    this.roundState.players[playerRoundIndex].validity[0] = rules.testSection(this.roundState.players[playerRoundIndex].closed[0], this.round);
+    let player = this.roundState.players[playerRoundIndex];
+    player.closed[0].unshift(this.roundState.pile.shift());
+    if (!player.opened) player.validity[0] = rules.testSection(player.closed[0], this.round);
     this.roundState.buying = null;
     this.roundState.phase = this.TURN_ACTIVE;
     this.notifyConnectors(true);
@@ -446,12 +450,12 @@ class ServerState {
   discarded(playerRoundIndex, cardId) {
     console.log('discarded', playerRoundIndex, cardId);
     if (playerRoundIndex !== this.roundState.playerInTurn || this.roundState.phase !== this.TURN_ACTIVE) return false;
-    let p = this.roundState.players[playerRoundIndex];
-    let matchingCards = p.closed.flat().filter(c => c.i === cardId);
+    let player = this.roundState.players[playerRoundIndex];
+    let matchingCards = player.closed.flat().filter(c => c.i === cardId);
     if (matchingCards.length !== 1) return; // not found
     let card = matchingCards[0];
-    p.closed = p.closed.map(section => section.filter(c => c !== card)).filter(section => section.length > 0);
-    p.validity = p.closed.map(section => rules.testSection(section, this.round));
+    player.closed = player.closed.map(section => section.filter(c => c !== card)).filter(section => section.length > 0);
+    if (!player.opened) player.validity = player.closed.map(section => rules.testSection(section, this.round));
     this.roundState.pile.unshift(card);
 
     if (!this.checkIfFinished(playerRoundIndex)) {
@@ -467,14 +471,14 @@ class ServerState {
     if (playerRoundIndex !== this.roundState.playerInTurn || this.roundState.phase !== this.TURN_ACTIVE) return false;
     if (!this.validateSelected(playerRoundIndex, selectedIndices).valid) return false;
 
-    let p = this.roundState.players[playerRoundIndex];
+    let player = this.roundState.players[playerRoundIndex];
     selectedIndices.sort().reverse();
     selectedIndices.forEach(ind => {
-      p.closed.splice(ind, 1);
-      let validity = p.validity.splice(ind, 1)[0]
-      p.open.unshift({cards: validity.data.cards, accepts: validity.data.accepts});
+      player.closed.splice(ind, 1);
+      let validity = player.validity.splice(ind, 1)[0]
+      player.open.unshift({cards: validity.data.cards, accepts: validity.data.accepts});
     });
-    p.opened = true;
+    player.opened = true;
     this.checkIfFinished(playerRoundIndex);
     this.notifyConnectors(true);
   }
@@ -483,13 +487,13 @@ class ServerState {
     console.log('complete', playerRoundIndex, handPlayer, handIndex, cardId, dropIndex);
     if (playerRoundIndex !== this.roundState.playerInTurn || this.roundState.phase !== this.TURN_ACTIVE || !this.roundState.players[playerRoundIndex].opened) return false;
 
-    let p = this.roundState.players[playerRoundIndex];
-    let playersCards = p.closed.flat();
+    let player = this.roundState.players[playerRoundIndex];
+    let playersCards = player.closed.flat();
     let cardIds = playersCards.map(card => card.i);
     if (cardIds.indexOf(cardId) < 0) return false;
 
     let card = playersCards.filter(c => c.i === cardId)[0];
-    let newSections = p.closed.map(section => section.filter(c => c.i !== cardId)).filter(section => section.length > 0);
+    let newSections = player.closed.map(section => section.filter(c => c.i !== cardId)).filter(section => section.length > 0);
 
     let hand = this.roundState.players[handPlayer].open[handIndex];
 
@@ -510,8 +514,7 @@ class ServerState {
 
     hand.accepts = rules.testSection(hand.cards, this.round).data.accepts;
 
-    p.closed = newSections;
-    p.validity = newSections.map(section => rules.testSection(section, this.round));
+    player.closed = newSections;
     this.checkIfFinished(playerRoundIndex);
     this.notifyConnectors(true);
     return true;
