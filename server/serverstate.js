@@ -290,14 +290,13 @@ class ServerState {
     this.notifyRoundUpdated();
 
     this.roundState = {
-      ...this.roundState,
+      // ...this.roundState,
       roundNumber: this.game.roundNumber,
       turnIndex: 0,
       playerInTurn: this.game.dealer,
       phase: this.DEAL,
-      dealt: false,
       buying: null,
-      winner: null,
+      // winner: null,
       deck: [...this.cards],
       pile: [],
       players: this.game.playerOrder.map((po, i) => ({
@@ -355,8 +354,7 @@ class ServerState {
 
   deal(playerRoundIndex) {
     console.log('deal', playerRoundIndex);
-    if (playerRoundIndex !== this.roundState.playerInTurn || this.roundState.phase !== this.DEAL || this.roundState.dealt) return false;
-    this.roundState.dealt = true;
+    if (playerRoundIndex !== this.roundState.playerInTurn || this.roundState.phase !== this.DEAL) return false;
     [...Array(13).keys()].forEach(() => this.roundState.players.forEach(p => p.closed[0].push(this.roundState.deck.shift())));
     this.nextPlayerInTurn();
     this.roundState.phase = this.SHOW_CARD;
