@@ -100,8 +100,6 @@ var game = (function () {
 
   function populateState() {
 
-    let imGuest = state.ownInfo === null || state.ownInfo.open === undefined;
-
     myClosedHandSections.forEach(section => section.element = null);
     myClosedHandSections = [];
     $(".hand-section").each(index => myClosedHandSections.push(createNewSection(index)));
@@ -129,7 +127,7 @@ var game = (function () {
       });
     });
 
-    if (!imGuest) {
+    if (!state.imGuest) {
       state.ownInfo.closed.forEach((section, i) => {
         let hand = myClosedHandSections[i];
         updateContainer(hand, section);

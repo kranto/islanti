@@ -73,21 +73,21 @@ class Connector  {
         break;
       case 'roundState':
         console.log('connector.stateChange.roundState', this.playerGameIndex, change.state.phase);
-
+        state.imGuest = this.imGuest;
         if (state.phase > this.serverstate.BEGIN) {
           this.playerRoundIndex = this.serverstate.gameIndexToRoundIndex(this.playerGameIndex);
-          if (!this.imGuest) state.players = [...state.players.slice(this.playerRoundIndex, state.players.length), ...state.players.slice(0,this.playerRoundIndex)];
+          if (!state.imGuest) state.players = [...state.players.slice(this.playerRoundIndex, state.players.length), ...state.players.slice(0,this.playerRoundIndex)];
           state.playerInTurn = this.rollIndex(state.playerInTurn, state);
           state.buying = this.rollIndex(state.buying, state);
           state.winner = this.rollIndex(state.winner, state);
-          state.ownInfo = this.imGuest ? null : state.players.splice(0, 1)[0];  // --- create ownInfo, remove from players ---
+          state.ownInfo = state.imGuest ? null : state.players.splice(0, 1)[0];  // --- create ownInfo, remove from players ---
           state.myTurn = state.playerInTurn < 0;
           state.players = state.players.map(p => ({...p, validity: undefined, closed: p.closed ? (p.revealed ? p.closed.flat() : utils.anonymise(p.closed.flat())) : []}));
-          state.can = {
+          state.can = state.imGuest ? {} : {
             deal: state.phase === this.serverstate.DEAL && state.myTurn,
             show: state.phase === this.serverstate.SHOW_CARD && state.myTurn,
             pick: (state.phase === this.serverstate.PICK_CARD || state.phase === this.serverstate.PICK_CARD_BOUGHT) && state.myTurn,
-            buy: !this.imGuest && state.phase === this.serverstate.PICK_CARD && (state.playerInTurn >= 1 || !state.myTurn && state.turnIndex === 1) && state.ownInfo.bought < 3,
+            buy:  state.phase === this.serverstate.PICK_CARD && (state.playerInTurn >= 1 || !state.myTurn && state.turnIndex === 1) && state.ownInfo.bought < 3,
             sell: state.phase === this.serverstate.PICK_CARD_BUYING && state.myTurn,
             open: state.phase === this.serverstate.TURN_ACTIVE && state.myTurn && !state.ownInfo.opened,
             complete: state.phase === this.serverstate.TURN_ACTIVE && state.myTurn && state.ownInfo.opened,
@@ -149,15 +149,21 @@ class ServerState {
       console.log('someone connected to ' + this.gameToken, new Date());
       socket.once('authenticate', (args, callback) => {
         console.log('authenticate', args);
-        let matching = this.game.players.map((p, i) => ({...p, index: i})).filter(p => p.token === args.participation);
-        let player = matching.length === 1 ? matching[0] : null;
-        console.log(player.nick + ' authenticated',  args, callback);
-        let connector = new Connector(this, player.index, socket);
+        let playerIndex = null;
+        let playerNick = "katsoja";
+        if (args.participation !== this.game.guest) {
+          let matching = this.game.players.map((p, i) => ({...p, index: i})).filter(p => p.token === args.participation);
+          let player = matching.length === 1 ? matching[0] : null;
+          playerIndex = player.index;
+          playerNick = player.nick;
+        }
+        console.log(playerNick + ' authenticated',  args, callback);  
+        let connector = new Connector(this, playerIndex, socket);
         this.connectors.push(connector);
-        if (callback) callback({authenticated: true, myName: player.nick});
+        if (callback) callback({authenticated: true, myName: playerNick});
         this.updateConnected();
         socket.on('disconnect', () => {
-          console.log(player.nick + ' disconnected', connector.playerGameIndex);
+          console.log(playerNick + ' disconnected', connector.playerGameIndex);
           this.connectors = this.connectors.filter(c => c !== connector);
           connector.removeListeners();
         });
@@ -346,7 +352,6 @@ class ServerState {
       ...this.game,
       _id: undefined,
       token: undefined,
-      code: undefined,
       players: this.game.players.map(p => ({...p, token: undefined}))
     }
   }

@@ -204,8 +204,8 @@ class CardTable extends Component {
       <div className="CardTable"></div>
     );
 
-    let imGuest = this.state.s.ownInfo === null || this.state.s.ownInfo.open === undefined;
-
+    let imGuest = this.state.s.imGuest;
+    
     return (
       <div className={"CardTable " 
       + (this.state.opening ? "selecting" : "") 

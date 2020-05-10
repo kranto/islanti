@@ -37,6 +37,10 @@ const findGameByCode = async (code) => {
 
 const findGameByPartipation = async (token) => {
   let activeGames = await db.collection('game').find({active: true}).toArray();
+  let matchingGamesAsGuest = activeGames.filter(g => g.guest == token);
+  if (matchingGamesAsGuest.length === 1) {
+    return matchingGamesAsGuest[0];
+  }
   let matchingGames = activeGames.filter(g => g.players.reduce((acc, p) => acc || p.token === token, false));
   return matchingGames.length === 1 ? matchingGames[0] : null;
 };

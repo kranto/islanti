@@ -59,6 +59,7 @@ class Lobby {
         ended: false,
         closed: false,
         token: uuid(),
+        guest: uuid(),
         code: await storage.generateGameCode(),
         createdBy: args.nick,
         createdAt: new Date(),
@@ -109,8 +110,12 @@ class Lobby {
     let result = {};
     let game = await storage.findGameByPartipation(args.participation);
     if (game && !game.closed) {
-      let participation = game.players.filter(p => p.token === args.participation)[0];
-      result = {ok: true, participation: participation, game: game.token};
+      if (game.guest === args.participation) {
+        result = {ok: true, participation: {token: game.guest, nick: "katsoja"}, game: game.token};
+      } else {
+        let participation = game.players.filter(p => p.token === args.participation)[0];
+        result = {ok: true, participation: participation, game: game.token};  
+      }
       await ss.getGame(this.io, game.token);
     } else {
       result = {ok: false, msg: "Osallistuminen ei ole voimassa"};
@@ -125,12 +130,17 @@ class Lobby {
       const participationToken = args.participations[index];
       let game = await storage.findGameByPartipation(participationToken);
       if (game && !game.closed) {
-        let participation = game.players.filter(p => p.token === participationToken)[0];
-        if (!participation.exited) {
-          result.push({participation: participation, game: game});
+        if (game.guest === participationToken) {
+          result.push({participation: {token: game.guest, nick: "katsoja"}, game: game});
+        } else {
+          let participation = game.players.filter(p => p.token === participationToken)[0];
+          if (!participation.exited) {
+            result.push({participation: participation, game: game});
+          }  
         }
       }
     }
+
     setTimeout(() => callback({ok: true, participations: result}), 0);
   }
 
