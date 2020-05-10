@@ -72,7 +72,7 @@ class Connector  {
       case 'round':
         break;
       case 'roundState':
-        console.log('connector.stateChange.roundState', this.playerGameIndex, change.state.index, change.state.phase);
+        console.log('connector.stateChange.roundState', this.playerGameIndex, change.state.phase);
 
         if (state.phase > this.serverstate.BEGIN) {
           this.playerRoundIndex = this.serverstate.gameIndexToRoundIndex(this.playerGameIndex);
@@ -137,13 +137,11 @@ class ServerState {
     console.log(this.gameToken + ' initializing');
     // read game from db
     let initialRoundState = {
-      index: 0,
       phase: this.BEGIN
     };
 
     let savedState = await storage.findRoundState(this.gameToken);
     this.roundState = savedState ? savedState : initialRoundState;
-    this.roundState.index = 0;
 
     await this.onGameUpdated();
 
@@ -293,6 +291,7 @@ class ServerState {
 
     this.roundState = {
       ...this.roundState,
+      roundNumber: this.game.roundNumber,
       turnIndex: 0,
       playerInTurn: this.game.dealer,
       phase: this.DEAL,
@@ -313,8 +312,6 @@ class ServerState {
       }))
     };
 
-    this.roundState.index++;
-
     this.notifyConnectors(true);
   }
 
@@ -332,7 +329,7 @@ class ServerState {
   }
 
   async notifyConnectors(saveState) {
-    if (saveState) await storage.writeRoundState({...this.roundState, index: undefined, _id: undefined}, this.game.token);
+    if (saveState) await storage.writeRoundState({...this.roundState, _id: undefined}, this.game.token);
     this.eventEmitter.emit('stateChange', {action: 'roundState', state: this.getRoundState()});
   }
 
@@ -363,7 +360,6 @@ class ServerState {
     [...Array(13).keys()].forEach(() => this.roundState.players.forEach(p => p.closed[0].push(this.roundState.deck.shift())));
     this.nextPlayerInTurn();
     this.roundState.phase = this.SHOW_CARD;
-    this.roundState.index++;
     this.notifyConnectors(true);
     return true;
   }
@@ -383,7 +379,6 @@ class ServerState {
 
     this.roundState.players[playerRoundIndex].closed = newSections;
     this.roundState.players[playerRoundIndex].validity = newSections.map(section => rules.testSection(section, this.round));
-    this.roundState.index++;
     this.notifyConnectors(false);
     return true;
   }
@@ -393,7 +388,6 @@ class ServerState {
     if (playerRoundIndex !== this.roundState.playerInTurn || this.roundState.phase !== this.SHOW_CARD) return false;
     this.roundState.pile.unshift(this.roundState.deck.shift());
     this.roundState.phase = this.PICK_CARD;
-    this.roundState.index++;
     this.notifyConnectors(true);
   }
 
@@ -406,7 +400,6 @@ class ServerState {
     this.roundState.players[playerRoundIndex].validity[0] = rules.testSection(this.roundState.players[playerRoundIndex].closed[0], this.round);
 
     this.roundState.phase = this.TURN_ACTIVE;
-    this.roundState.index++;
     this.notifyConnectors(true);
   }
 
@@ -416,7 +409,6 @@ class ServerState {
       (this.turnIndex > 1 && playerRoundIndex === this.previousPlayer(this.roundState.playerInTurn))) return false;
     this.roundState.phase = this.PICK_CARD_BUYING;
     this.roundState.buying = playerRoundIndex;
-    this.roundState.index++;
     this.notifyConnectors(true);
   }
 
@@ -430,7 +422,6 @@ class ServerState {
     this.roundState.players[this.roundState.buying].bought++;
     this.roundState.buying = null;
     this.roundState.phase = this.PICK_CARD_BOUGHT;
-    this.roundState.index++;
     this.notifyConnectors(true);
   }
 
@@ -441,7 +432,6 @@ class ServerState {
     this.roundState.players[playerRoundIndex].validity[0] = rules.testSection(this.roundState.players[playerRoundIndex].closed[0], this.round);
     this.roundState.buying = null;
     this.roundState.phase = this.TURN_ACTIVE;
-    this.roundState.index++;
     this.notifyConnectors(true);
   }
 
@@ -455,7 +445,6 @@ class ServerState {
     p.closed = p.closed.map(section => section.filter(c => c !== card)).filter(section => section.length > 0);
     p.validity = p.closed.map(section => rules.testSection(section, this.round));
     this.roundState.pile.unshift(card);
-    this.roundState.index++;
 
     if (!this.checkIfFinished(playerRoundIndex)) {
       this.nextPlayerInTurn();
@@ -478,7 +467,6 @@ class ServerState {
       p.open.unshift({cards: validity.data.cards, accepts: validity.data.accepts});
     });
     p.opened = true;
-    this.roundState.index++;
     this.checkIfFinished(playerRoundIndex);
     this.notifyConnectors(true);
   }
@@ -516,7 +504,6 @@ class ServerState {
 
     p.closed = newSections;
     p.validity = newSections.map(section => rules.testSection(section, this.round));
-    this.roundState.index++;
     this.checkIfFinished(playerRoundIndex);
     this.notifyConnectors(true);
     return true;
@@ -526,7 +513,6 @@ class ServerState {
     console.log('reveal', playerRoundIndex);
     if (this.roundState.phase !== this.ROUND_ENDED) return false;
     this.roundState.players[playerRoundIndex].revealed = true;
-    this.roundState.index++;
     this.notifyConnectors(false);
   }
 
