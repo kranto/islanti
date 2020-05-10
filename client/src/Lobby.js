@@ -210,9 +210,18 @@ class Lobby extends Component {
 
   exitGame = (event, index) => {
     event.stopPropagation();
+    let participation = this.state.openParticipations[index].participation;
+    console.log(participation);
+    if (participation.isGuest) {
+      if (window.confirm("Haluatko varmasti lopettaa pelin seuraamisen?")) {
+        writeOpenParticipations(readOpenParticipations().filter(token => token !== participation.token));
+        this.setState({ phase: 0 });
+      }
+      return;
+    }
+
     if (window.confirm("Haluatko varmasti poistua pelistä lopullisesti?")) {
-      const token = this.state.openParticipations[index].participation.token;
-      this.props.stateManager.exitGameWithToken(token, result => {
+      this.props.stateManager.exitGameWithToken(participation.token, result => {
         this.setState({ phase: 0 });
       });
     }
