@@ -4,6 +4,7 @@ import './CardTable.css';
 import Hand from './Hand.js';
 import game from './game';
 
+
 class CardTable extends Component {
 
   constructor() {
@@ -109,15 +110,15 @@ class CardTable extends Component {
     this.validateSelection(sel, (ok, msg) => this.setState({ selected: sel, selectionOk: ok, msg: msg }));
   }
 
-  startOpening() {
+  startOpening = () => {
     this.setState({ opening: true, selected: this.state.s.ownInfo.closed.map(() => false), selectionOk: false });
   }
 
-  cancelOpening() {
+  cancelOpening = () => {
     this.setState({ opening: false });
   }
 
-  confirmOpening() {
+  confirmOpening = () => {
     this.props.stateManager.sendAction('open', { selectedIndices: this.state.selected.map((x, i) => x ? i : -1).filter(i => i >= 0) });
     this.setState({ opening: false, selectionOk: false });
   }
@@ -132,7 +133,7 @@ class CardTable extends Component {
       }
     } else if (state.phase === 2) {
       if (state.myTurn) {
-        return <div>Sinä aloitat. Kun kaikki ovat järjestäneet korttinsa ja ovat valmiita, voit avata yhden kortin pakasta.</div>
+        return <div>Sinä aloitat. Kun kaikki ovat valmiita, avaa yksi kortti pakasta.</div>
       } else {
         return <div><span>{state.players[state.playerInTurn].name}</span> aloittaa. Järjestä kortit ja ole valmis, kun peli alkaa.</div>
       }
@@ -173,29 +174,39 @@ class CardTable extends Component {
 
   }
 
+  actionButton = (type, text, action) => {
+    return <button className={"btn btn-" + type} onClick={() => this.props.stateManager.sendAction(action)}>{text}</button>
+  }
+
+  controlButton = (type, text, onClick, disabled) => {
+    return <button className={"btn btn-" + type} onClick={onClick} disabled={disabled ? disabled : ""}>{text}</button>
+  }
+
+  dummyButton = () => <button style={{visibility: "hidden"}}></button>
+
   createControls() {
     let state = this.state.s;
     if (state.can.deal) {
-      return <button onClick={() => this.props.stateManager.sendAction('deal')}>Jaa kortit</button>
+      return <>{this.actionButton('light', 'Jaa kortit', 'deal')}{this.dummyButton()}</>
     } else if (state.can.show) {
-      return <button onClick={() => this.props.stateManager.sendAction('showCard')}>Avaa kortti</button>
+      return <>{this.actionButton('light', 'Avaa kortti', 'showCard')}</>
     } else if (state.can.sell) {
       return (
         <>
-          <button className="btn btn-primary" onClick={() => this.props.stateManager.sendAction('sell')}>Myyn</button>
-          <button className="btn btn-warning" onClick={() => this.props.stateManager.sendAction('dontsell')}>En myy</button>
+          {this.actionButton('light', 'Myyn', 'sell')}
+          {this.actionButton('dark', 'En myy', 'dontsell')}
         </>);
     } else if (state.can.open && !this.state.opening) {
-      return <button onClick={() => this.startOpening()}>Avaan</button>
+      return <>{this.controlButton('light', 'Avaan', this.startOpening)}{this.dummyButton()}</>
     } else if (this.state.opening) {
       return (<>
-        <button onClick={() => this.confirmOpening()} disabled={!this.state.selectionOk}>Avaa valitut</button>
-        <button onClick={() => this.cancelOpening()}>En avaakaan</button>
+        {this.controlButton('warning', 'Avaa valitut', this.confirmOpening, !this.state.selectionOk)}
+        {this.controlButton('secondary', 'En avaakaan', this.cancelOpening)}
       </>);
     } else if (state.can.startNextRound) {
-      return <button onClick={() => this.props.onNextRound()}>Aloita seuraava kierros</button>
+      return <>{this.controlButton('light', 'Aloita seuraava kierros', this.props.onNextRound)}</>
     } else if (state.can.endGame) {
-      return <button onClick={() => this.props.onEndGame()}>Sulje peli</button>
+      return <>{this.controlButton('light', 'Sulje peli', this.props.onEndGame)}</>
     }
     return "";
   }
@@ -214,9 +225,7 @@ class CardTable extends Component {
         + (this.state.s.ownInfo && this.state.s.ownInfo.inTurn ? " in-turn" : "")
         + (this.state.s.phase >= 5 ? " round-ended" : "")
         + (this.state.s.players.length < 2 ? " small-game" : "")}>
-        <div id="otherplayers">
           {this.createPlayers()}
-        </div>
         <div id="gamearea" className={"turn-indicator " + (this.state.s.ownInfo && this.state.s.ownInfo.inTurn ? "in-turn" : "")}>
           <div id="controlrow">
             <div id="infocolumn">
@@ -227,7 +236,7 @@ class CardTable extends Component {
             </div>
             <div id="controls">
               {this.createControls()}
-              {this.state.s.can.reveal ? <button onClick={() => this.props.stateManager.sendAction('reveal')}>Paljasta korttisi</button> : ""}
+              {this.state.s.can.reveal ? this.actionButton('light', 'Paljasta korttisi', 'reveal') : ""}
             </div>
           </div>
           <div id="deckrow">

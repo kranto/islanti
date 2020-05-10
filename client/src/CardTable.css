@@ -77,22 +77,17 @@
 	border-color: orange;
 }
 
-#otherplayers {
-	width: 100%;
-	display: flex;
-	flex-flow: column nowrap;
-}
-
 .other-player {
-	width: 100%;
-	float: left;
+	max-height: 120px;
 	margin: 2px;
-	border-radius: 10px;
 	padding: 3px 0px;
-	display: flex;
-	flex-flow: row nowrap;
+
 	box-shadow: -5px -5px 10px darkgreen;
 	border: 1px solid darkgreen;
+	border-radius: 10px;
+
+	display: flex;
+	flex-flow: row nowrap;
 }
 
 .other-player .player-name {
