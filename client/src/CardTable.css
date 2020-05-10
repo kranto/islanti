@@ -143,59 +143,63 @@
 }
 
 #gamearea.turn-indicator.in-turn {
-	background-color: rgb(46, 177, 57);
 	animation: color-me-in 1.5s;
 }
 
-
-@keyframes color-me-in {
-	0% {
-		background-color: inherit;
-	  }
-	20% {
-		background-color: inherit;
-	  }
-	50% {
-	  background-color: rgb(167, 221, 171);
-	}
-	70% {
-		background-color: rgb(167, 221, 171);
-	}
-	100% {
-	  background-color:  rgb(46, 177, 57);;
-	}
-  }
-
 #gamearea {
-	float: left;
-	clear: left;
 	width: 100%;
 	border-radius: 10px;
+	display: flex;
+	flex-flow: column nowrap;
+}
+
+#controlrow {
+	display: flex;
+	flex-flow: row nowrap;
+	justify-content: center;
+}
+
+#infocolumn {
+	color: white;
+	text-align: center;
+	display: flex;
+	flex-flow: column nowrap;
+	margin: 10px 30px;
 }
 
 #roundinfo {
-	width: 100%;
-	height: auto;
-	color: white;
 	font-size: 1.2em;
-	text-align: center;
+}
+
+#instructions {
+}
+
+.winner {
+	font-size: 30px;
+	font-style: bold;
 }
 
 #controls {
-	float: right;
+	display: flex;
+	flex-flow: row nowrap;
+	align-items: center;
+}
+
+#controls button {
+	margin: 0px 20px;
+	min-width: 100px;
+	flex-grow: 0;
+	flex-shrink: 0;
 }
 
 #deckrow {
-	float: left;
-}
-#deckandpile {
-	float: left;
-	width: 257px;
-	overflow: auto;
+	display: flex;
+	flex-flow: row nowrap;
+	justify-content: flex-start;
+	align-items: center;
 }
 
 #deck,#pile {
-	float: left;
 	margin: 10px;
 	height: 110px;
 	width: 100px;
@@ -217,18 +221,8 @@
 }
 
 #deckrowcolumn2 {
-	float: left;
-}
-
-#instructions {
-	width: 100%;
-	color: white;
-	text-align: center;
-}
-
-.winner {
-	font-size: 30px;
-	font-style: bold;
+	display: flex;
+	flex-flow: row wrap;
 }
 
 #my-closed-hand-sections {
@@ -348,3 +342,21 @@
 	z-index: 1000000;
 	pointer-events: none;
 }
+
+@keyframes color-me-in {
+	0% {
+		background-color: inherit;
+	  }
+	20% {
+		background-color: inherit;
+	  }
+	50% {
+	  background-color: rgb(167, 221, 171);
+	}
+	70% {
+		background-color: rgb(167, 221, 171);
+	}
+	100% {
+	  background-color:  rgb(46, 177, 57);;
+	}
+  }
