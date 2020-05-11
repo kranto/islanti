@@ -187,6 +187,10 @@
 	flex-shrink: 0;
 }
 
+.btn-light.disabled, .btn-light:disabled {
+	opacity: 0.4;
+}
+
 #deckrow {
 	display: flex;
 	flex-flow: row nowrap;

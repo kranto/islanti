@@ -200,8 +200,8 @@ class CardTable extends Component {
       return <>{this.controlButton('light', 'Avaan', this.startOpening)}{this.dummyButton()}</>
     } else if (this.state.opening) {
       return (<>
-        {this.controlButton('warning', 'Avaa valitut', this.confirmOpening, !this.state.selectionOk)}
-        {this.controlButton('secondary', 'En avaakaan', this.cancelOpening)}
+        {this.controlButton('light', 'Avaa valitut', this.confirmOpening, !this.state.selectionOk)}
+        {this.controlButton('dark', 'En avaakaan', this.cancelOpening)}
       </>);
     } else if (state.can.startNextRound) {
       return <>{this.controlButton('light', 'Aloita seuraava kierros', this.props.onNextRound)}</>
