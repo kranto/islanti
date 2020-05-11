@@ -193,7 +193,7 @@
 
 #deckrow {
 	display: flex;
-	flex-flow: row nowrap;
+	flex-flow: row wrap;
 	justify-content: flex-start;
 	align-items: center;
 }
@@ -217,11 +217,6 @@
 .CardTable.small-game #deck.canDrag,.CardTable.small-game #pile.canDrag {
 	animation-delay: 0ms;
 	transition-delay: 0ms;
-}
-
-#deckrowcolumn2 {
-	display: flex;
-	flex-flow: row wrap;
 }
 
 #my-closed-hand-sections {

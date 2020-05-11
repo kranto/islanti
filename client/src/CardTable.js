@@ -242,10 +242,9 @@ class CardTable extends Component {
           <div id="deckrow">
             <div id="deck" className={this.state.s.can.pick ? "canDrag" : ""}></div>
             <div id="pile" className={(this.state.s.can.pick ? "canDrag" : "") + (this.state.s.can.discard ? " canDrop" : "")}></div>
-            {imGuest ? "" : (
-              <div id="deckrowcolumn2">
-                {this.state.s.ownInfo.open.map((h, i) => <Hand key={"m" + i} id={"myopen" + i} classes="player-hand open-hand"></Hand>)}
-              </div>)}
+            {imGuest ? "" :
+              this.state.s.ownInfo.open.map((h, i) => <Hand key={"m" + i} id={"myopen" + i} classes="player-hand open-hand"></Hand>)
+            }
           </div>
           {imGuest ? "" : (
             <div id="my-closed-hand-sections" className={"turn-indicator " + (this.state.s.ownInfo && this.state.s.ownInfo.inTurn ? "in-turn" : "")}>
