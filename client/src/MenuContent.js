@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import ScoreBoard from "./ScoreBoard";
 
 class MenuContent extends Component {
@@ -15,12 +16,15 @@ class MenuContent extends Component {
   render() {
     return (
       <div className={"MenuContent "}>
-        <div></div>
-        {this.props.game && this.props.game.locked ? <ScoreBoard game={this.props.game}></ScoreBoard> : ""}
         {this.props.game && (this.props.game.ended || !this.props.game.locked) ? "" :
-          <button className="btn btn-secondary" onClick={this.props.toggleMenu}>Sulje tulostaulu</button>
+          <div className="menuTopRow">
+            <button className="btn btn-secondary" onClick={this.props.toggleMenu}>
+              <FontAwesomeIcon icon={['fas', 'times']} />
+            </button>
+          </div>
         }
-        <button className="btn btn-dark" onClick={this.onCloseGame}>Palaa aloitussivulle</button>
+        {this.props.game && this.props.game.locked ? <ScoreBoard game={this.props.game}></ScoreBoard> : ""}
+        <button className="btn btn-light menu-action-button" onClick={this.onCloseGame}>Palaa aloitussivulle</button>
       </div>
     );
   }

@@ -6,9 +6,9 @@ class ScoreBoard extends Component {
   renderTableData = () => {
     let game = this.props.game;
     if (!game) return (<tbody></tbody>);
-    let scores = game.scoreBoard;
-    if (!scores) return (<tbody></tbody>);
     let playerNames = game.players.sort((p1, p2) => p1.order < p2.order ? -1 : 1).map(p => p.nick);
+    let scores = game.scoreBoard || {rounds: [], total: [...Array(playerNames.length)].map(() => 0)};
+    console.log(scores)
     return (
       <tbody>
         <tr><th>Kierros</th>{playerNames.map((p, i) => (<th key={i}>{p}</th>))}</tr>
@@ -25,6 +25,7 @@ class ScoreBoard extends Component {
   render() {
     return (
       <div className="ScoreBoard">
+        <h1 className="ScoreBoardTitle">Pistetilanne</h1>
         <div className="ScoreBoardTable">
           <table className="table table-striped">
             {this.renderTableData()}

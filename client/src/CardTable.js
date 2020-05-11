@@ -236,7 +236,6 @@ class CardTable extends Component {
             </div>
             <div id="controls">
               {this.createControls()}
-              {this.state.s.can.reveal ? this.actionButton('light', 'Paljasta korttisi', 'reveal') : ""}
             </div>
           </div>
           <div id="deckrow">
@@ -249,6 +248,7 @@ class CardTable extends Component {
           {imGuest ? "" : (
             <div id="my-closed-hand-sections" className={"turn-indicator " + (this.state.s.ownInfo && this.state.s.ownInfo.inTurn ? "in-turn" : "")}>
               {this.createMySections()}
+              {this.state.s.can.reveal ? this.actionButton('light', 'Paljasta korttisi', 'reveal') : ""}
               <div id="newsection" className="new-section" style={{ visibility: (this.state.s.phase >= 2 && this.state.s.phase <= 4) ? "visible" : "hidden" }}><div>+</div></div>
             </div>)}
         </div>

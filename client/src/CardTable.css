@@ -54,10 +54,6 @@
 	overflow: hidden;
 	border:solid 6px brown;
 	border-radius:8px;
-	-webkit-border-radius:8px;
-	-moz-border-radius:8px;
-	-ms-border-radius:8px;
-	-o-border-radius:8px;
 	box-shadow:#111 1px 1px 2px;
 	user-select: none;
 	transition: border-color 1s;
@@ -170,7 +166,8 @@
 }
 
 .winner {
-	font-size: 30px;
+	font-size: 1.3em;
+	color: yellow;
 	font-style: bold;
 }
 
