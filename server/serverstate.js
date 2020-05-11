@@ -568,8 +568,6 @@ class ServerState {
         acc.map((s,i) => s + round.scores[i]),
         playerScores.map(p => 0));
 
-    console.log(this.game.scoreBoard);
-
     this.notifyGameUpdated(true);
   }
 
