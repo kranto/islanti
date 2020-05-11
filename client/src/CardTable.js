@@ -2,6 +2,7 @@
 import React, { Component } from "react";
 import './CardTable.css';
 import Hand from './Hand.js';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import game from './game';
 
 
@@ -18,15 +19,17 @@ class CardTable extends Component {
   }
 
   onStateChange = () => {
-    this.setState({ ...this.state, s: this.props.stateManager.state.roundState });
+    this.setState({ ...this.state, s: this.props.stateManager.state.roundState, c: this.props.stateManager.state.connectionState });
   }
 
   componentDidMount() {
     this.props.stateManager.subscribeTo('roundStateChange', this.onStateChange);
+    this.props.stateManager.subscribeTo('connectionStateChange', this.onStateChange);
   }
 
   componentWillUnmount() {
     this.props.stateManager.unsubscribe('roundStateChange', this.onStateChange);
+    this.props.stateManager.unsubscribe('connectionStateChange', this.onStateChange);
     if (this.gameInitialized) {
       game.unload();
     }
@@ -45,14 +48,18 @@ class CardTable extends Component {
   createPlayers() {
     let state = this.state.s;
     return state.players.map((p, index) => {
+      let connectionOk = this.state.c && this.state.c.players[index];
       return (
         <div id={"player" + index} key={"o" + index}
-          className={"other-player turn-indicator" + (p.inTurn ? " in-turn" : "")}>
+          className={"other-player turn-indicator" 
+          + (p.inTurn ? " in-turn" : "")
+          + (connectionOk ? " connected" : " disconnected")}>
           <div className="player-name">{p.name}</div>
           <div className="player-hands">
             <Hand classes="player-hand closed-hand" score={p.score} />
             {p.open.map((h, i) => <Hand key={"p" + index + "o" + i} id={"p" + index + "o" + i} classes="player-hand open-hand"></Hand>)}
           </div>
+          {connectionOk ? "" : <div className="player-connection-indicator"><FontAwesomeIcon icon={['fas', 'heart-broken']} /></div>}
         </div>
       );
     });

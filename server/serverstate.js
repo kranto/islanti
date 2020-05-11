@@ -8,6 +8,40 @@ const EventEmitter = require('events');
 
 const deepCopy = object => object !== undefined ? JSON.parse(JSON.stringify(object)) : object;
 
+class ConnectionManager {
+
+  constructor(serverstate) {
+    this.connections = [[]];
+    this.serverstate = serverstate;
+  }
+
+  getConnections() {
+    while (this.connections.length < this.serverstate.game.players.length) {
+      this.connections.push(undefined);
+    }
+    return Array.from(this.connections, connectors => (connectors !== undefined && connectors.length > 0));
+  }
+
+  addConnection(index, connector) {
+    if (index === null) return;
+    if (!this.connections[index]) this.connections[index] = [];
+    if (this.connections[index].indexOf(connector) < 0) {
+      this.connections[index].push(connector);
+      if (this.connections[index].length === 1) {
+        this.serverstate.eventEmitter.emit('stateChange', {action: 'connectionState', state: this.getConnections()});
+      }
+    };
+  }
+
+  removeConnection(index, connector) {
+    if (index === null) return;
+    this.connections[index] = this.connections[index].filter(conn => conn !== connector);
+    if (this.connections[index].length === 0) {
+      this.serverstate.eventEmitter.emit('stateChange', {action: 'connectionState', state: this.getConnections()});
+    }
+  }
+}
+
 class Connector  {
   constructor(serverstate, playerGameIndex, socket) {
     this.serverstate = serverstate;
@@ -29,32 +63,56 @@ class Connector  {
 
     this.socket.on('gameAction', async args => {
       console.log('connector.onGameAction', this.playerGameIndex, args);
+      this.updateConnectionOk();
       await this.serverstate.onGameAction(this.playerGameIndex, args);
     });
 
     this.socket.on('action', args => {
       console.log('connector.onAction', this.playerRoundIndex, args);
+      this.updateConnectionOk();
       this.serverstate.onAction(this.playerRoundIndex, args);
     });
 
     this.socket.on('validateSelection', (args, callback) => {
       console.log('connector.validateSelection', this.playerRoundIndex, args, callback);
+      this.updateConnectionOk();
       this.serverstate.validateSelection(this.playerRoundIndex, args, callback);
     });
 
     this.socket.on('state', () => {
+      this.updateConnectionOk();
       this.stateChange({action: 'gameState', state: this.serverstate.getGame()});
       this.stateChange({action: 'round', state: this.serverstate.round});
       this.stateChange({action: 'roundState', state: this.serverstate.getRoundState()});
+      this.stateChange({action: 'connectionState', state: this.serverstate.connectionManager.getConnections()});
     });
 
+    this.pingReceived = new Date().getTime();
+    this.connectionOk = true;
+
     this.socket.on('ping1', () => {
+      this.updateConnectionOk();
       this.socket.emit('pong1');
     });
 
     this.socket.emit('authenticated');
 
     this.serverstate.eventEmitter.on('stateChange', this.stateChange);
+
+    setInterval(() => {if (this.connectionOk && this.pingReceived + 2500 < new Date().getTime()) {
+      console.log('ping pong failed', this.playerGameIndex, this.pingReceived, new Date().getTime());
+      this.connectionOk = false;
+      this.serverstate.connectionManager.removeConnection(this.playerGameIndex, this);
+    }}, 1000);
+  }
+
+  updateConnectionOk() {
+    this.pingReceived = new Date().getTime();
+    if (!this.connectionOk) {
+      console.log('ping pong recovered', this.playerGameIndex);
+      this.connectionOk = true;
+      this.serverstate.connectionManager.addConnection(this.playerGameIndex, this);
+    }
   }
 
   removeListeners() {
@@ -66,6 +124,14 @@ class Connector  {
     console.log('connector.stateChange', this.playerGameIndex, change.action);
     let state = deepCopy(change.state);
     switch (change.action) {
+      case 'connectionState':
+        let newState = {players: []};
+        if (!this.serverstate.game.locked) return; 
+        state.forEach((value, index) => newState.players[this.serverstate.game.players[index].order] = value);
+        if (!this.imGuest) newState.players = [...newState.players.slice(this.playerRoundIndex, newState.players.length), ...newState.players.slice(0,this.playerRoundIndex)];
+        newState.ownInfo = this.imGuest ? null : newState.players.splice(0, 1)[0];
+        state = newState;
+        break;
       case 'gameState':
         state.imOwner = this.imOwner;
         break;
@@ -131,6 +197,7 @@ class ServerState {
     this.roundState = false;
 
     this.eventEmitter = new EventEmitter();
+    this.connectionManager = new ConnectionManager(this);
   }
 
   async init() {
@@ -160,12 +227,14 @@ class ServerState {
         console.log(playerNick + ' authenticated',  args, callback);  
         let connector = new Connector(this, playerIndex, socket);
         this.connectors.push(connector);
+        this.connectionManager.addConnection(playerIndex, connector);
         if (callback) callback({authenticated: true, myName: playerNick});
         this.updateConnected();
         socket.on('disconnect', () => {
           console.log(playerNick + ' disconnected', connector.playerGameIndex);
           this.connectors = this.connectors.filter(c => c !== connector);
           connector.removeListeners();
+          this.connectionManager.removeConnection(playerIndex, connector);
         });
       });
     });
@@ -270,6 +339,8 @@ class ServerState {
 
     this.game.playerOrder = utils.shuffle([...Array(this.game.players.length).keys()]);
     this.game.players.forEach((p, i) => {p.order = this.game.playerOrder.indexOf(i); p.index = i;});
+
+    this.eventEmitter.emit('stateChange', {action: 'connectionState', state: this.connectionManager.getConnections()});
 
     await this.notifyGameUpdated(true);
 

@@ -86,6 +86,10 @@
 	flex-flow: row nowrap;
 }
 
+.other-player.disconnected {
+	background-color: rgb(40, 63, 40) !important;
+}
+
 .other-player .player-name {
 	color: white;
 	writing-mode: vertical-rl;
@@ -100,6 +104,17 @@
 
 .other-player.in-turn .player-name {
 	font-weight: bold;
+}
+
+.player-connection-indicator {
+	margin-left: auto;
+	align-self: flex-end;
+  position: relative;
+	color: red;
+	font-size: 2em;
+	text-align: right;
+  left: -40px;
+  width: 0;
 }
 
 .player-hands {

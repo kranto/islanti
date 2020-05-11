@@ -124,7 +124,7 @@ class StateManager {
     this.pingInterval = setInterval(() => {
       this.game.emit('ping1');
       this.onGameConnectionChange(this.lastPong > new Date().getTime() - 2500);
-    }, 2000);
+    }, 1000);
 
   }
 
@@ -177,6 +177,10 @@ class StateManager {
       case 'roundState':
         this.state.roundState = params.state;
         document.dispatchEvent(new CustomEvent('roundStateChange'));
+        break;
+      case 'connectionState':
+        this.state.connectionState = params.state;
+        document.dispatchEvent(new CustomEvent('connectionStateChange'));
         break;
       default:
         break;

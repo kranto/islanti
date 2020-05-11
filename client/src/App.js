@@ -12,7 +12,8 @@ import {
   faSpinner,
   faTrash,
   faWifi,
-  faSlash
+  faSlash,
+  faHeartBroken
 } from '@fortawesome/free-solid-svg-icons'
 library.add(
   faBars,
@@ -20,7 +21,8 @@ library.add(
   faSpinner,
   faTrash,
   faWifi,
-  faSlash
+  faSlash,
+  faHeartBroken
 )
 
 class App extends Component {
