@@ -175,11 +175,11 @@ class CardTable extends Component {
   }
 
   actionButton = (type, text, action) => {
-    return <button className={"btn btn-" + type} onClick={() => this.props.stateManager.sendAction(action)}>{text}</button>
+    return <button className={"shadow-none btn btn-" + type} onClick={() => this.props.stateManager.sendAction(action)}>{text}</button>
   }
 
   controlButton = (type, text, onClick, disabled) => {
-    return <button className={"btn btn-" + type} onClick={onClick} disabled={disabled ? disabled : ""}>{text}</button>
+    return <button className={"shadow-none btn btn-" + type} onClick={onClick} disabled={disabled ? disabled : ""}>{text}</button>
   }
 
   dummyButton = () => <button style={{visibility: "hidden"}}></button>
