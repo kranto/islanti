@@ -148,7 +148,7 @@ class CardTable extends Component {
       if (state.myTurn) {
         return <div>Nosta kortti pakasta tai avopakasta vetämällä</div>
       } else {
-        return <div><span>{state.players[state.playerInTurn].name}</span> nostaa{state.can.buy ? ". Voit yrittää ostaa kortin klikkaamalla avopakkaa." : ""} </div>
+        return <div><span>{state.players[state.playerInTurn].name}</span> nostaa{state.can.buy ? ". Voit yrittää ostaa klikkaamalla avopakkaa." : ""} </div>
       }
     } else if (state.phase === 3.1) {
       if (state.buying < 0) {
