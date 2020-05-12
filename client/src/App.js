@@ -32,6 +32,7 @@ class App extends Component {
     this.stateManager = new StateManager();
     this.state = { inLobby: true, inGame: false, myName: null };
 
+    console.log('App.constructor', window.history.length, window.history.state, window.history.state ? window.history.state.game : "null");
     window.onpopstate = this.onPopState;
   }
 
@@ -44,17 +45,20 @@ class App extends Component {
   }
 
   onPopState = (event) => {
-    console.log(window.history);
-    console.log('onpopstate', event.state);
+    console.log('onPopState', event.state);
+    console.log('onPopState', window.history.length, window.history.state, window.history.state ? window.history.state.game : "null");
     if (event.state.game) console.log('liity peliin ' + event.state.game);
     if (event.state.lobby) {
       console.log('palaa lobbyyn', window.history.state);
       this.closeGame();
+    } else if (event.state.game) {
+      this.goToGame(event.state.game, event.state.participation);
     }
   }
 
   goToGame = (gameToken, participation) => {
     console.log('goToGame', gameToken, participation);
+    console.log('goToGame1', window.history.length, window.history.state, window.history.state ? window.history.state.game : "null");
     this.stateManager.openGameConnection(gameToken, {participation: participation }, (result) => {
       this.setState({ inLobby: false, inGame: true, myName: result.myName, authenticated: true });
       let newState = {game: gameToken, participation: participation, lobby: false};
@@ -63,30 +67,31 @@ class App extends Component {
       } else {
         window.history.pushState(newState, "");
       }
+      console.log('goToGame2', window.history.length, window.history.state, window.history.state ? window.history.state.game : "null");
       console.log('App.callback', result);
     });
   }
 
   exitGame = () => {
     console.log('exitGame');
+    Lobby.resetParticipation();
     this.setState({ inLobby: true, inGame: false });
     this.stateManager.exitGame();
-    Lobby.resetParticipation();
     this.stateManager.closeGameConnection();
   }
   
   discardGame = () => {
     console.log('discardGame');
+    Lobby.resetParticipation();
     this.setState({ inLobby: true, inGame: false });
     this.stateManager.discardGame();
-    Lobby.resetParticipation();
     this.stateManager.closeGameConnection();
   }
   
   closeGame = () => {
     console.log('closeGame');
-    this.setState({ inLobby: true, inGame: false });
     Lobby.resetParticipation();
+    this.setState({ inLobby: true, inGame: false });
     this.stateManager.closeGameConnection();
   }
   

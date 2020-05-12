@@ -76,12 +76,15 @@ class Lobby extends Component {
   }
 
   static resetParticipation() {
+    console.log("Lobby.resetParticipation");
     let state = readFromLocalStorage();
     state = { ...state, game: undefined, participation: undefined };
     writeToLocalStorage(state);
+    console.log(readFromLocalStorage());
   }
 
   componentDidMount() {
+    console.log("Lobby component did mount");
     if (window.location.search.length > 1) {
       window.history.replaceState({}, "", window.location.href.split('?')[0]);
     }
@@ -89,7 +92,7 @@ class Lobby extends Component {
   }
 
   componentDidUpdate() {
-    console.log("component did update", this.state);
+    console.log("Lobby component did update", this.state);
     if (this.state.phase === 3 && this.props.lobbyReady && !this.state.joinedGame) {
       this.resumeParticipation();
     } else if (this.state.joinedGame) {
