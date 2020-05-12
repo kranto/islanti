@@ -240,7 +240,6 @@ class Lobby extends Component {
                 <td>{getHumanFriendlyTime(p.game.createdAt)}</td>
                 <td>{p.game.players.map(p => p.nick).join(", ")}</td>
                 <td>{!p.game.locked ? "alkamassa" : p.game.ended ? "päättynyt" : p.game.roundNumber + "/8"}</td>
-                {/* <td><button className="btn btn-dark" onClick={() => this.resumeParticipationWithToken(p.participation.token)}>Palaa peliin</button></td> */}
                 <td><button className="btn btn-warning exit-button" onClick={(event) => this.exitGame(event, i)}>
                   <FontAwesomeIcon icon={['fas', 'trash']} size="1x" />
                 </button></td>

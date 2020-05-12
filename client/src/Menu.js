@@ -23,11 +23,6 @@ class Menu extends Component {
     }
   }
 
-  onCloseGame = () => {
-    this.setState({ open: false });
-    this.props.closeGame();
-  }
-
   render() {
     return (
       <div className={"Menu " + (this.state.open ? "menu-open" : "")}>

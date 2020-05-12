@@ -10,7 +10,8 @@ class MenuContent extends Component {
 
   onCloseGame = () => {
     console.log('onCloseGame', this);
-    this.props.onCloseGame();
+    // this.props.onCloseGame();
+    window.history.back();
   }
 
   render() {

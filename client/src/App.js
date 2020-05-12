@@ -31,19 +31,38 @@ class App extends Component {
     super();
     this.stateManager = new StateManager();
     this.state = { inLobby: true, inGame: false, myName: null };
+
+    window.onpopstate = this.onPopState;
   }
 
   componentDidMount() {
     this.stateManager.initLobby("lobby", (x) => {
       this.setState({ lobbyReady: true });
+      window.history.replaceState({game: null, participation: null, lobby: true}, "Liity peliin");
       console.log('In the lobby', x);
     });
+  }
+
+  onPopState = (event) => {
+    console.log(window.history);
+    console.log('onpopstate', event.state);
+    if (event.state.game) console.log('liity peliin ' + event.state.game);
+    if (event.state.lobby) {
+      console.log('palaa lobbyyn', window.history.state);
+      this.closeGame();
+    }
   }
 
   goToGame = (gameToken, participation) => {
     console.log('goToGame', gameToken, participation);
     this.stateManager.openGameConnection(gameToken, {participation: participation }, (result) => {
       this.setState({ inLobby: false, inGame: true, myName: result.myName, authenticated: true });
+      let newState = {game: gameToken, participation: participation, lobby: false};
+      if (window.history.state.game) {
+        window.history.replaceState(newState, "");
+      } else {
+        window.history.pushState(newState, "");
+      }
       console.log('App.callback', result);
     });
   }
