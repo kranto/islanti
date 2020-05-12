@@ -32,7 +32,6 @@ class App extends Component {
     this.stateManager = new StateManager();
     this.state = { inLobby: true, inGame: false, myName: null };
 
-    console.log('App.constructor', window.history.length, window.history.state, window.history.state ? window.history.state.game : "null");
     window.onpopstate = this.onPopState;
   }
 
@@ -46,10 +45,7 @@ class App extends Component {
 
   onPopState = (event) => {
     console.log('onPopState', event.state);
-    console.log('onPopState', window.history.length, window.history.state, window.history.state ? window.history.state.game : "null");
-    if (event.state.game) console.log('liity peliin ' + event.state.game);
     if (event.state.lobby) {
-      console.log('palaa lobbyyn', window.history.state);
       this.closeGame();
     } else if (event.state.game) {
       this.goToGame(event.state.game, event.state.participation);
@@ -58,7 +54,6 @@ class App extends Component {
 
   goToGame = (gameToken, participation) => {
     console.log('goToGame', gameToken, participation);
-    console.log('goToGame1', window.history.length, window.history.state, window.history.state ? window.history.state.game : "null");
     this.stateManager.openGameConnection(gameToken, {participation: participation }, (result) => {
       this.setState({ inLobby: false, inGame: true, myName: result.myName, authenticated: true });
       let newState = {game: gameToken, participation: participation, lobby: false};
@@ -67,7 +62,6 @@ class App extends Component {
       } else {
         window.history.pushState(newState, "");
       }
-      console.log('goToGame2', window.history.length, window.history.state, window.history.state ? window.history.state.game : "null");
       console.log('App.callback', result);
     });
   }

@@ -80,7 +80,6 @@ class Lobby extends Component {
     let state = readFromLocalStorage();
     state = { ...state, game: undefined, participation: undefined };
     writeToLocalStorage(state);
-    console.log(readFromLocalStorage());
   }
 
   componentDidMount() {
