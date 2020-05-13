@@ -120,6 +120,7 @@
 .player-hands {
 	display: flex;
 	flex-flow: row wrap;
+
 }
 
 .player-hand {
@@ -373,7 +374,7 @@
 .mini .playingcard {
 	overflow: hidden;
     border-radius: 12px;
-    border: 1px solid #70707050;
+    border: 1px solid #303030a0;
 	width: 40px;
     height: 60px;
 }
@@ -391,6 +392,30 @@
 	transition: none;
 }
 
+.mini .other-player {
+	max-height: unset;
+	/* max-height: 120px; */
+	/* margin: 2px;
+	padding: 3px 0px;
+
+	display: flex; */
+	flex-flow: row nowrap;
+}
+
+.mini .player-hands {
+	justify-content: flex-end;
+}
+
+.mini .closed-hand {
+	justify-self: start;
+}
+
+.mini .spacer {
+	min-width: 0;
+	flex-grow: 10;
+	flex-shrink: 10;
+}
+
 .mini .player-hand {
 	/* float:left;
 	border-radius: 10px;
@@ -402,10 +427,6 @@
 .mini #controlrow {
 	flex-flow: row wrap;
 	/* justify-content: center; */
-}
-
-.mini #controls {
-	justify-self: flex-end;
 }
 
 .mini #deck, .mini #pile {

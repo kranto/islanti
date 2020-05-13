@@ -56,7 +56,7 @@ class CardTable extends Component {
           + (connectionOk ? " connected" : " disconnected")}>
           <div className="player-name">{p.name}</div>
           <div className="player-hands">
-            <Hand classes="player-hand closed-hand" score={p.score} />
+            <Hand classes="player-hand closed-hand" score={p.score} /><div className="spacer"></div>
             {p.open.map((h, i) => <Hand key={"p" + index + "o" + i} id={"p" + index + "o" + i} classes="player-hand open-hand"></Hand>)}
           </div>
           {connectionOk ? "" : <div className="player-connection-indicator"><FontAwesomeIcon icon={['fas', 'heart-broken']} /></div>}
@@ -240,7 +240,7 @@ class CardTable extends Component {
             <div id="infocolumn">
               <div id="roundinfo">Kierros {this.props.stateManager.state.round.roundNumber}/8 &ndash; {this.props.stateManager.state.round.roundName}</div>
               <div id="instructions">
-                {isMini ? "" : this.createInstructions()}
+                {false && isMini ? "" : this.createInstructions()}
               </div>
             </div>
             <div id="controls">
