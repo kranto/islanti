@@ -369,3 +369,65 @@
 	  background-color:  rgb(46, 177, 57);;
 	}
   }
+
+.mini .playingcard {
+	overflow: hidden;
+    border-radius: 12px;
+    border: 1px solid #70707050;
+	width: 40px;
+    height: 60px;
+}
+
+.mini .playingcard img {
+    top: 42px;
+    left: 27px;
+    height: 100%;
+    transform: scale(2.5);	
+}
+
+.mini .playingcard.ui-draggable-dragging {
+	transform: scale(1.8);
+	opacity: 0.6;
+	transition: none;
+}
+
+.mini .player-hand {
+	/* float:left;
+	border-radius: 10px;
+	margin: 0px 5px; */
+	height: 75px;
+	/* align-self: center; */
+}
+
+.mini #controlrow {
+	flex-flow: row wrap;
+	/* justify-content: center; */
+}
+
+.mini #controls {
+	justify-self: flex-end;
+}
+
+.mini #deck, .mini #pile {
+	/* margin: 10px; */
+	height: 70px;
+	width: 60px;
+}
+
+.mini #deck.canDrag, .mini #pile.canDrag {
+	animation: none;
+}
+
+.mini #my-closed-hand-sections {
+	margin-top: 20px;
+	margin-bottom: 10px;
+	margin-left: 0px;
+}
+
+.mini .section, .mini .new-section {
+	float: left;
+	height: 75px;
+	margin: 5px 0px;
+}
+
+

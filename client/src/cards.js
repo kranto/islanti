@@ -5,7 +5,7 @@ import 'jquery-ui-bundle/jquery-ui.css';
 var cards = (function() {
 
 	var opt = {
-		cardSize : {width:69, height:94, spacing:40}
+		cardSize : {width:40, height:60, spacing:25}
 	};
 
 	function mouseEvent(ev) {

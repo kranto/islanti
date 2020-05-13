@@ -69,7 +69,7 @@ class CardTable extends Component {
     if (!this.state.s.ownInfo) return "";
     let sections = this.state.s.ownInfo.closed;
     return (
-      <div>
+      <>
         {this.state.s.ownInfo.closed.map((section, i) =>
           <Hand key={i} id={"section" + i}
             classes="hand-section section"
@@ -78,7 +78,7 @@ class CardTable extends Component {
             onClick={() => this.onSectionClicked(i)}
             score={this.state.s.ownInfo.score}>
           </Hand>)}
-      </div>
+      </>
     );
   }
 
@@ -225,20 +225,22 @@ class CardTable extends Component {
     );
 
     let imGuest = this.state.s.imGuest;
+    let isMini = true;
 
     return (
       <div className={"CardTable "
         + (this.state.opening ? "selecting" : "")
         + (this.state.s.ownInfo && this.state.s.ownInfo.inTurn ? " in-turn" : "")
         + (this.state.s.phase >= 5 ? " round-ended" : "")
-        + (this.state.s.players.length < 2 ? " small-game" : "")}>
+        + (this.state.s.players.length < 2 ? " small-game" : "")
+        + (isMini ? " mini" : "")}>
           {this.createPlayers()}
         <div id="gamearea" className={"turn-indicator " + (this.state.s.ownInfo && this.state.s.ownInfo.inTurn ? "in-turn" : "")}>
           <div id="controlrow">
             <div id="infocolumn">
               <div id="roundinfo">Kierros {this.props.stateManager.state.round.roundNumber}/8 &ndash; {this.props.stateManager.state.round.roundName}</div>
               <div id="instructions">
-                {this.createInstructions()}
+                {isMini ? "" : this.createInstructions()}
               </div>
             </div>
             <div id="controls">
