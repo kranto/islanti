@@ -51,9 +51,9 @@ class CardTable extends Component {
       let connectionOk = this.state.c && this.state.c.players[index];
       return (
         <div id={"player" + index} key={"o" + index}
-          className={"other-player turn-indicator" 
-          + (p.inTurn ? " in-turn" : "")
-          + (connectionOk ? " connected" : " disconnected")}>
+          className={"other-player turn-indicator"
+            + (p.inTurn ? " in-turn" : "")
+            + (connectionOk ? " connected" : " disconnected")}>
           <div className="player-name">{p.name}</div>
           <div className="player-hands">
             <Hand classes="player-hand closed-hand" score={state.phase < 5 ? undefined : p.score} cardCount={state.phase > 1 && state.phase < 5 ? p.closed.length : undefined} /><div className="spacer"></div>
@@ -189,11 +189,11 @@ class CardTable extends Component {
     return <button className={"shadow-none btn btn-" + type} onClick={onClick} disabled={disabled ? disabled : ""}>{text}</button>
   }
 
-  dummyButton = () => <button style={{visibility: "hidden"}}></button>
+  dummyButton = () => <button style={{ visibility: "hidden" }}></button>
 
   createControls() {
     let state = this.state.s;
-    if (state.can.sell) {
+    if (state.can.sell && state.ownInfo.opened) {
       return (
         <>
           {this.actionButton('light', 'Myyn', 'sell')}
@@ -213,6 +213,12 @@ class CardTable extends Component {
       return <>{this.actionButton('light', 'Jaa kortit', 'deal')}{this.dummyButton()}</>
     } else if (state.can.show) {
       return <>{this.actionButton('light', 'Avaa kortti', 'showCard')}</>
+    } else if (state.can.sell && !state.ownInfo.opened) {
+      return (
+        <>
+          {this.actionButton('light', 'Myyn', 'sell')}
+          {this.actionButton('dark', 'En myy', 'dontsell')}
+        </>);
     } else if (state.can.open && !this.state.opening) {
       return <>{this.controlButton('light', 'Avaan', this.startOpening)}{this.dummyButton()}</>
     } else if (this.state.opening) {
@@ -240,7 +246,7 @@ class CardTable extends Component {
         + (this.state.s.phase >= 5 ? " round-ended" : "")
         + (this.state.s.players.length < 2 ? " small-game" : "")
         + (isMini ? " mini" : "")}>
-          {this.createPlayers()}
+        {this.createPlayers()}
         <div id="gamearea" className={"turn-indicator " + (this.state.s.ownInfo && this.state.s.ownInfo.inTurn ? "in-turn" : "")}>
           <div id="controlrow">
             <div id="infocolumn">

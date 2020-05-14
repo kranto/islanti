@@ -446,8 +446,8 @@
 
 .mini .player-hand {
 	/* float:left;
-	border-radius: 10px;
-	margin: 0px 5px; */
+	border-radius: 10px; */
+	margin: 0px 0px;
 	height: 75px;
 	/* align-self: center; */
 }
