@@ -79,6 +79,7 @@ var game = (function () {
     if (!card) {
       card = new cards.Card(servercard.s, servercard.r, servercard.b, servercard.i, ".CardTable");
       allCards.push(card);
+      if (allCards.length === 1) setCardSize();
     }
     card.reveal(servercard.s, servercard.r, servercard.b);
     return card;
@@ -205,7 +206,15 @@ var game = (function () {
 
   var stateManager;
 
+  function setCardSize() {
+    if (allCards.length > 0) {
+      cards.options.cardSize.width = allCards[0].el.width();
+      cards.options.cardSize.height = allCards[0].el.height();
+    }
+  }
+
   function onResize() {
+    setCardSize();
     setTimeout(populateState, 100);
   }
 

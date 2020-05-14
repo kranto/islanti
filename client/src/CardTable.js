@@ -237,7 +237,7 @@ class CardTable extends Component {
     );
 
     let imGuest = this.state.s.imGuest;
-    let isMini = true;
+    let isMini = false;
 
     return (
       <div className={"CardTable "
@@ -252,7 +252,7 @@ class CardTable extends Component {
             <div id="infocolumn">
               <div id="roundinfo">Kierros {this.props.stateManager.state.round.roundNumber}/8 &ndash; {this.props.stateManager.state.round.roundName}</div>
               <div id="instructions">
-                {false && isMini ? "" : this.createInstructions()}
+                {this.createInstructions()}
               </div>
             </div>
             <div id="controls">
