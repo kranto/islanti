@@ -52,7 +52,7 @@ var game = (function () {
 
   function createNewOpenHand(playerId, handArray, selector) {
     let element = $(selector);
-    let openhand = new cards.Hand({ faceUp: true, spacing: 30, minWidth: 100, element: element });
+    let openhand = new cards.Hand({ faceUp: true, spacing: 25, minWidth: 100, element: element });
     let index = handArray.length;
     handArray.push(openhand);
 
@@ -109,7 +109,7 @@ var game = (function () {
 
     state.players.forEach((p, i) => {
       while (otherPlayers.length - 1 < i) {
-        var closedhand = new cards.Hand({ faceUp: false, minWidth: 100, spacing: 10, pullUp: true, element: $("#player" + i + " .closed-hand") });
+        var closedhand = new cards.Hand({ faceUp: false, minWidth: 100, spacing: 20, pullUp: true, element: $("#player" + i + " .closed-hand") });
         otherPlayers.push({ closed: closedhand, open: [] });
       }
       let otherPlayer = otherPlayers[i];

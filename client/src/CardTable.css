@@ -383,7 +383,13 @@
     top: 42px;
     left: 27px;
     height: 100%;
-    transform: scale(2.5);	
+    transform: scale(2.5);
+}
+
+.mini .playingcard img.facedown-img {
+    top: 27px;
+    left: 18px;
+    transform: scale(2);	
 }
 
 .mini .playingcard.ui-draggable-dragging {
@@ -402,8 +408,15 @@
 	flex-flow: row nowrap;
 }
 
+.mini .other-player .player-name {
+	padding: 10px 0;
+	text-align: center;
+	max-height: 75px;
+}
+
 .mini .player-hands {
 	justify-content: flex-end;
+	flex-grow: 1;
 }
 
 .mini .closed-hand {
@@ -412,8 +425,8 @@
 
 .mini .spacer {
 	min-width: 0;
-	flex-grow: 10;
-	flex-shrink: 10;
+	flex-grow: 1;
+	flex-shrink: 1;
 }
 
 .mini .player-hand {
@@ -427,6 +440,10 @@
 .mini #controlrow {
 	flex-flow: row wrap;
 	/* justify-content: center; */
+}
+
+.mini #deckrow {
+	justify-content: flex-end;
 }
 
 .mini #deck, .mini #pile {
@@ -449,6 +466,13 @@
 	float: left;
 	height: 75px;
 	margin: 5px 0px;
+}
+
+.mini.round-ended .closed-hand .hand-score, .mini.round-ended #section0 .hand-score {
+    background-color: rgba(139, 0, 0, 0.7);
+    top: calc(100% - 10px);
+	left: calc(100% - 10px);
+    transform: translateX(-100%) translateY(-100%);
 }
 
 

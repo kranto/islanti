@@ -140,7 +140,7 @@ class CardTable extends Component {
       }
     } else if (state.phase === 2) {
       if (state.myTurn) {
-        return <div>Sinä aloitat. Kun kaikki ovat valmiita, avaa yksi kortti pakasta.</div>
+        return <div>Sinä aloitat. Kun kaikki ovat valmiita, avaa kortti pakasta.</div>
       } else {
         return <div><span>{state.players[state.playerInTurn].name}</span> aloittaa. Järjestä kortit ja ole valmis, kun peli alkaa.</div>
       }
@@ -193,16 +193,26 @@ class CardTable extends Component {
 
   createControls() {
     let state = this.state.s;
-    if (state.can.deal) {
-      return <>{this.actionButton('light', 'Jaa kortit', 'deal')}{this.dummyButton()}</>
-    } else if (state.can.show) {
-      return <>{this.actionButton('light', 'Avaa kortti', 'showCard')}</>
-    } else if (state.can.sell) {
+    if (state.can.sell) {
       return (
         <>
           {this.actionButton('light', 'Myyn', 'sell')}
           {this.actionButton('dark', 'En myy', 'dontsell')}
         </>);
+    } else if (state.can.startNextRound) {
+      return <>{this.controlButton('light', 'Aloita seuraava kierros', this.props.onNextRound)}</>
+    } else if (state.can.endGame) {
+      return <>{this.controlButton('light', 'Sulje peli', this.props.onEndGame)}</>
+    }
+    return "";
+  }
+
+  createControls2() {
+    let state = this.state.s;
+    if (state.can.deal) {
+      return <>{this.actionButton('light', 'Jaa kortit', 'deal')}{this.dummyButton()}</>
+    } else if (state.can.show) {
+      return <>{this.actionButton('light', 'Avaa kortti', 'showCard')}</>
     } else if (state.can.open && !this.state.opening) {
       return <>{this.controlButton('light', 'Avaan', this.startOpening)}{this.dummyButton()}</>
     } else if (this.state.opening) {
@@ -210,10 +220,6 @@ class CardTable extends Component {
         {this.controlButton('light', 'Avaa valitut', this.confirmOpening, !this.state.selectionOk)}
         {this.controlButton('dark', 'En avaakaan', this.cancelOpening)}
       </>);
-    } else if (state.can.startNextRound) {
-      return <>{this.controlButton('light', 'Aloita seuraava kierros', this.props.onNextRound)}</>
-    } else if (state.can.endGame) {
-      return <>{this.controlButton('light', 'Sulje peli', this.props.onEndGame)}</>
     }
     return "";
   }
@@ -250,6 +256,10 @@ class CardTable extends Component {
           <div id="deckrow">
             <div id="deck" className={this.state.s.can.pick ? "canDrag" : ""}></div>
             <div id="pile" className={(this.state.s.can.pick ? "canDrag" : "") + (this.state.s.can.discard ? " canDrop" : "")}></div>
+            <div id="controls2">
+              {this.createControls2()}
+            </div>
+            <div className="spacer"></div>
             {imGuest ? "" :
               this.state.s.ownInfo.open.map((h, i) => <Hand key={"m" + i} id={"myopen" + i} classes="player-hand open-hand"></Hand>)
             }
