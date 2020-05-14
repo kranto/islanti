@@ -39,6 +39,7 @@
 }
 
 .playingcard.ui-draggable-dragging {
+	z-index: 2000;
 	transform: scale(1.2) ;
 	opacity: 0.75;
 	transition: none;
@@ -132,7 +133,8 @@
 }
 
 .closed-hand {
-	min-width: 100px;
+	/* min-width: 100px; */
+	z-index: 1000;
 }
 
 .open-hand {
@@ -237,24 +239,24 @@
 
 #my-closed-hand-sections {
 	overflow: visible;
-	float: left;
-	clear: left;
 	border-radius: 10px;
 	margin-top: 20px;
 	margin-bottom: 10px;
 	margin-left: 0px;
-	width: 100%;
+
+	display: flex;
+	flex-flow: row wrap;
+	justify-content: start;
+	align-items: center;
 }
 
 .section, .new-section {
-	float: left;
 	height: 100px;
 	margin: 5px 0px;
 	border: 2px solid transparent;
 	border-radius: 10px;
 	pointer-events: none;
 	overflow: visible;
-	max-width: 100%;
 }
 
 .section .status-box{
@@ -304,11 +306,6 @@
 	border-color: orange;
 }
 
-/* .CardTable.selecting .hand-section.error:hover {
-	border-color: darkred;
-	border-style: dashed;
-} */
-
 .CardTable.selecting .hand-section.selected {
 	background-color: orange;
 	border-color: rgb(210,136,0);
@@ -325,27 +322,45 @@
 
 .round-ended .closed-hand.Hand, .round-ended .hand-section {
 	position: relative;
-	z-index: 10000000;
+	z-index: 1000;
 }
 
 .hand-score {
 	display: none;
+	border-radius: 5px;
+	height: 25px;
+	width: 35px;
+	top: 50%;
+	left: 50%;
+	text-align: center;
+	font-size: 1.1em;
+	font-weight: bold;
+	position: absolute;
+	transform: translateX(-50%) translateY(-50%);
+
+	color: white;
+	background-color: darkred;
 }
 
 .round-ended .closed-hand .hand-score, .round-ended #section0 .hand-score {
-	display: initial;
-    background-color: darkred;
-    color: white;
-    border-radius: 5px;
-    height: 25px;
-    width: 35px;
-    top: 50%;
-    left: 50%;
-    text-align: center;
-    font-size: 1.1em;
-    font-weight: bold;
-    position: absolute;
-    transform: translateX(-50%) translateY(-50%);
+	display: block;
+}
+
+.hand-length {
+	/* height: 25px;
+	width: 35px; */
+	padding: 1px;
+	min-width: 15px;
+	position: absolute;
+	top: 50%;
+	left: calc(100% - 25px);
+	text-align: center;
+	font-size: 1em;
+	font-weight: bold;
+	border-radius: 4px;
+	transform: translateX(-50%) translateY(-50%);
+	color: black;
+	background-color: rgba(255,255,255,0.8);
 }
 
 .popover {
@@ -411,7 +426,7 @@
 .mini .other-player .player-name {
 	padding: 10px 0;
 	text-align: center;
-	max-height: 75px;
+	max-height: 150px;
 }
 
 .mini .player-hands {
@@ -420,7 +435,7 @@
 }
 
 .mini .closed-hand {
-	justify-self: start;
+	min-width: unset;
 }
 
 .mini .spacer {
@@ -457,22 +472,26 @@
 }
 
 .mini #my-closed-hand-sections {
-	margin-top: 20px;
-	margin-bottom: 10px;
-	margin-left: 0px;
+	margin-top: 0px;
+	margin-bottom: 0px;
+	/* margin-left: 0px; */
+	border-top: 1px dotted darkgreen;
 }
 
 .mini .section, .mini .new-section {
 	float: left;
 	height: 75px;
+	min-width: 10px;
 	margin: 5px 0px;
 }
 
-.mini.round-ended .closed-hand .hand-score, .mini.round-ended #section0 .hand-score {
-    background-color: rgba(139, 0, 0, 0.7);
-    top: calc(100% - 10px);
-	left: calc(100% - 10px);
-    transform: translateX(-100%) translateY(-100%);
+.mini .new-section {
+	width: 40px;
 }
 
-
+.mini .hand-score {
+  background-color: rgba(139, 0, 0, 0.8);
+	top: 0; 
+	left: 50%;
+  transform: translateX(-50%) translateY(-50%);
+}

@@ -29,7 +29,8 @@ var game = (function () {
     var section = new cards.Hand({
       faceUp: true,
       element: el,
-      minWidth: 80,
+      minWidth: 50,
+      spacing: 30,
       isDraggable: true
     });
     el.droppable({
@@ -109,7 +110,7 @@ var game = (function () {
 
     state.players.forEach((p, i) => {
       while (otherPlayers.length - 1 < i) {
-        var closedhand = new cards.Hand({ faceUp: false, minWidth: 100, spacing: 20, pullUp: true, element: $("#player" + i + " .closed-hand") });
+        var closedhand = new cards.Hand({ faceUp: false, minWidth: 10, spacing: 20, pullUp: true, element: $("#player" + i + " .closed-hand") });
         otherPlayers.push({ closed: closedhand, open: [] });
       }
       let otherPlayer = otherPlayers[i];

@@ -56,7 +56,7 @@ class CardTable extends Component {
           + (connectionOk ? " connected" : " disconnected")}>
           <div className="player-name">{p.name}</div>
           <div className="player-hands">
-            <Hand classes="player-hand closed-hand" score={p.score} /><div className="spacer"></div>
+            <Hand classes="player-hand closed-hand" score={state.phase < 5 ? undefined : p.score} cardCount={state.phase > 1 && state.phase < 5 ? p.closed.length : undefined} /><div className="spacer"></div>
             {p.open.map((h, i) => <Hand key={"p" + index + "o" + i} id={"p" + index + "o" + i} classes="player-hand open-hand"></Hand>)}
           </div>
           {connectionOk ? "" : <div className="player-connection-indicator"><FontAwesomeIcon icon={['fas', 'heart-broken']} /></div>}
@@ -148,7 +148,7 @@ class CardTable extends Component {
       if (state.myTurn) {
         return <div>Nosta kortti pakasta tai avopakasta vetämällä</div>
       } else {
-        return <div><span>{state.players[state.playerInTurn].name}</span> nostaa{state.can.buy ? ". Voit yrittää ostaa klikkaamalla avopakkaa." : ""} </div>
+        return <div><span>{state.players[state.playerInTurn].name}</span> nostaa{state.can.buy ? ". Voit yrittää ostaa." : ""} </div>
       }
     } else if (state.phase === 3.1) {
       if (state.buying < 0) {

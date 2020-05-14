@@ -44,7 +44,7 @@ var cards = (function() {
 				containment: ".CardTable",
 				start: () => {
 					this.dragging = true;
-					$(this.el).css('z-index', 1000); 
+					// $(this.el).css('z-index', 1000); 
 					if (this.container && this.container.onDragStart) this.container.onDragStart(this);
 				},
 				stop: () => {
@@ -245,29 +245,27 @@ var cards = (function() {
 		setElementWidth: function() {
 			if (!this.minWidth || !this.element) return;
 			let countedCards = this.filter(card => !card.dragging || !card.origin);
-			var pad = this.spacing || opt.cardSize.spacing;
-			var desiredWidth = opt.cardSize.width + Math.max(countedCards.length - 1, 0) * pad;
-			var width = Math.max(this.minWidth, desiredWidth);
-			if (width === 340) console.log(this.minWidth, countedCards.length, pad, desiredWidth, width);
+			let spacing = this.spacing || opt.cardSize.spacing;
+			let desiredWidth = opt.cardSize.width + Math.max(countedCards.length - 1, 0) * spacing + 10;
+			let width = Math.max(this.minWidth, desiredWidth);
 			this.element.width(width);
 		},
 		calcSpacing: function(options, countedCards) {
-			var maxWidth = this.element ? elementRect(this.element).width - 10 : false || this.maxWidth;
-			var spacing = this.spacing ? this.spacing : options.spacing ? options.spacing : opt.cardSize.spacing;
-			var desiredWidth = Math.max(countedCards.length - 1, 0) * spacing + opt.cardSize.width;
-			if (countedCards.length === 11) console.log(maxWidth, this.spacing, spacing, desiredWidth);
+			let maxWidth = this.element ? elementRect(this.element).width - 10 : false || this.maxWidth;
+			let spacing = this.spacing ? this.spacing : options.spacing ? options.spacing : opt.cardSize.spacing;
+			let desiredWidth = Math.max(countedCards.length - 1, 0) * spacing + opt.cardSize.width;
 			return desiredWidth  <= maxWidth ? spacing : (maxWidth - opt.cardSize.width) / Math.max(countedCards.length - 1, 0);
 		},
 		calcPosition : function(options) {
 			options = options || {};
 			let countedCards = this.filter(card => !card.dragging || !card.origin);
-			var spacing = this.calcSpacing(options, countedCards);
-			var cardWidth = opt.cardSize.width + (countedCards.length-1)*spacing;
-			var boundingRect = this.element ? elementRect(this.element) : { x: this.x, y: this.y, width: 0, height: 0};
-			var centerX = boundingRect.x + boundingRect.width / 2;
-			var centerY = boundingRect.y + boundingRect.height / 2;
-			var left = Math.round(centerX - cardWidth/2);
-			var top = Math.round(centerY - opt.cardSize.height/2, 0);
+			let spacing = this.calcSpacing(options, countedCards);
+			let cardWidth = opt.cardSize.width + (countedCards.length-1)*spacing;
+			let boundingRect = this.element ? elementRect(this.element) : { x: this.x, y: this.y, width: 0, height: 0};
+			let centerX = boundingRect.x + boundingRect.width / 2;
+			let centerY = boundingRect.y + boundingRect.height / 2;
+			let left = Math.round(centerX - cardWidth/2);
+			let top = Math.round(centerY - opt.cardSize.height/2, 0);
 			for (var i=0;i<countedCards.length;i++) {
 				countedCards[i].targetTop = top;
 				countedCards[i].targetLeft = left + i * spacing;

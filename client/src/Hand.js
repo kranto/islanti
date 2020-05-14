@@ -18,7 +18,8 @@ class Hand extends Component {
   render() {
     return (
       <div id={this.props.id} className={this.getClasses()} style={this.props.style} onClick={this.onClick}>
-        <div className="hand-score">{this.props.score}</div>
+        {this.props.score !== undefined ? <div className="hand-score">{this.props.score}</div> : ""}
+        {this.props.cardCount !== undefined ? <div className="hand-length">{this.props.cardCount}</div> : ""} 
       </div>
     );
   }
