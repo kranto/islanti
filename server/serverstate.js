@@ -646,9 +646,10 @@ class ServerState {
 
   checkDeck() {
     if (this.roundState.deck.length === 0) {
-      let newDeck = this.roundState.pile.splice(0,this.roundState.pile.length - 1);
-      utils.shuffle(newDeck);
+      let newDeck = this.roundState.pile;
+      newDeck.reverse();
       this.roundState.deck = newDeck;
+      this.roundState.pile = [];
     }
   }
 
