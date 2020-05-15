@@ -106,8 +106,16 @@ class Lobby extends Component {
     writeToLocalStorage(savedState);
   }
 
+  onCodeKeyPress = (event) => {
+    if(event.key === 'Enter' && event.target.value.length === 4) {
+      this.onCodeReady();
+    }
+  }
+
   onCodeChanged = (event) => {
-    this.setState({ code: event.target.value, errorMsg: "" });
+    let code = event.target.value.replace(/[^0-9]/, "").substring(0,4);
+    // console.log(event.target.value, code);
+    this.setState({ code: code, errorMsg: "" });
   }
 
   onCodeReady = () => {
@@ -123,6 +131,12 @@ class Lobby extends Component {
 
   onNewGameClicked = () => {
     this.setState({ newGame: true, phase: 2 });
+  }
+
+  onNickKeyPress = (event) => {
+    if(event.key === 'Enter' && event.target.value.length > 0) {
+      this.onNickReady();
+    }
   }
 
   onNickChanged = (event) => {
@@ -255,12 +269,13 @@ class Lobby extends Component {
   }
 
   createEnterCodeView = () => {
+    console.log('render code', this.state.code);
     return (
       <div id="enterCodeView">
         <h1>Osallistu peliin</h1>
         <div className="form-group">
           <label htmlFor="inputGameCode">Osallistumiskoodi</label>
-          <input autoFocus type="text" className="form-control" id="inputGameCode" maxLength="4" minLength="4" value={this.state.code} onChange={this.onCodeChanged} disabled={this.state.loading} />
+          <input autoFocus={this.state.openParticipations.length === 0} type="number" className="form-control" id="inputGameCode" maxLength="4" minLength="4" value={this.state.code} onKeyPress={this.onCodeKeyPress} onChange={this.onCodeChanged} disabled={this.state.loading} />
           <small id="gameHelp" className="form-text text-muted text-gray">Syötä pelinjohtajalta saamasi nelinumeroinen osallistumiskoodi</small>
           <div style={{ visibility: this.state.code.length === 4 ? "visible" : "hidden" }}>
             <button type="button" className="btn btn-dark" onClick={this.onCodeReady} disabled={this.state.loading}>
@@ -307,7 +322,7 @@ class Lobby extends Component {
             }
             <div className="form-group">
               <label htmlFor="inputNick">Anna nimimerkkisi</label>
-              <input autoFocus type="text" className="form-control" id="inputNick" minLength="1" maxLength="20" value={this.state.nick} onChange={this.onNickChanged} />
+              <input autoFocus type="text" className="form-control" id="inputNick" minLength="1" maxLength="20" value={this.state.nick} onChange={this.onNickChanged} onKeyPress={this.onNickKeyPress} />
               <small id="nickHelp" className="form-text text-muted text-gray">Voit käyttää eri nimimerkkejä eri peleissä</small>
               <button type="button" className="btn btn-dark" onClick={this.onNickReady}
                 disabled={this.state.loading}
