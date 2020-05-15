@@ -278,7 +278,8 @@
 }
 
 .new-section {
-	width: 60px;
+	height: 94px;
+	width: 69px;
 	color: darkgreen;
 	font-size: 3em;
 	vertical-align: middle;
@@ -418,11 +419,6 @@
 	
 	.other-player {
 		max-height: unset;
-		/* max-height: 120px; */
-		/* margin: 2px;
-		padding: 3px 0px;
-	
-		display: flex; */
 		flex-flow: row nowrap;
 	}
 	
@@ -483,12 +479,13 @@
 	
 	.section, .new-section {
 		float: left;
-		height: 75px;
+		height: 70px;
 		min-width: 10px;
 		margin: 5px 0px;
 	}
 	
 	.new-section {
+		height: 60px;
 		width: 40px;
 	}
 	
