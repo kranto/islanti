@@ -251,7 +251,7 @@
 }
 
 .section, .new-section {
-	height: 100px;
+	height: 105px;
 	margin: 5px 0px;
 	border: 2px solid transparent;
 	border-radius: 10px;
@@ -392,7 +392,7 @@
 
 	.playingcard {
 		overflow: hidden;
-		border-radius: 8px;
+		border-radius: 7px;
 		border: 1px solid #303030a0;
 		width: 40px;
 		height: 60px;
@@ -416,7 +416,11 @@
 		opacity: 0.6;
 		transition: none;
 	}
-	
+
+	.CardTable .ui-droppable-hover {
+		background-color: gold;
+	}
+
 	.other-player {
 		max-height: unset;
 		flex-flow: row nowrap;

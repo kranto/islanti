@@ -253,7 +253,7 @@ var cards = (function() {
 			let maxWidth = this.element ? elementRect(this.element).width - 10 : false || this.maxWidth;
 			let spacing = this.spacing ? this.spacing : options.spacing ? options.spacing : opt.cardSize.spacing;
 			let desiredWidth = Math.max(countedCards.length - 1, 0) * spacing + opt.cardSize.width;
-			return desiredWidth  <= maxWidth ? spacing : (maxWidth - opt.cardSize.width) / Math.max(countedCards.length - 1, 0);
+			return desiredWidth  <= maxWidth ? spacing : (maxWidth - opt.cardSize.width) / Math.max(countedCards.length - 1, 1);
 		},
 		calcPosition : function(options) {
 			options = options || {};
@@ -263,8 +263,8 @@ var cards = (function() {
 			let boundingRect = this.element ? elementRect(this.element) : { x: this.x, y: this.y, width: 0, height: 0};
 			let centerX = boundingRect.x + boundingRect.width / 2;
 			let centerY = boundingRect.y + boundingRect.height / 2;
-			let left = Math.round(centerX - cardsWidth/2) - 4;
-			let top = Math.round(centerY - opt.cardSize.height/2, 0);
+			let left = Math.round(centerX - cardsWidth/2) + (opt.cardSize.width < 60 ? -3 : 0); //adjust for minicards so that there is more droppable space in the right. 
+			let top = Math.round(centerY - opt.cardSize.height/2, 0) + 2;
 			for (var i=0;i<countedCards.length;i++) {
 				countedCards[i].targetTop = top;
 				countedCards[i].targetLeft = left + i * spacing;
