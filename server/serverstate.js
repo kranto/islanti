@@ -221,8 +221,10 @@ class ServerState {
         if (args.participation !== this.game.guest) {
           let matching = this.game.players.map((p, i) => ({...p, index: i})).filter(p => p.token === args.participation);
           let player = matching.length === 1 ? matching[0] : null;
-          playerIndex = player.index;
-          playerNick = player.nick;
+          if (player) {
+            playerIndex = player.index;
+            playerNick = player.nick;  
+          }
         }
         console.log(playerNick + ' authenticated',  args, callback);  
         let connector = new Connector(this, playerIndex, socket);
