@@ -44,7 +44,6 @@ var cards = (function() {
 				containment: ".CardTable",
 				start: () => {
 					this.dragging = true;
-					// $(this.el).css('z-index', 1000); 
 					if (this.container && this.container.onDragStart) this.container.onDragStart(this);
 				},
 				stop: () => {
@@ -260,11 +259,11 @@ var cards = (function() {
 			options = options || {};
 			let countedCards = this.filter(card => !card.dragging || !card.origin);
 			let spacing = this.calcSpacing(options, countedCards);
-			let cardWidth = opt.cardSize.width + (countedCards.length-1)*spacing;
+			let cardsWidth = opt.cardSize.width + (countedCards.length-1)*spacing;
 			let boundingRect = this.element ? elementRect(this.element) : { x: this.x, y: this.y, width: 0, height: 0};
 			let centerX = boundingRect.x + boundingRect.width / 2;
 			let centerY = boundingRect.y + boundingRect.height / 2;
-			let left = Math.round(centerX - cardWidth/2);
+			let left = Math.round(centerX - cardsWidth/2) - 4;
 			let top = Math.round(centerY - opt.cardSize.height/2, 0);
 			for (var i=0;i<countedCards.length;i++) {
 				countedCards[i].targetTop = top;

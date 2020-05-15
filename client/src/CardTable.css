@@ -40,7 +40,7 @@
 
 .playingcard.ui-draggable-dragging {
 	z-index: 2000;
-	transform: scale(1.2) ;
+	transform: scale(1.2);
 	opacity: 0.75;
 	transition: none;
 }
@@ -246,7 +246,7 @@
 
 	display: flex;
 	flex-flow: row wrap;
-	justify-content: start;
+	justify-content: flex-start;
 	align-items: center;
 }
 
@@ -347,20 +347,21 @@
 }
 
 .hand-length {
-	/* height: 25px;
-	width: 35px; */
+	/* height: 25px; */
+	width: 30px;
 	padding: 1px;
 	min-width: 15px;
 	position: absolute;
 	top: 50%;
-	left: calc(100% - 25px);
+	left: 50%; 
+	/* calc(100% - 25px); */
 	text-align: center;
 	font-size: 1em;
 	font-weight: bold;
 	border-radius: 4px;
 	transform: translateX(-50%) translateY(-50%);
 	color: black;
-	background-color: rgba(255,255,255,0.8);
+	background-color: rgba(255,255,255,0.9);
 }
 
 .popover {
@@ -390,14 +391,14 @@
 
 	.playingcard {
 		overflow: hidden;
-		border-radius: 12px;
+		border-radius: 8px;
 		border: 1px solid #303030a0;
 		width: 40px;
 		height: 60px;
 	}
 	
 	.playingcard img {
-		top: 42px;
+		top: 40px;
 		left: 27px;
 		height: 100%;
 		transform: scale(2.5);
@@ -410,7 +411,7 @@
 	}
 	
 	.playingcard.ui-draggable-dragging {
-		transform: scale(1.8);
+		transform: scale(1.6) translateX(+10%) translateY(-20%);
 		opacity: 0.6;
 		transition: none;
 	}
@@ -450,7 +451,7 @@
 		/* float:left;
 		border-radius: 10px; */
 		margin: 0px 0px;
-		height: 75px;
+		height: 66px;
 		/* align-self: center; */
 	}
 	
