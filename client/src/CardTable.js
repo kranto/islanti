@@ -54,7 +54,7 @@ class CardTable extends Component {
           className={"other-player turn-indicator"
             + (p.inTurn ? " in-turn" : "")
             + (connectionOk ? " connected" : " disconnected")}>
-          <div className="player-name">{p.name}</div>
+          <div className="player-name">{p.name.replace(/(.)/g,"$1" + String.fromCharCode(8203))}</div>
           <div className="player-hands">
             <Hand classes="player-hand closed-hand" score={state.phase < 5 ? undefined : p.score} cardCount={state.phase > 1 && state.phase < 5 ? p.closed.length : undefined} /><div className="spacer"></div>
             {p.open.map((h, i) => <Hand key={"p" + index + "o" + i} id={"p" + index + "o" + i} classes="player-hand open-hand"></Hand>)}
