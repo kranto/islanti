@@ -245,6 +245,12 @@ var game = (function () {
           card.origin = 'deck';
         }
       },
+      onDrag: (card) => {
+        if (state.can.sell) { // if someone was faster and wants to buy
+          setTimeout(() => deck.render(), 10);
+          return false;
+        }
+      },
       onDragStop: (card) => {
         card.el.draggable("option", "refreshPositions", false);
         card.origin = undefined;
@@ -259,6 +265,12 @@ var game = (function () {
           card.el.draggable("option", "refreshPositions", true);
           sendAction(state.can.sell ? 'dontsell' : 'pickCard');
           card.origin = 'pile';
+        }
+      },
+      onDrag: (card) => {
+        if (state.can.sell) { // if someone was faster and wants to buy
+          setTimeout(() => discardPile.render(), 10);
+          return false;
         }
       },
       onDragStop: (card) => {

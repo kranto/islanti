@@ -46,6 +46,9 @@ var cards = (function() {
 					this.dragging = true;
 					if (this.container && this.container.onDragStart) this.container.onDragStart(this);
 				},
+				drag: () => {
+					if (this.container && this.container.onDrag) return this.container.onDrag(this);
+				},
 				stop: () => {
 					if (this.container && this.container.onDragStop) this.container.onDragStop(this);
 					this.dragging = false;
@@ -133,6 +136,7 @@ var cards = (function() {
 			this.element = options.element;
 			this.isDraggable = options.isDraggable;
 			this.onDragStart = options.onDragStart;
+			this.onDrag = options.onDrag;
 			this.onDragStop = options.onDragStop;
 			this.pullUp = options.pullUp;
 
