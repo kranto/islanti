@@ -76,6 +76,7 @@ class CardTable extends Component {
             error={this.state.opening && i < sections.length && !this.state.s.ownInfo.validity[i].valid}
             selected={this.state.selected && this.state.selected.length > i ? this.state.selected[i] : false}
             onClick={() => this.onSectionClicked(i)}
+            placeHolder={section.length === 0 && this.state.s.phase >= 2 && this.state.s.phase <= 4}
             score={this.state.s.ownInfo.score}>
           </Hand>)}
       </>

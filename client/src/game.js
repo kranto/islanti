@@ -180,7 +180,7 @@ var game = (function () {
 
   function newSection(firstCardInNewSection) {
     let newOrder = myClosedHandSections.map(hand => hand.map(card => card.id).filter(id => id !== firstCardInNewSection.id));
-    newOrder = [...newOrder, [firstCardInNewSection.id]].filter(section => section.length > 0);
+    newOrder = [...newOrder, [firstCardInNewSection.id]].filter((section, index) => index === 0 || section.length > 0);
     sendAction('newOrder', { order: newOrder });
   }
 
@@ -188,7 +188,7 @@ var game = (function () {
     let handIndex = myClosedHandSections.indexOf(hand);
     let newOrder = myClosedHandSections.map(hand => hand.map(card => card.id).filter(id => id !== movedCard.id));
     newOrder[handIndex].splice(index, 0, movedCard.id);
-    newOrder = newOrder.filter(section => section.length > 0);
+    newOrder = newOrder.filter((section, index) => index === 0 || section.length > 0);
     sendAction('newOrder', { order: newOrder });
   }
 
