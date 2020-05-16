@@ -136,16 +136,18 @@ const testStraight = (section) => {
   }
 
   for (var i = 0; i < ranks.length; i++) {
+    let expectedRank = minRank + i;
+    if (expectedRank === 14) expectedRank = 1;
     if (ranks[i] === 0) {
-      accepts.push({ s: suit, r: minRank + i, ind: i, replace: true })
-    } else if (ranks[i] !== minRank + i && (ranks[i] !== 1 || minRank + i !== 14)) {
+      accepts.push({ s: suit, r: expectedRank, ind: i, replace: true })
+    } else if (ranks[i] !== expectedRank) {
       return { valid: false, msg: "Suorassa täytyy olla kortit oikeassa järjestyksessä" }
     }
   }
 
   if (maxRank < 14 && ranks.length < 13) {
     accepts.push({ s: suit, r: (maxRank == 13 ? 1 : maxRank + 1), ind: ranks.length });
-    if (acceptsJoker) {
+    if (acceptsJoker) { 
       accepts.push({ r: 0, ind: ranks.length });
     }
   }
