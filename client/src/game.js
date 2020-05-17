@@ -31,7 +31,16 @@ var game = (function () {
       element: el,
       minWidth: 50,
       spacing: 30,
-      isDraggable: true
+      isDraggable: true,
+      onDrag: card => {
+        if (card.hoveringOnSection) {
+          let newIndex = card.hoveringOnSection.getNewIndex(card);
+          if (card.hoveringOnSection.indexToDrop !== newIndex) {
+            card.hoveringOnSection.indexToDrop = newIndex;
+            card.hoveringOnSection.render();  
+          }
+        }
+      }
     });
     el.droppable({
       accept: ".playingcard",
@@ -39,8 +48,27 @@ var game = (function () {
       drop: function (event, ui) {
         var card = ui.draggable.data('card');
         let index = section.getNewIndex(card);
+        card.hoveringOnSection = undefined;
+        section.indexToDrop = undefined;
         newOrder(card, section, index);
-      }
+      },
+      over: (event, ui) => {
+        var card = ui.draggable.data('card');
+        card.hoveringOnSection = section;
+        let newIndex = card.hoveringOnSection.getNewIndex(card);
+        section.indexToDrop = newIndex;
+        // section.render();
+        myClosedHandSections.forEach(s => s.render());
+      },
+      out: (event, ui) => {
+        var card = ui.draggable.data('card');
+        if (card.hoveringOnSection === section) {
+          card.hoveringOnSection = undefined;
+        }
+        section.indexToDrop = undefined;
+        // section.render();
+        myClosedHandSections.forEach(s => s.render());
+      },
     });
     // el.popover({
     // 	container: '.CardTable',

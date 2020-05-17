@@ -253,17 +253,19 @@ var cards = (function() {
 			let width = Math.max(this.minWidth, desiredWidth);
 			this.element.width(width);
 		},
-		calcSpacing: function(options, countedCards) {
+		calcSpacing: function(options, countedCardCount) {
 			let maxWidth = this.element ? elementRect(this.element).width - 10 : false || this.maxWidth;
 			let spacing = this.spacing ? this.spacing : options.spacing ? options.spacing : opt.cardSize.spacing;
-			let desiredWidth = Math.max(countedCards.length - 1, 0) * spacing + opt.cardSize.width;
-			return desiredWidth  <= maxWidth ? spacing : (maxWidth - opt.cardSize.width) / Math.max(countedCards.length - 1, 1);
+			let desiredWidth = Math.max(countedCardCount - 1, 0) * spacing + opt.cardSize.width;
+			return desiredWidth  <= maxWidth ? spacing : (maxWidth - opt.cardSize.width) / Math.max(countedCardCount - 1, 1);
 		},
 		calcPosition : function(options) {
 			options = options || {};
-			let countedCards = this.filter(card => !card.dragging || !card.origin);
-			let spacing = this.calcSpacing(options, countedCards);
-			let cardsWidth = opt.cardSize.width + (countedCards.length-1)*spacing;
+			let countedCards = this.filter(card => !card.dragging); // || !card.origin);
+			let hasDroppingCard = this.indexToDrop !== undefined;
+			let countedCardCount = countedCards.length + (hasDroppingCard ? 1 : 0);
+			let spacing = this.calcSpacing(options, countedCardCount);
+			let cardsWidth = opt.cardSize.width + (countedCardCount-1)*spacing;
 			let boundingRect = this.element ? elementRect(this.element) : { x: this.x, y: this.y, width: 0, height: 0};
 			let centerX = boundingRect.x + boundingRect.width / 2;
 			let centerY = boundingRect.y + boundingRect.height / 2;
@@ -271,7 +273,7 @@ var cards = (function() {
 			let top = Math.round(centerY - opt.cardSize.height/2, 0) + 2;
 			for (var i=0;i<countedCards.length;i++) {
 				countedCards[i].targetTop = top;
-				countedCards[i].targetLeft = left + i * spacing;
+				countedCards[i].targetLeft = left + i * spacing + (hasDroppingCard ? (i >= this.indexToDrop ? spacing + 5 : -5) : 0);
 			}
 		},
 	});
