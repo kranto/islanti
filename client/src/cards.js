@@ -150,8 +150,13 @@ var cards = (function() {
 		},
 
 		getNewIndex: function(card) {
-			let newX = card.rect().x;
-			return this.filter(c => c !== card && c.rect().x < newX).length;
+			let cardRect = card.rect();
+			let containerRect = elementRect(this.element);
+			let newCardCount = card.container === this ? this.length : this.length + 1;
+			let newIndex = Math.floor((cardRect.x + cardRect.width/2 - containerRect.x) / (containerRect.width - 0)  * newCardCount);
+			return newIndex < 0 ? 0 : newIndex > this.length ? this.length : newIndex;
+			// let newX = card.rect().x;
+			// return this.filter(c => c !== card && c.rect().x < newX).length;
 		},
 
 		moveCardToTarget: function(card) {
@@ -273,7 +278,7 @@ var cards = (function() {
 			let top = Math.round(centerY - opt.cardSize.height/2, 0) + 2;
 			for (var i=0;i<countedCards.length;i++) {
 				countedCards[i].targetTop = top;
-				countedCards[i].targetLeft = left + i * spacing + (hasDroppingCard ? (i >= this.indexToDrop ? spacing + 5 : -5) : 0);
+				countedCards[i].targetLeft = left + i * spacing + (hasDroppingCard ? (i >= this.indexToDrop ? spacing + 10 : -10) : 0);
 			}
 		},
 	});

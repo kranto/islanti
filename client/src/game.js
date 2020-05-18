@@ -47,7 +47,7 @@ var game = (function () {
       greedy: true,
       drop: function (event, ui) {
         var card = ui.draggable.data('card');
-        let index = section.getNewIndex(card);
+        let index = section.indexToDrop !== undefined ? section.indexToDrop : section.getNewIndex(card);
         card.hoveringOnSection = undefined;
         section.indexToDrop = undefined;
         newOrder(card, section, index);
