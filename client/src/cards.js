@@ -268,7 +268,7 @@ var cards = (function() {
 			options = options || {};
 			let countedCards = this.filter(card => !card.dragging); // || !card.origin);
 			let hasDroppingCard = this.indexToDrop !== undefined;
-			let countedCardCount = countedCards.length + (hasDroppingCard ? 1 : 0);
+			let countedCardCount = countedCards.length + (hasDroppingCard ? 0 : 0);
 			let spacing = this.calcSpacing(options, countedCardCount);
 			let cardsWidth = opt.cardSize.width + (countedCardCount-1)*spacing;
 			let boundingRect = this.element ? elementRect(this.element) : { x: this.x, y: this.y, width: 0, height: 0};
@@ -278,7 +278,7 @@ var cards = (function() {
 			let top = Math.round(centerY - opt.cardSize.height/2, 0) + 2;
 			for (var i=0;i<countedCards.length;i++) {
 				countedCards[i].targetTop = top;
-				countedCards[i].targetLeft = left + i * spacing + (hasDroppingCard ? (i >= this.indexToDrop ? spacing + 10 : -10) : 0);
+				countedCards[i].targetLeft = left + i * spacing + (hasDroppingCard ? (i >= this.indexToDrop ? + 5 : -5) : 0);
 			}
 		},
 	});

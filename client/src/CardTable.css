@@ -40,7 +40,7 @@
 
 .playingcard.ui-draggable-dragging {
 	z-index: 2000;
-	transform: scale(1.2);
+	transform: scale(1);
 	opacity: 0.6;
 	transition: none;
 }
@@ -412,7 +412,7 @@
 	}
 	
 	.playingcard.ui-draggable-dragging {
-		transform: scale(1.6) translateX(+10%) translateY(-20%);
+		transform: scale(1) translateX(+10%) translateY(-30%);
 		opacity: 0.6;
 		transition: none;
 	}
