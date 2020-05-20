@@ -40,7 +40,7 @@ var cards = (function() {
 			$(this.el).click(mouseEvent);
 
 			$(this.el).draggable({
-				stack: ".playingcard",
+				// stack: ".playingcard",
 				containment: ".CardTable",
 				start: () => {
 					this.dragging = true;
@@ -150,13 +150,13 @@ var cards = (function() {
 		},
 
 		getNewIndex: function(card) {
-			let cardRect = card.rect();
-			let containerRect = elementRect(this.element);
-			let newCardCount = card.container === this ? this.length : this.length + 1;
-			let newIndex = Math.floor((cardRect.x + cardRect.width/2 - containerRect.x) / (containerRect.width - 0)  * newCardCount);
-			return newIndex < 0 ? 0 : newIndex > this.length ? this.length : newIndex;
-			// let newX = card.rect().x;
-			// return this.filter(c => c !== card && c.rect().x < newX).length;
+			// let cardRect = card.rect();
+			// let containerRect = elementRect(this.element);
+			// let newCardCount = card.container === this ? this.length : this.length + 1;
+			// let newIndex = Math.floor((cardRect.x + cardRect.width/2 - containerRect.x) / (containerRect.width - 0)  * newCardCount);
+			// return newIndex < 0 ? 0 : newIndex > this.length ? this.length : newIndex;
+			let newX = card.rect().x;
+			return this.filter(c => c !== card && c.rect().x < newX).length;
 		},
 
 		moveCardToTarget: function(card) {
@@ -185,10 +185,11 @@ var cards = (function() {
 			if (options.adjustWidth && this.setElementWidth) this.setElementWidth();
 			var speed = options.speed;
 			this.calcPosition(options);
+			let z = 0;
 			for (var i=0;i<this.length;i++) {
 				var card = this[i];
 				if (!card.dragging) {
-					$(card.el).css('z-index', i);
+					$(card.el).css('z-index', z++*2 + 1);
 					card.currTop = parseInt($(card.el).css('top'));
 					card.currLeft = parseInt($(card.el).css('left'));
 					this.moveCardToTarget(card);
@@ -266,7 +267,7 @@ var cards = (function() {
 		},
 		calcPosition : function(options) {
 			options = options || {};
-			let countedCards = this.filter(card => !card.dragging); // || !card.origin);
+			let countedCards = this.filter(card => !card.dragging || !card.origin);
 			let hasDroppingCard = this.indexToDrop !== undefined;
 			let countedCardCount = countedCards.length + (hasDroppingCard ? 0 : 0);
 			let spacing = this.calcSpacing(options, countedCardCount);
@@ -278,7 +279,15 @@ var cards = (function() {
 			let top = Math.round(centerY - opt.cardSize.height/2, 0) + 2;
 			for (var i=0;i<countedCards.length;i++) {
 				countedCards[i].targetTop = top;
-				countedCards[i].targetLeft = left + i * spacing + (hasDroppingCard ? (i >= this.indexToDrop ? + 5 : -5) : 0);
+				countedCards[i].targetLeft = left + i * spacing ;// + (hasDroppingCard ? (i >= this.indexToDrop ? spacing : 0) : 0);
+				// countedCards[i].el.css({"opacity": i > 0 && hasDroppingCard && 
+				// 	(countedCards[i-1].dragging && i - 1 === this.indexToDrop || !countedCards[i-1].dragging && i === this.indexToDrop) ?
+				// 	0.8 : 1});
+				countedCards[i].el.toggleClass("transparent", false);
+			}
+			let notDraggingCards = this.filter(card => !card.dragging);
+			if (hasDroppingCard && this.indexToDrop < notDraggingCards.length) {
+				notDraggingCards[this.indexToDrop].el.toggleClass("transparent", true);
 			}
 		},
 	});

@@ -37,7 +37,8 @@ var game = (function () {
           let newIndex = card.hoveringOnSection.getNewIndex(card);
           if (card.hoveringOnSection.indexToDrop !== newIndex) {
             card.hoveringOnSection.indexToDrop = newIndex;
-            card.hoveringOnSection.render();  
+            card.el.css({"z-index": newIndex * 2});
+            card.hoveringOnSection.render();
           }
         }
       }
@@ -57,13 +58,15 @@ var game = (function () {
         card.hoveringOnSection = section;
         let newIndex = card.hoveringOnSection.getNewIndex(card);
         section.indexToDrop = newIndex;
-        // section.render();
+        card.el.css({"z-index": newIndex * 2});
+        section.render();
         myClosedHandSections.forEach(s => s.render());
       },
       out: (event, ui) => {
         var card = ui.draggable.data('card');
         if (card.hoveringOnSection === section) {
           card.hoveringOnSection = undefined;
+          ui.draggable.css({"z-index": 1000});
         }
         section.indexToDrop = undefined;
         // section.render();

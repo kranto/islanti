@@ -5,11 +5,11 @@
 	width: 69px;
 	height: 94px;
 	cursor: pointer;
-	transition: left 0.6s ease-in-out, top 0.6s ease-in-out;
+	transition: left 0.6s ease-in-out, top 0.6s ease-in-out, opacity 0.2s linear;
 }
 
 .playingcard.fast-move {
-	transition: left 0.2s ease-out, top 0.2s ease-out;
+	transition: left 0.2s ease-out, top 0.2s ease-out, opacity 0.2s linear;
 }
 
 .playingcard img {
@@ -40,9 +40,13 @@
 
 .playingcard.ui-draggable-dragging {
 	z-index: 2000;
-	transform: scale(1);
-	opacity: 0.6;
+	transform: scale(1.2);
+	opacity: 0.9;
 	transition: none;
+}
+
+.playingcard.transparent {
+	opacity: 0.9;
 }
 
 .playingcard.ui-draggable-dragging img {
@@ -413,7 +417,7 @@
 	
 	.playingcard.ui-draggable-dragging {
 		transform: scale(1) translateX(+10%) translateY(-30%);
-		opacity: 0.6;
+		opacity: 0.8;
 		transition: none;
 	}
 
