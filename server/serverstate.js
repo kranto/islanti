@@ -532,7 +532,7 @@ class ServerState {
     let matchingCards = player.closed.flat().filter(c => c.i === cardId);
     if (matchingCards.length !== 1) return; // not found
     let card = matchingCards[0];
-    player.closed = player.closed.map(section => section.filter(c => c !== card)).filter(section => section.length > 0);
+    player.closed = player.closed.map(section => section.filter(c => c !== card)).filter((section, index) => index === 0 || section.length > 0);
     if (!player.opened) player.validity = player.closed.map(section => rules.testSection(section, this.round));
     this.roundState.pile.unshift(card);
 
@@ -559,6 +559,9 @@ class ServerState {
     }));
 
     player.closed = player.closed.filter((section, index) => selectedIndices.indexOf(index) < 0);
+    if (selectedIndices.indexOf(0) >= 0) {
+      player.closed.unshift([]);
+    }
     player.opened = true;
     player.validity = [{}];
 
@@ -576,7 +579,7 @@ class ServerState {
     if (cardIds.indexOf(cardId) < 0) return false;
 
     let card = playersCards.filter(c => c.i === cardId)[0];
-    let newSections = player.closed.map(section => section.filter(c => c.i !== cardId)).filter(section => section.length > 0);
+    let newSections = player.closed.map(section => section.filter(c => c.i !== cardId)).filter((section, index) => index === 0 || section.length > 0);
 
     let hand = this.roundState.players[handPlayer].open[handIndex];
 

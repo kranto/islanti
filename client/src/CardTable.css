@@ -5,6 +5,7 @@
 	width: 69px;
 	height: 94px;
 	cursor: pointer;
+	border-radius: 8px;
 	transition: left 0.6s ease-in-out, top 0.6s ease-in-out, opacity 0.2s linear;
 }
 
@@ -263,6 +264,19 @@
 	overflow: visible;
 }
 
+.section {
+	display: flex;
+	flex-flow: row nowrap;
+	justify-content: center;
+	align-items: center;
+}
+
+.section .placeholder {
+	position: relative;
+	top: 3px;
+	border: 1px dashed darkgreen;	
+}
+
 .section .status-box{
 	position: relative;
 	float: right;
@@ -486,7 +500,6 @@
 	}
 	
 	.section, .new-section {
-		float: left;
 		height: 70px;
 		min-width: 10px;
 		margin: 5px 0px;
