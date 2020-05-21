@@ -44,6 +44,7 @@ var cards = (function() {
 				containment: ".CardTable",
 				start: () => {
 					this.dragging = true;
+					$(this.el).css({"z-index": 1000});
 					if (this.container && this.container.onDragStart) this.container.onDragStart(this);
 				},
 				drag: () => {
