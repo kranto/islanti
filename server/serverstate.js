@@ -158,7 +158,7 @@ class Connector  {
             open: state.phase === this.serverstate.TURN_ACTIVE && state.myTurn && !state.ownInfo.opened,
             complete: state.phase === this.serverstate.TURN_ACTIVE && state.myTurn && state.ownInfo.opened,
             discard: state.phase === this.serverstate.TURN_ACTIVE && state.myTurn,
-            reveal: state.phase === this.serverstate.ROUND_ENDED && !state.ownInfo.revealed && state.players.length > 0 && state.ownInfo.closed.length > 0,
+            reveal: state.phase === this.serverstate.ROUND_ENDED && !state.ownInfo.revealed && state.players.length > 0 && state.ownInfo.closed.flat().length > 0,
             startNextRound: state.phase === this.serverstate.ROUND_ENDED && this.imOwner && this.serverstate.game.roundNumber < 8,
             endGame: state.phase === this.serverstate.ROUND_ENDED && this.imOwner && this.serverstate.game.roundNumber === 8
           };
