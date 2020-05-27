@@ -33,12 +33,13 @@ var game = (function () {
       spacing: 30,
       isDraggable: true,
       onDrag: card => {
-        if (card.hoveringOnSection) {
-          let newIndex = card.hoveringOnSection.getNewIndex(card);
-          if (card.hoveringOnSection.indexToDrop !== newIndex) {
-            card.hoveringOnSection.indexToDrop = newIndex;
+        if (card.hoveringOnElement) {
+          let hoveringOnSection = $(card.hoveringOnElement).data("container");
+          let newIndex = hoveringOnSection.getNewIndex(card);
+          if (hoveringOnSection.indexToDrop !== newIndex) {
+            hoveringOnSection.indexToDrop = newIndex;
             card.el.css({"z-index": newIndex * 2});
-            card.hoveringOnSection.render();
+            hoveringOnSection.render();
           }
         }
       }
@@ -49,14 +50,14 @@ var game = (function () {
       drop: function (event, ui) {
         var card = ui.draggable.data('card');
         let index = section.indexToDrop !== undefined ? section.indexToDrop : section.getNewIndex(card);
-        card.hoveringOnSection = undefined;
+        card.hoveringOnElement = undefined;
         section.indexToDrop = undefined;
         newOrder(card, section, index);
       },
       over: (event, ui) => {
         var card = ui.draggable.data('card');
-        card.hoveringOnSection = section;
-        let newIndex = card.hoveringOnSection.getNewIndex(card);
+        card.hoveringOnElement = el;
+        let newIndex = section.getNewIndex(card);
         section.indexToDrop = newIndex;
         card.el.css({"z-index": newIndex * 2});
         section.render();
@@ -64,8 +65,8 @@ var game = (function () {
       },
       out: (event, ui) => {
         var card = ui.draggable.data('card');
-        if (card.hoveringOnSection === section) {
-          card.hoveringOnSection = undefined;
+        if (card.hoveringOnElement === el) {
+          card.hoveringOnElement = undefined;
           ui.draggable.css({"z-index": 1000});
         }
         section.indexToDrop = undefined;
