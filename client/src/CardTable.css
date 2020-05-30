@@ -254,11 +254,36 @@
 	margin-top: 20px;
 	margin-bottom: 10px;
 	margin-left: 0px;
+	border-top: 1px dotted darkgreen;
 
 	display: flex;
 	flex-flow: row wrap;
 	justify-content: flex-start;
 	align-items: center;
+}
+
+#bought-indicators {
+	position: relative;
+	align-self: start;
+	top: 0%;
+	left: 50%;
+	height: 10px;
+	transform: translateX(-50%) translateY(-50%);
+
+	display: flex;
+}
+
+.bought-indicator {
+	display: inline-block;
+	width: 10px;
+	height: 10px;
+	border-radius: 5px;
+	margin: 0px 5px;
+	border: 1px solid darkgreen;
+}
+
+.bought-indicator.used {
+	background-color: darkgreen;
 }
 
 .section, .new-section {
@@ -372,14 +397,12 @@
 }
 
 .hand-length {
-	/* height: 25px; */
 	width: 30px;
 	padding: 1px;
 	min-width: 15px;
 	position: absolute;
 	top: 50%;
 	left: 50%; 
-	/* calc(100% - 25px); */
 	text-align: center;
 	font-size: 1em;
 	font-weight: bold;
@@ -501,8 +524,6 @@
 	#my-closed-hand-sections {
 		margin-top: 0px;
 		margin-bottom: 0px;
-		/* margin-left: 0px; */
-		border-top: 1px dotted darkgreen;
 	}
 	
 	.section, .new-section {

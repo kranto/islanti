@@ -65,6 +65,13 @@ class CardTable extends Component {
     });
   }
 
+  createBoughtIndicators() {
+    if (!this.state.s.ownInfo) return "";
+    return <div id="bought-indicators">
+      {[0,1,2].map(i => <div key={i} className={"bought-indicator" + (this.state.s.ownInfo.bought > i ? " used": "")}></div>)}
+    </div>
+  }
+
   createMySections() {
     if (!this.state.s.ownInfo) return "";
     let sections = this.state.s.ownInfo.closed;
@@ -277,6 +284,7 @@ class CardTable extends Component {
           </div>
           {imGuest ? "" : (
             <div id="my-closed-hand-sections" className={"turn-indicator " + (this.state.s.ownInfo && this.state.s.ownInfo.inTurn ? "in-turn" : "")}>
+              {this.createBoughtIndicators()}
               {this.createMySections()}
               {this.state.s.can.reveal ? this.actionButton('light', 'Paljasta korttisi', 'reveal') : ""}
               <div id="newsection" className="new-section" style={{ visibility: (this.state.s.phase >= 2 && this.state.s.phase <= 4) ? "visible" : "hidden" }}><div>+</div></div>
