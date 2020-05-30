@@ -242,6 +242,12 @@
 	transition-delay: 0ms;
 }
 
+#pile.canBuy {
+	border-style: solid;
+	border-color: darkorange;
+	background-color: rgb(248, 175, 86);
+}
+
 #my-closed-hand-sections {
 	overflow: visible;
 	border-radius: 10px;

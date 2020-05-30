@@ -262,7 +262,11 @@ class CardTable extends Component {
           </div>
           <div id="deckrow">
             <div id="deck" className={this.state.s.can.pick ? "canDrag" : ""}></div>
-            <div id="pile" className={(this.state.s.can.pick ? "canDrag" : "") + (this.state.s.can.discard ? " canDrop" : "")}></div>
+            <div id="pile" className={
+              (this.state.s.can.pick ? "canDrag" : "") + 
+              (this.state.s.can.discard ? " canDrop" : "") +
+              (this.state.s.can.buy ? " canBuy" : "")
+              }></div>
             <div id="controls2">
               {this.createControls2()}
             </div>
