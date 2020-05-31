@@ -270,7 +270,7 @@
 	height: 10px;
 	width: 0px;
 	overflow: visible;
-	transform: translateX(-60px) translateY(-50%);
+	transform: translateX(-30px) translateY(-50%);
 
 	display: flex;
 }
