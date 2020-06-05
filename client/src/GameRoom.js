@@ -51,9 +51,8 @@ class GameRoom extends Component {
   loadAllCardImages = () => {
     let cardnames = ["s", "h", "d", "c"].map(s => [1,2,3,4,5,6,7,8,9,10,11,12,13].map(r => s + r)).flat()
     .concat(["r0", "b0", "cardback_blue", "cardback_red"]);
-    console.log(cardnames);
     return (<div>
-      {cardnames.map(cn => <img src={"svg/" + cn + ".svg"} style={{width: "10px", heigth: "10px"}}></img>)}
+      {cardnames.map((cn, i) => <img key={i} src={"svg/" + cn + ".svg"} style={{width: "10px", heigth: "10px"}}></img>)}
     </div>)
     return "";
   }
