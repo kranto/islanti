@@ -10,7 +10,6 @@ services:
       - ./data/nginx:/etc/nginx/conf.d
       - ./data/certbot/conf:/etc/letsencrypt
       - ./data/certbot/www:/var/www/certbot
-      - /home/korona/koronabot/www:/var/www/koronabot
     ports:
       - "${NGINX_PORT}:80"
       - "${NGINX_PORT_SSL}:443"
@@ -36,4 +35,11 @@ services:
       - MONGO_ADDRESS=mongodb://mongo:27017/
     volumes:
       - ${CLIENT_APP_DIR}:/usr/src/app/client
+  certbot:
+    image: certbot/certbot
+    restart: unless-stopped
+    volumes:
+      - ./data/certbot/conf:/etc/letsencrypt
+      - ./data/certbot/www:/var/www/certbot
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
 
