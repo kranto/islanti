@@ -1,4 +1,0 @@
-COMPOSE_FILE=docker-compose.prod.yml
-NGINX_PORT=80
-NGINX_PORT_SSL=443
-CLIENT_APP_DIR=/home/islanti/islanti-client

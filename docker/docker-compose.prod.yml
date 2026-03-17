@@ -23,21 +23,8 @@ services:
   mongo:
     image: mongo:3.6-xenial
     restart: unless-stopped
-    # environment:
-      # MONGO_INITDB_ROOT_USERNAME: root
-      # MONGO_INITDB_ROOT_PASSWORD: rootpassword
     volumes:
       - ./data/mongo:/data/db
-        #ports:
-        #- "27017:27017"
-        #  mongo:
-        #    image: andresvidal/rpi3-mongodb3
-        #restart: unless-stopped
-        #volumes:
-        #- ./data/mongo:/data/db
-        #ports:
-        #- "27017:27017"
-        #command: ["mongod", "--journal"]
   server-app:
     build: ../server
     restart: unless-stopped
