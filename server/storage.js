@@ -8,8 +8,6 @@ let init = async (url) => {
   url = url || defaultURL;
   let client = await MongoClient.connect(url, { useUnifiedTopology: true });
   db = await client.db("islanti");
-  //await db.createCollection("roundstate");
-  //await db.createCollection("game");
   console.log('storage initialized');
 }
 
