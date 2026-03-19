@@ -1,19 +1,24 @@
-FROM node:13
+FROM node:13 as dependencies
 
 # Create app directory
-WORKDIR /usr/src/app
+WORKDIR /app
 
 # Install app dependencies
-# A wildcard is used to ensure both package.json AND package-lock.json are copied
-# where available (npm@5+)
 COPY ./package*.json ./
+RUN npm ci
 
-RUN npm install
 
-# If you are building your code for production
-RUN npm ci --only=production
+## --
 
-# Bundle app source
+FROM node:13 as server
+
+# Create app directory
+WORKDIR /app
+
+COPY ./package*.json ./
+COPY --from=dependencies /app/node_modules .
+
+# Copy src
 COPY . .
 
 EXPOSE 4000

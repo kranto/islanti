@@ -2,11 +2,8 @@ version: '3'
 
 services:
   mongo:
-    image: mongo:latest
+    image: mongo:3.6-xenial
     restart: unless-stopped
-    # environment:
-      # MONGO_INITDB_ROOT_USERNAME: root
-      # MONGO_INITDB_ROOT_PASSWORD: rootpassword
     volumes:
       - ./data/mongo:/data/db
     ports:
@@ -14,10 +11,9 @@ services:
   client-app:
     image: kranto/islanti-client:latest
     build: 
-      context: ../client/build
-      dockerfile: ../Dockerfile
+      context: ../client
     volumes:
-      - client-app:/var/www    
+      - client-app:/app/client/build
   server-app:
     image: kranto/islanti-server:latest
     build: ../server
@@ -27,7 +23,7 @@ services:
     environment:
       - MONGO_ADDRESS=mongodb://mongo:27017/
     volumes:
-      - client-app:/usr/src/app/client
+      - client-app:/app/client
 
 volumes:
   client-app:
