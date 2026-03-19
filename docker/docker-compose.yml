@@ -6,13 +6,11 @@ services:
     restart: unless-stopped
     volumes:
       - ./data/mongo:/data/db
-    ports:
-      - "27017:27017"
   client-app:
     image: kranto/islanti-client:latest
     build: 
       context: ../client
-    command: true
+    command: /bin/bash -c exit
     volumes:
       - client-app:/app/client/build
   server-app:
