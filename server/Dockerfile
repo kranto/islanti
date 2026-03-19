@@ -20,7 +20,6 @@ COPY --from=dependencies /app/node_modules ./node_modules
 
 # Copy src
 COPY ./*.js .
-COPY ./*.html .
 
 EXPOSE 4000
 CMD [ "node", "index.js" ]
