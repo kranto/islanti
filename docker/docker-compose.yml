@@ -12,12 +12,15 @@ services:
     image: kranto/islanti-client:latest
     build: 
       context: ../client
+    command: true
     volumes:
       - client-app:/app/client/build
   server-app:
     image: kranto/islanti-server:latest
     build: ../server
     restart: unless-stopped
+    depends_on:
+      - mongo
     ports:
       - "4000:4000"
     environment:
