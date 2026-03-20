@@ -16,10 +16,10 @@ FROM node:13 as server
 WORKDIR /app
 
 COPY ./package*.json ./
-COPY --from=dependencies /app/node_modules ./node_modules
+COPY --from=dependencies /app/node_modules ./node_modules/
 
 # Copy src
-COPY ./*.js .
+COPY ./*.js ./
 
 EXPOSE 4000
 CMD [ "node", "index.js" ]
