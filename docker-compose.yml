@@ -1,0 +1,19 @@
+version: '3'
+
+services:
+  mongo:
+    image: mongo:3.6-xenial
+    restart: unless-stopped
+    volumes:
+      - ./data/mongo:/data/db
+  server-app:
+    build:
+      # context: .
+      target: server-app
+    restart: unless-stopped
+    depends_on:
+      - mongo
+    ports:
+      - "4000:4000"
+    environment:
+      - MONGO_ADDRESS=mongodb://mongo:27017/
