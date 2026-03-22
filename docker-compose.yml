@@ -8,8 +8,7 @@ services:
       - ./data/mongo:/data/db
   server-app:
     build:
-      # context: .
-      target: server-app
+      context: .
     restart: unless-stopped
     depends_on:
       - mongo
