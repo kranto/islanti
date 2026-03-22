@@ -37,8 +37,10 @@ const getHumanFriendlyTime = (dateStr) => {
     return date.getHours() + "." + pad(date.getMinutes(),2);
   } else if (delta < 2 * 24 * 3600 && now.getDate() === date.getDate() + 1) {
     return "eilen";
-  } else {
+  } else if (delta < 365 * 24 * 3600) {
     return date.getDate() + "." + (date.getMonth()+1) + ".";
+  } else {
+    return date.getDate() + "." + (date.getMonth()+1) + "." + date.getFullYear();
   }
 };
 
